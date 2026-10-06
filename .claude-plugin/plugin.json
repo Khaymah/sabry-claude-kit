@@ -1,0 +1,6 @@
+{
+  "name": "sabry-kit",
+  "version": "0.1.0",
+  "description": "Sabry's personal cross-project setup: CTO+PM mindset rules (injected at session start), role agents, commands, and the opus + commit-style enforcement hooks. Portable across every project, local and cloud.",
+  "author": { "name": "Sabry Dawood" }
+}

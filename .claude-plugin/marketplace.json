@@ -1,0 +1,11 @@
+{
+  "name": "sabry-kit",
+  "owner": { "name": "Sabry Dawood" },
+  "plugins": [
+    {
+      "name": "sabry-kit",
+      "source": "./",
+      "description": "Sabry's personal cross-project setup: rules, agents, commands, enforcement hooks."
+    }
+  ]
+}
