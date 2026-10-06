@@ -1,41 +1,58 @@
 ---
 name: self-maintain
-description: Keep Sabry's agents and rules current - review them against the latest Claude Code best practices and his accumulated learnings, then open a PR with focused, justified improvements. Never auto-merges. Run on a schedule (claude.ai routine) or on demand.
+description: صيانة ذاتية مُراجَعة لعدّة sabry-kit — يقرأ آخر best practices وملاحظات إصدارات Claude Code من المصدر الرسمي، يراجع الـ rules والـ agents والـ commands والـ hooks، ويفتح PR بتحسينات مبرّرة بدون دمج تلقائي. استخدمه عند `/sabry-kit:self-maintain` أو من الـ Routine الأسبوعي.
 ---
 
-# الصيانة الذاتية لـ sabry-kit
+# self-maintain — صيانة sabry-kit الذاتية (مُراجَعة، بلا دمج تلقائي)
 
-الهدف: إبقاء الـ `agents/` و `rules/` على **أحدث أفضل الممارسات** — بمراجعة وPR، **بلا auto-merge أبداً**.
-إعدادات Sabry بتأثّر على كل شغله، فأي تغيير لازم يعدّي بمراجعته.
+هدف المهارة: تخلّي عدّة `sabry-kit` (rules · agents · commands · hooks) **على أحدث ممارسات Claude Code**
+بشكل مستمر، **من غير ما تغيّر سلوكك من غير إذن**. المخرَج دايماً **PR للمراجعة** — القرار النهائي ليك.
 
-## المصادر اللي تقرأها أول
+## القاعدة الحاكمة
 
-1. **تحديثات Claude Code وأفضل ممارساته:**
-   - `WebFetch` على `https://code.claude.com/docs/en/release-notes` (أحدث التغييرات).
-   - صفحات docs اللي تخص ما تبنيه: `sub-agents`, `skills`, `hooks`, `plugins`, `memory`, `settings`.
-2. **دروس Sabry المتراكمة (في نفس الريبو):**
-   - `AGENT_LEARNINGS.md`
-   - `agent-memory/` (+ أي ذاكرة من plugin `remember`)
-   - `Anti-patterns/`, `Patterns/`, `Decisions/`
+- **ممنوع الدمج التلقائي.** المهارة تفتح PR وتقف. أنت اللي تراجع وتدمج.
+- **ممنوع التخمين.** أي تغيير لازم يكون مبنيّ على **مصدر موثّق اتقرا فعلاً** في نفس التشغيلة، مش من الذاكرة.
+  لو مش لاقي ما يبرّر تغيير — ماتعملوش.
+- **تغييرات مركّزة وصغيرة.** كل تغيير له سبب سطر واحد مربوط بمصدره. مفيش refactor واسع ولا إعادة صياغة بلا داعٍ.
+- **احترم قواعد Sabry:** رسائل الـ commit والـ PR **إنجليزي**، **بلا أي نسبة لـ AI** (لا `Co-Authored-By`
+  ولا `Generated with`)، وأي subagent تستدعيه `model: opus` صراحةً.
+
+## المصادر الموثّقة (اقرأها، لا تفترضها)
+
+1. **ملاحظات الإصدارات الرسمية = `CHANGELOG.md` في GitHub:**
+   `https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md`
+   (صفحة الـ docs الرسمية للـ release notes بتعمل redirect عليه مباشرةً — فهو المصدر الوحيد الموثوق.)
+   اقرأ منه الإصدارات **الأحدث من آخر صيانة** بس: ميزات/إعدادات/هوكس جديدة قد تخصّ العدّة.
+2. **وثائق Claude Code:** `https://docs.claude.com/en/docs/claude-code` — لتفاصيل أي ميزة ظهرت في الـ CHANGELOG.
+   (لو أي لينك رجّع 404 → اعتبره غير موجود وما تبنيش عليه.)
+3. **ذاكرة العدّة نفسها (locally in this repo):** `AGENT_LEARNINGS.md` · `agent-memory/` · `Patterns/` ·
+   `Anti-patterns/` · `Decisions/` — دروس وأنماط Sabry المتراكمة.
+
+> لو تعذّر الوصول للشبكة في التشغيلة دي، اعتمد على المصادر المحلية (٣) فقط، وقل ده صراحةً في الـ PR،
+> وما تخترعش محتوى من إصدارات ما قدرتش تقراها.
 
 ## الخطوات
 
-1. اقرأ المصادر أعلاه وحدّد ما الجديد/المتغيّر فعلاً من آخر مراجعة.
-2. لكل ملف في `agents/` و `rules/`: قيّمه مقابل الجديد + الدروس. حدّد **تحسين محدد** (سلوك/دقة/مواكبة ميزة جديدة) — **مش تجميل**.
-3. طبّق التعديلات على فرع جديد `self-maintain/<YYYY-MM-DD>`.
-4. افتح **PR** على `sabrydawood/sabry-claude-kit`:
-   - العنوان والجسم **بالإنجليزي**.
-   - الجسم: فقرة Before وفقرة After، وبند لكل تغيير بسببه ومصدره (release note / درس).
-5. **ممنوع auto-merge** — استنى مراجعة Sabry ودمجه.
+1. **حدّد نطاق «الجديد».** هات آخر تاريخ صيانة من آخر PR بعنوان `self-maintain:` (أو من ملف `.self-maintain-last`
+   لو موجود). اقرأ من الـ CHANGELOG الإصدارات الأحدث منه فقط.
+2. **راجع كل أصل في العدّة** مقابل الجديد + الذاكرة المحلية:
+   - `rules/*.md` — في قاعدة بقت قديمة/ناقصة قدّام ميزة أو best practice جديدة؟
+   - `agents/*` — وصف/أدوات/نموذج أي agent محتاج تحديث؟ (النموذج يفضل opus.)
+   - `commands/*` · `hooks/*` — في آلية رسمية أحدث أو أنضف؟
+3. **طبّق تغييرات مركّزة ومبرّرة فقط.** كل تغيير = سبب + المصدر (رقم إصدار CHANGELOG أو لينك docs أو ملف ذاكرة).
+   التزم بقواعد المشروع: PascalCase، ≤600 سطر، بلا `any`. شغّل أي فحص متاح (مثلاً `python3 hooks/test_enforce_commit_style.py`
+   لو لمست هوك الـ commit).
+4. **لو مفيش ما يستحق التغيير** — ماتفتحش PR فاضي. حدّث `.self-maintain-last` بتاريخ النهاردة، سجّل سطر في
+   `Plan/Progress`/الذاكرة إن لزم، وقول «مفيش جديد يستحق هذه الدورة».
+5. **افتح PR** (لو في تغييرات):
+   - فرع: `self-maintain/<YYYY-MM-DD>`.
+   - رسائل commit إنجليزي، بلا نسبة لـ AI.
+   - وصف الـ PR بالإنجليزي بصيغة **Before/After** + فقرة **How** + **قائمة لكل تغيير مع سببه ومصدره**.
+   - العنوان: `self-maintain: <YYYY-MM-DD>`.
+   - **بلاش دمج.** سيب القرار لـ Sabry، وبلّغه بسطر إن في PR صيانة جاهز للمراجعة.
+6. **لو فتحت PR**، تابعه للأخضر (CI) لكن **من غير دمج**.
 
-## حدود صارمة (قواعد Sabry)
+## تشغيل
 
-- **لا نسبة لـ AI في git** (لا `Co-Authored-By` ولا `Generated with`) — رسائل commit/PR إنجليزي.
-- كل agent يفضل `model: opus` في الـ frontmatter.
-- تغييرات **مركّزة ومبرّرة فقط**. لو مفيش تحسين حقيقي النهاردة → **اقفل بلا PR** وبلّغ بسطر واحد: "مفيش تحديث مطلوب".
-- ماتلمسش ملفات الحساب الشخصية (`.claude.json`, `settings.json`) — المهمة على `agents/` و `rules/` بس (و`commands/` لو لزم).
-
-## التشغيل
-
-- يدوي: `/sabry-kit:self-maintain`.
-- مجدول: روتين claude.ai أسبوعي على الريبو ده، مهمته سطر واحد: `Run /sabry-kit:self-maintain`.
+- يدوي: `/sabry-kit:self-maintain`
+- أسبوعي: Routine كلاود على ريبو `sabry-claude-kit` بيشغّل نفس الأمر ويفتح PR للمراجعة.
