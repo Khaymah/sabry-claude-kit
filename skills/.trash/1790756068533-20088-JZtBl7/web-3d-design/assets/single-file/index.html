@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Asme — Built for the curious</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&display=swap" rel="stylesheet" />
+<!-- Pinned three.js as ES modules. jsDelivr is on the allow-list for published claude.ai pages. -->
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.186.1/examples/jsm/"
+} }
+</script>
+<style>
+  :root { --display: "Instrument Serif", Georgia, serif; --sans: "Geist", system-ui, sans-serif; }
+  * { box-sizing: border-box; margin: 0; }
+  html { background: #000; color: #fff; font-family: var(--sans); -webkit-font-smoothing: antialiased; }
+  body { padding-bottom: env(safe-area-inset-bottom, 0px); }
+  .glow { position: fixed; inset: 0; pointer-events: none;
+    background: radial-gradient(55% 45% at 50% 70%, rgba(52,58,110,.42), transparent 72%); }
+  #scene { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; display: block; }
+  main { position: relative; z-index: 1; }
+  section { min-height: 100svh; padding: 0 24px; }
+  h1, h2 { font-family: var(--display); font-weight: 400; text-wrap: balance; }
+  h1 { font-size: clamp(44px, 7vw, 76px); letter-spacing: -0.02em; }
+  h2 { font-size: clamp(36px, 4.5vw, 52px); line-height: 1.1; }
+  p { color: rgba(255,255,255,.7); line-height: 1.6; }
+
+  .liquid-glass { background: rgba(255,255,255,.01); background-blend-mode: luminosity;
+    backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+    box-shadow: inset 0 1px 1px rgba(255,255,255,.1); position: relative; overflow: hidden; border: 0; }
+  .liquid-glass::before { content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1.4px;
+    background: linear-gradient(180deg, rgba(255,255,255,.45) 0%, rgba(255,255,255,.15) 20%, rgba(255,255,255,0) 40%,
+      rgba(255,255,255,0) 60%, rgba(255,255,255,.15) 80%, rgba(255,255,255,.45) 100%);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none; }
+
+  nav { position: fixed; inset: 0 0 auto; z-index: 2; padding: max(16px, env(safe-area-inset-top)) 16px 16px; }
+  nav > div { max-width: 1024px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between;
+    border-radius: 999px; padding: 10px 10px 10px 22px; }
+  .brand { color: #fff; text-decoration: none; font-weight: 600; font-size: 18px; }
+  .pill { background: #fff; color: #000; border-radius: 999px; padding: 9px 20px; font: 500 14px var(--sans); text-decoration: none; }
+
+  .hero { display: flex; flex-direction: column; align-items: center; text-align: center; padding-top: 22svh; }
+  .hero p { max-width: 28rem; margin-top: 20px; }
+  form { display: flex; align-items: center; gap: 12px; border-radius: 999px; padding: 8px 8px 8px 24px;
+    width: 100%; max-width: 28rem; margin-top: 32px; }
+  input { flex: 1; min-width: 0; background: transparent; border: 0; outline: 0; color: #fff; font: 16px var(--sans); }
+  input::placeholder { color: rgba(255,255,255,.4); }
+  button { background: #fff; color: #000; border: 0; border-radius: 999px; width: 44px; height: 44px; cursor: pointer;
+    display: grid; place-items: center; font-size: 20px; }
+  :focus-visible { outline: 2px solid rgba(255,255,255,.7); outline-offset: 3px; }
+
+  .issues { display: flex; align-items: center; }
+  .issues > div { width: 100%; max-width: 1024px; margin: 0 auto; }
+  .issues .copy { max-width: 26rem; }
+  .issues dl { margin-top: 40px; display: grid; gap: 28px; }
+  dt { font-weight: 500; } dd { margin-top: 4px; color: rgba(255,255,255,.65); font-size: 14px; line-height: 1.6; }
+  .join { display: flex; flex-direction: column; justify-content: flex-end; align-items: center; text-align: center; padding-bottom: 64px; }
+  .join .copy { max-width: 28rem; width: 100%; } .join form { margin-inline: auto; }
+
+  @media (max-width: 767px) { .issues .copy { margin-top: 34svh; } }
+</style>
+</head>
+<body>
+<div class="glow" aria-hidden="true"></div>
+<canvas id="scene" aria-hidden="true"></canvas>
+
+<nav><div class="liquid-glass">
+  <a class="brand" href="#top">Asme</a>
+  <a class="pill" href="#join">Subscribe</a>
+</div></nav>
+
+<main>
+  <section id="top" class="hero" data-stop>
+    <h1>Built for the curious</h1>
+    <p>One idea a week, taken apart until it makes sense. Free, in your inbox every Sunday.</p>
+    <form class="liquid-glass" onsubmit="event.preventDefault()">
+      <label for="e1" hidden>Email address</label>
+      <input id="e1" type="email" placeholder="Enter your email" required />
+      <button aria-label="Subscribe">&rarr;</button>
+    </form>
+  </section>
+
+  <section id="issues" class="issues" data-stop><div><div class="copy">
+    <h2>Turned over until it makes sense</h2>
+    <dl>
+      <div><dt>One idea per issue</dt><dd>No roundup of links. A single question, followed all the way down.</dd></div>
+      <div><dt>Sources you can check</dt><dd>Every claim links to where it came from, so you can keep digging.</dd></div>
+      <div><dt>Readable in one sitting</dt><dd>About ten minutes. Long enough to learn something, short enough to finish.</dd></div>
+    </dl>
+  </div></div></section>
+
+  <section id="join" class="join" data-stop><div class="copy">
+    <h2>Start with next Sunday</h2>
+    <p style="margin-top:16px;font-size:14px">Written by people who read too much, for people who ask why too often.</p>
+    <form class="liquid-glass" onsubmit="event.preventDefault()">
+      <label for="e2" hidden>Email address</label>
+      <input id="e2" type="email" placeholder="Enter your email" required />
+      <button aria-label="Subscribe">&rarr;</button>
+    </form>
+  </div></section>
+</main>
+
+<script type="module">
+import * as THREE from "three";
+import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
+
+const canvas = document.getElementById("scene");
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+let renderer;
+try {
+  renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: "high-performance" });
+} catch {
+  canvas.remove(); // no WebGL: the page is still complete without the scene
+}
+
+if (renderer) {
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 1.75));
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 50);
+  camera.position.set(0, 0, 6);
+
+  // Procedural reflections (no HDR download), tinted cool/warm with two coloured area panels.
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  const room = new RoomEnvironment();
+  const panel = (color, x, y, z, ry) => {
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(4, 6), new THREE.MeshBasicMaterial({ color, side: THREE.DoubleSide }));
+    m.position.set(x, y, z); m.rotation.y = ry; room.add(m);
+  };
+  panel(new THREE.Color("#a9c8ff").multiplyScalar(4), -6, 3, 3, Math.PI / 3);
+  panel(new THREE.Color("#ffb8d2").multiplyScalar(3), 6, 0, -2, -Math.PI / 2.4);
+  scene.environment = pmrem.fromScene(room, 0.03).texture;
+
+  const ring = new THREE.Mesh(
+    new THREE.TorusGeometry(1, 0.42, ...(innerWidth / innerHeight < 0.8 ? [48, 96] : [96, 192])), // lighter on phones
+    new THREE.MeshPhysicalMaterial({
+      color: "#cfd3e6", metalness: 0.92, roughness: 0.2, iridescence: 1, iridescenceIOR: 1.35,
+      iridescenceThicknessRange: [100, 900], clearcoat: 1, clearcoatRoughness: 0.12, envMapIntensity: 1.3,
+    }),
+  );
+  scene.add(ring);
+
+  // One pose per [data-stop] section: [x, y, z, rotX, rotY, rotZ, scale]
+  const DESKTOP = [[0, -0.95, 0, 1.05, 0, 0.35, 0.82], [1.55, 0.05, 0, 0.35, 0.75, -0.2, 0.9], [0, 0.62, -0.4, 1.2, 3.6, 0.25, 0.55]];
+  const PORTRAIT = [[0, -0.95, 0, 1.05, 0, 0.35, 0.5], [0, 0.88, -0.6, 0.35, 0.75, -0.2, 0.4], [0, 0.85, -0.6, 1.2, 3.6, 0.25, 0.42]];
+
+  let centers = [], stop = 0, poses = DESKTOP;
+  const measure = () => {
+    centers = [...document.querySelectorAll("[data-stop]")].map((el) => {
+      const r = el.getBoundingClientRect(); return r.top + scrollY + r.height / 2;
+    });
+    onScroll();
+  };
+  const onScroll = () => {
+    const c = scrollY + innerHeight / 2;
+    stop = 0;
+    for (let i = 0; i < centers.length - 1; i++) {
+      if (c > centers[i]) stop = Math.min(i + (c - centers[i]) / (centers[i + 1] - centers[i]), centers.length - 1);
+    }
+  };
+  const resize = () => {
+    const w = innerWidth, h = innerHeight;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h; camera.updateProjectionMatrix();
+    poses = w / h < 0.8 ? PORTRAIT : DESKTOP;
+    measure();
+  };
+  addEventListener("resize", resize); addEventListener("scroll", onScroll, { passive: true });
+  // Web fonts and images change section heights after first paint: re-measure whenever the page resizes.
+  new ResizeObserver(measure).observe(document.body);
+  resize();
+
+  const pointer = { x: 0, y: 0 };
+  addEventListener("pointermove", (e) => { pointer.x = (e.clientX / innerWidth) * 2 - 1; pointer.y = -((e.clientY / innerHeight) * 2 - 1); }, { passive: true });
+
+  const target = new Array(7).fill(0);
+  const sample = () => {
+    const i = Math.max(0, Math.min(Math.floor(stop), poses.length - 2));
+    const t = THREE.MathUtils.smoothstep(stop - i, 0, 1);
+    for (let k = 0; k < 7; k++) target[k] = THREE.MathUtils.lerp(poses[i][k], poses[i + 1][k], t);
+  };
+  sample();
+  ring.position.set(target[0], target[1], target[2]);
+  ring.rotation.set(target[3], target[4], target[5]);
+  ring.scale.setScalar(reduced ? target[6] : target[6] * 0.7);
+
+  const clock = new THREE.Clock();
+  renderer.setAnimationLoop(() => {
+    const dt = Math.min(clock.getDelta(), 0.1), time = clock.elapsedTime;
+    sample();
+    const lambda = reduced ? 1000 : 3.5, d = THREE.MathUtils.damp;
+    const idle = reduced ? 0 : time * 0.12, tx = reduced ? 0 : pointer.y * 0.15, ty = reduced ? 0 : pointer.x * 0.25;
+    ring.position.set(d(ring.position.x, target[0], lambda, dt), d(ring.position.y, target[1], lambda, dt), d(ring.position.z, target[2], lambda, dt));
+    ring.rotation.set(d(ring.rotation.x, target[3] + tx, lambda, dt), d(ring.rotation.y, target[4] + idle + ty, lambda, dt), d(ring.rotation.z, target[5], lambda, dt));
+    ring.scale.setScalar(d(ring.scale.x, target[6], lambda, dt));
+    renderer.render(scene, camera);
+  });
+}
+</script>
+</body>
+</html>

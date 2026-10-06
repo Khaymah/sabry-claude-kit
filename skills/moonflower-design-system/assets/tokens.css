@@ -1,0 +1,169 @@
+/* ==========================================================================
+   Moonflower Cosmetics — design tokens
+   Arabic-first (RTL) beauty e-commerce landing system.
+   Scale: 1440px artboard, 1200px content container.
+   ========================================================================== */
+
+@import url("https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=Inter:wght@500;700&display=swap");
+
+:root {
+  /* ---------- Brand purple (dusty violet) ---------- */
+  --mf-purple-50:  #F6F3FF; /* arch product card fill, tinted wells            */
+  --mf-purple-100: #E0DDEA; /* hairline borders on light surfaces              */
+  --mf-purple-200: #DAD6E3; /* muted panel ("before" comparison panel)         */
+  --mf-purple-300: #CBC5DB; /* card shadow tint, outlines on purple            */
+  --mf-purple-400: #968AB6; /* decorative only (sparkles, dividers on purple)   */
+  --mf-purple-500: #7566A0; /* BRAND: header, hero, footer, icons, buttons     */
+  --mf-purple-600: #5F4E91; /* hover / pressed on brand fills                  */
+  --mf-purple-700: #4A3C78; /* brand-colored text on tinted surfaces           */
+
+  /* ---------- Neutrals ---------- */
+  --mf-white: #FFFFFF;
+  --mf-ink:   #1B1A1A; /* headings and body on white (warm near-black) */
+  --mf-stone: #6B6765; /* secondary text, subtitles                    */
+  --mf-pebble:#B5B2B0; /* placeholders on white, inactive stars        */
+
+  /* ---------- Accent ---------- */
+  --mf-amber: #F88820; /* rating stars (graphic only)                  */
+  --mf-amber-strong: #D66A00; /* star outline / when 3:1 is required    */
+
+  /* ---------- Semantic aliases (use these in components) ---------- */
+  --color-brand:          var(--mf-purple-500);
+  --color-brand-hover:    var(--mf-purple-600);
+  --color-page:           var(--mf-white);
+  --color-surface:        var(--mf-white);
+  --color-surface-tint:   var(--mf-purple-50);
+  --color-surface-muted:  var(--mf-purple-200);
+  --color-border:         var(--mf-purple-100);
+  --color-border-on-brand:var(--mf-purple-300);
+  --color-rating:         var(--mf-amber);
+
+  --text-primary:   var(--mf-ink);
+  --text-secondary: var(--mf-stone);
+  --text-brand:     var(--mf-purple-500); /* 5.0:1 on white, 4.6:1 on tint; use 700 on the muted panel */
+  --text-on-brand:  var(--mf-white);
+  --text-placeholder: var(--mf-stone);
+
+  /* ---------- Typography ---------- */
+  --font-arabic: "Tajawal", "IBM Plex Sans Arabic", "Segoe UI", Tahoma, sans-serif;
+  --font-latin:  "Inter", "Helvetica Neue", Arial, sans-serif; /* Latin brand words inside Arabic headings */
+  --font-sans:   var(--font-arabic);
+
+  /*            size / line-height / weight */
+  --type-display:  800 44px/1.5 var(--font-sans); /* hero H1                          */
+  --type-h2:       800 40px/1.4 var(--font-sans); /* section titles                   */
+  --type-h3:       700 34px/1.5 var(--font-sans); /* split-section heading            */
+  --type-title:    700 24px/1.4 var(--font-sans); /* card titles, product names       */
+  --type-lead-xl:  400 32px/1.9 var(--font-sans); /* split-section paragraph          */
+  --type-lead:     400 24px/1.75 var(--font-sans);/* hero paragraph, comparison copy  */
+  --type-nav:      700 20px/1.3 var(--font-sans); /* nav, footer links                */
+  --type-subtitle: 400 20px/1.6 var(--font-sans); /* under section titles             */
+  --type-body:     400 18px/1.7 var(--font-sans); /* card body, testimonials          */
+  --type-small:    400 16px/1.7 var(--font-sans); /* footer paragraph, names          */
+  --type-label:    700 14px/1   var(--font-sans); /* pills, badges                    */
+
+  /* ---------- Radii ---------- */
+  --radius-sm:   8px;   /* inputs                          */
+  --radius-md:   16px;  /* buttons, comparison labels      */
+  --radius-lg:   24px;  /* feature & testimonial cards, page frame */
+  --radius-xl:   40px;  /* comparison panels               */
+  --radius-pill: 999px; /* search, add-to-cart pill, dots  */
+  /* Arch: top corners = half the card width. Apply with .mf-arch. */
+
+  /* ---------- Shadows ---------- */
+  /* Direction-aware: in RTL the shadow falls to the LEFT (light from top-right). */
+  --shadow-dir: -1;
+  --shadow-card:
+    calc(var(--shadow-dir) * 6px) 8px 14px -4px rgba(117, 102, 160, 0.32),
+    0 1px 0 rgba(117, 102, 160, 0.06);
+  --shadow-card-hover:
+    calc(var(--shadow-dir) * 10px) 14px 24px -6px rgba(117, 102, 160, 0.38);
+  --shadow-heading: 0 4px 4px rgba(0, 0, 0, 0.18); /* section H2 only */
+  --shadow-avatar-ring: 0 0 0 5px var(--mf-purple-500);
+
+  /* ---------- Spacing (8px base) ---------- */
+  --space-1: 4px;  --space-2: 8px;   --space-3: 12px;  --space-4: 16px;
+  --space-5: 24px; --space-6: 32px;  --space-7: 48px;  --space-8: 64px;
+  --space-9: 96px; --space-10: 120px;
+
+  /* ---------- Layout ---------- */
+  --container: 1200px;
+  --gutter: 32px;            /* grid gap between cards      */
+  --section-y: 120px;        /* vertical space between sections */
+  --section-title-gap: 64px; /* title block → content       */
+  --topbar-h: 64px;
+  --navbar-h: 68px;
+
+  /* ---------- Motion ---------- */
+  --ease: cubic-bezier(0.25, 0.8, 0.3, 1);
+  --dur-fast: 150ms;
+  --dur-base: 250ms;
+}
+
+[dir="ltr"] { --shadow-dir: 1; }
+
+/* ==========================================================================
+   Base + signature utilities
+   ========================================================================== */
+
+.mf-page {
+  font-family: var(--font-sans);
+  color: var(--text-primary);
+  background: var(--color-page);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.mf-container { width: min(var(--container), 100% - 2 * var(--space-5)); margin-inline: auto; }
+
+.mf-latin { font-family: var(--font-latin); letter-spacing: -0.01em; }
+
+/* Section title with the soft drop shadow from the source design. */
+.mf-section-title {
+  font: var(--type-h2);
+  text-align: center;
+  text-shadow: var(--shadow-heading);
+  margin: 0;
+}
+
+/* White card with lavender hairline and offset lavender shadow. */
+.mf-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+}
+
+/* Arched top (product tiles). Width must be set on the element. */
+.mf-arch {
+  aspect-ratio: 285 / 315;
+  background: var(--color-surface-tint);
+  border: 1px solid var(--color-border);
+  border-bottom: 4px solid var(--mf-purple-300);
+  border-radius: 50% 50% 0 0 / 45% 45% 0 0;
+}
+
+/* Filled brand circle with a white glyph (feature icons). */
+.mf-icon-disc {
+  display: inline-grid; place-items: center;
+  width: 96px; height: 96px; border-radius: 50%;
+  background: var(--color-brand); color: var(--text-on-brand);
+}
+.mf-icon-disc svg { width: 44px; height: 44px; fill: currentColor; }
+
+/* Brand block with the wavy bottom edge (hero). */
+.mf-wave-bottom {
+  -webkit-mask: linear-gradient(#000 0 0) top / 100% calc(100% - 79px) no-repeat,
+                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 80' preserveAspectRatio='none'%3E%3Cpath d='M0 0h1440v58c-120 14-230 22-360 14-170-10-270-50-430-50C470 22 330 70 170 66 100 64 40 52 0 40z'/%3E%3C/svg%3E") bottom / 100% 80px no-repeat;
+          mask: linear-gradient(#000 0 0) top / 100% calc(100% - 79px) no-repeat,
+                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 80' preserveAspectRatio='none'%3E%3Cpath d='M0 0h1440v58c-120 14-230 22-360 14-170-10-270-50-430-50C470 22 330 70 170 66 100 64 40 52 0 40z'/%3E%3C/svg%3E") bottom / 100% 80px no-repeat;
+}
+
+:where(a, button, input, [tabindex]):focus-visible {
+  outline: 3px solid var(--mf-purple-300);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}

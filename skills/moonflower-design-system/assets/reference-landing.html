@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>مون فلاور — صفحة مرجعية لنظام التصميم</title>
+<link rel="stylesheet" href="./tokens.css" />
+<style>
+  * { box-sizing: border-box; }
+  body.mf-page { margin: 0; background: #21183C; padding: 48px 0; }
+  img, svg { display: block; }
+  a { color: inherit; text-decoration: none; }
+  button, input { font: inherit; color: inherit; }
+  h1, h2, h3, h4, p, ul { margin: 0; }
+  ul { list-style: none; padding: 0; }
+
+  .frame { width: 1440px; margin: 0 auto; background: var(--color-page); border-radius: var(--radius-lg); overflow: hidden; }
+
+  /* ---------- Header ---------- */
+  .topbar { height: var(--topbar-h); background: var(--color-brand); color: var(--text-on-brand); }
+  .topbar .mf-container { height: 100%; display: flex; align-items: center; gap: var(--space-6); }
+  .logo { display: flex; align-items: center; gap: 8px; font-family: var(--font-latin); font-size: 30px; font-weight: 500; letter-spacing: -.02em; direction: ltr; }
+  .logo svg { width: 30px; height: 30px; }
+  .search {
+    flex: 0 1 640px; margin-inline: auto; height: 42px; display: flex; align-items: center; gap: var(--space-3);
+    padding-inline: var(--space-5); border: 1.5px solid var(--color-border-on-brand); border-radius: var(--radius-pill);
+    font: var(--type-small); color: rgba(255,255,255,.9);
+  }
+  .search svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2; }
+  .account { display: flex; align-items: center; gap: var(--space-5); font: var(--type-nav); font-size: 18px; }
+  .account .sep { width: 1.5px; height: 28px; background: currentColor; opacity: .8; }
+  .account svg { width: 30px; height: 30px; fill: currentColor; }
+
+  .navbar { height: var(--navbar-h); background: var(--color-surface); border-bottom: 1px solid var(--color-border); }
+  .navbar ul { height: 100%; display: flex; align-items: center; justify-content: space-between; padding-inline: var(--space-6); }
+  .navbar a { font: var(--type-nav); color: var(--text-primary); padding-block: 6px; border-bottom: 2px solid transparent; transition: color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease); }
+  .navbar a:hover, .navbar a[aria-current="page"] { color: var(--color-brand); border-color: currentColor; }
+
+  /* ---------- Hero ---------- */
+  .hero { background: var(--color-brand); color: var(--text-on-brand); padding: 72px 0 150px; }
+  .hero .mf-container { display: grid; grid-template-columns: 1fr 1.25fr; align-items: center; gap: var(--space-8); }
+  .hero h1 { font: var(--type-display); max-width: 480px; }
+  .hero p { font: var(--type-lead); max-width: 520px; margin-top: var(--space-5); }
+  .btn-on-brand {
+    display: inline-grid; place-items: center; min-width: 280px; height: 60px; margin-top: var(--space-7);
+    background: var(--mf-white); color: var(--color-brand); border: 0; border-radius: var(--radius-md);
+    font: 700 24px/1 var(--font-sans); cursor: pointer; transition: background var(--dur-fast) var(--ease);
+  }
+  .btn-on-brand:hover { background: var(--mf-purple-50); }
+  .hero-art { height: 420px; }
+
+  /* ---------- Sections ---------- */
+  .section { padding-block: var(--section-y) 0; }
+  .section-head { text-align: center; margin-bottom: var(--section-title-gap); }
+  .section-head p { font: var(--type-subtitle); color: var(--text-secondary); margin-top: var(--space-5); }
+  .brand-text { color: var(--text-brand); }
+
+  .features { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--gutter); }
+  .feature { padding: 40px 16px 36px; text-align: center; display: grid; justify-items: center; gap: var(--space-4); }
+  .feature h3 { font: var(--type-title); font-size: 22px; margin-top: var(--space-3); white-space: nowrap; }
+  .feature p { font: var(--type-body); color: var(--text-primary); max-width: 220px; }
+
+  .split { display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: var(--space-8); }
+  .split h3 { font: var(--type-h3); }
+  .split h3 .mf-latin { display: block; color: var(--text-brand); font-weight: 700; }
+  .split p { font: var(--type-lead-xl); margin-top: var(--space-6); }
+
+  .row-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 88px; }
+  .row-head h2 { font: var(--type-h2); font-size: 36px; }
+  .row-head a { font: 500 20px/1 var(--font-sans); color: var(--text-primary); }
+  .row-head a:hover { color: var(--color-brand); }
+  .products { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--gutter); }
+  .product { text-align: center; }
+  .product .mf-arch { position: relative; display: grid; place-items: center; padding-top: 30px; }
+  .add-pill {
+    position: absolute; top: 22px; inset-inline: 0; margin-inline: auto; width: max-content;
+    display: inline-flex; align-items: center; gap: 6px; height: 32px; padding-inline: 14px;
+    background: var(--color-brand); color: var(--text-on-brand); border: 0; border-radius: var(--radius-pill);
+    font: var(--type-label); cursor: pointer; transition: background var(--dur-fast) var(--ease);
+  }
+  .add-pill:hover { background: var(--color-brand-hover); }
+  .add-pill svg { width: 16px; height: 16px; fill: currentColor; }
+  .product h3 { font: var(--type-title); margin-top: var(--space-5); }
+  .product .price { font: 400 24px/1.4 var(--font-sans); margin-top: var(--space-3); }
+
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: var(--gutter); }
+  .panel { position: relative; height: 508px; border-radius: var(--radius-xl) var(--radius-xl) var(--radius-lg) var(--radius-lg); overflow: hidden; padding: 30px 40px; display: flex; flex-direction: column; align-items: flex-end; }
+  .panel > .copy { position: relative; z-index: 1; width: 260px; display: flex; flex-direction: column; align-items: center; }
+  .panel.before { background: var(--color-surface-muted); color: var(--text-primary); }
+  .panel.after  { background: var(--color-brand); color: var(--text-on-brand); }
+  .panel .label { display: inline-grid; place-items: center; width: 244px; height: 54px; border-radius: var(--radius-md); font: 700 20px/1 var(--font-sans); }
+  .before .label { background: var(--color-brand); color: var(--text-on-brand); }
+  .after .label  { background: var(--mf-white); color: var(--color-brand); }
+  .panel p { font: var(--type-lead); text-align: center; margin-top: var(--space-6); }
+  .panel .person { position: absolute; bottom: 0; inset-inline-start: 12px; width: 330px; height: 440px; }
+  .sparkle { position: absolute; bottom: 16px; inset-inline-start: 300px; width: 34px; height: 34px; }
+
+  .reviews { display: grid; grid-template-columns: repeat(3, 1fr); gap: 110px; margin-top: 150px; }
+  .review { position: relative; padding: 96px 24px 28px; text-align: center; border-radius: var(--radius-lg); }
+  .review .avatar { position: absolute; top: -78px; inset-inline: 0; margin-inline: auto; width: 136px; height: 136px; border-radius: 50%; box-shadow: var(--shadow-avatar-ring); background: var(--color-surface-tint); display: grid; place-items: center; font: 800 44px/1 var(--font-sans); color: var(--color-brand); }
+  .stars { display: flex; justify-content: center; gap: 3px; margin-top: 12px; }
+  .stars svg { width: 18px; height: 18px; }
+  .review h4 { font: var(--type-title); font-size: 22px; margin-top: var(--space-3); }
+  .review blockquote { font: var(--type-body); margin: var(--space-3) 0 0; }
+  .review cite { display: block; text-align: start; font: 500 16px/1 var(--font-sans); font-style: normal; margin-top: var(--space-5); }
+  .dots { display: flex; justify-content: center; gap: 10px; margin-top: 48px; }
+  .dots button { width: 56px; height: 12px; border-radius: var(--radius-pill); border: 1.5px solid var(--text-primary); background: var(--mf-white); padding: 0; cursor: pointer; }
+  .dots button[aria-current="true"] { background: var(--color-brand); border-color: var(--mf-purple-700); }
+
+  /* ---------- Footer ---------- */
+  .footer { margin-top: var(--section-y); background: var(--color-brand); color: var(--text-on-brand); padding: 80px 0 32px; }
+  .footer .cols { display: grid; grid-template-columns: 1.3fr 1fr 1fr 1.2fr; gap: var(--space-7); }
+  .footer h5 { font: var(--type-nav); margin: 0 0 var(--space-6); padding-bottom: var(--space-4); border-bottom: 1.5px solid var(--mf-white); width: max-content; padding-inline: 0 var(--space-7); }
+  .footer .about p { font: var(--type-small); margin-top: var(--space-5); }
+  .footer .links li { display: flex; align-items: center; gap: var(--space-4); font: var(--type-nav); margin-bottom: var(--space-5); }
+  .footer .links li::before { content: ""; border-block: 6px solid transparent; border-inline-start: 9px solid currentColor; }
+  .footer .links a:hover { text-decoration: underline; text-underline-offset: 6px; }
+  .socials { display: flex; gap: var(--space-3); margin-top: var(--space-6); }
+  .socials a { width: 48px; height: 48px; border-radius: 50%; background: var(--mf-white); color: var(--color-brand); display: grid; place-items: center; font: 700 18px/1 var(--font-latin); transition: background var(--dur-fast) var(--ease); }
+  .socials a:hover { background: var(--mf-purple-50); }
+  .newsletter { display: flex; gap: var(--space-3); margin-top: var(--space-6); }
+  .newsletter input { flex: 1; height: 44px; border-radius: var(--radius-sm); border: 0; padding-inline: var(--space-4); font: var(--type-small); color: var(--text-primary); }
+  .newsletter input::placeholder { color: var(--text-placeholder); }
+  .newsletter button { height: 44px; padding-inline: var(--space-5); border: 0; border-radius: var(--radius-sm); background: var(--mf-white); color: var(--color-brand); font: 700 16px/1 var(--font-sans); cursor: pointer; }
+  .copyright { border-top: 1.5px solid rgba(255,255,255,.85); margin-top: var(--space-8); padding-top: var(--space-5); text-align: center; font: var(--type-small); }
+</style>
+</head>
+<body class="mf-page">
+<svg style="display:none" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="cart" viewBox="0 0 24 24"><path d="M2 3h2.5l2.4 11.2a2 2 0 0 0 2 1.6h8.3a2 2 0 0 0 2-1.5L21 7H6.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9.5" cy="20" r="1.8"/><circle cx="17" cy="20" r="1.8"/></symbol>
+  <symbol id="bag" viewBox="0 0 24 24"><path d="M8 7V6a4 4 0 0 1 8 0v1h3l1 14H4L5 7zm2 0h4V6a2 2 0 0 0-4 0z"/></symbol>
+  <symbol id="card" viewBox="0 0 24 24"><path d="M2 7a3 3 0 0 1 3-3h14a3 3 0 0 1 3 3v1H2zm0 3h20v7a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3zm13 5v2h4v-2z"/></symbol>
+  <symbol id="box" viewBox="0 0 24 24"><path d="M12 2 3 6.5l9 4.5 9-4.5zM2.5 8v9.5L11 22V12.5zm19 0L13 12.5V22l8.5-4.5z"/></symbol>
+  <symbol id="tulip" viewBox="0 0 24 24"><path d="M12 3c1.5 1 2.5 2.4 3 4l3-2c0 4-1.5 7-6 8-4.5-1-6-4-6-8l3 2c.5-1.6 1.5-3 3-4zM11 14h2v3c1-2 3-3.5 6-3.5-.5 4-3 7-7 7s-6.5-3-7-7c3 0 5 1.5 6 3.5z"/></symbol>
+  <symbol id="star" viewBox="0 0 24 24"><path d="m12 2.5 2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6L2.5 9.4l6.6-.8z"/></symbol>
+  <symbol id="jar" viewBox="0 0 120 120"><rect x="18" y="20" width="84" height="20" rx="6" fill="#F3F3F5"/><rect x="14" y="36" width="92" height="70" rx="10" fill="#FFFFFF" stroke="#E4E2EA"/><rect x="14" y="48" width="26" height="46" fill="var(--mf-purple-500)"/><rect x="48" y="58" width="44" height="6" rx="3" fill="#C8C3D8"/><rect x="48" y="70" width="30" height="5" rx="2.5" fill="#DDD9E6"/></symbol>
+</svg>
+
+<div class="frame">
+  <header>
+    <div class="topbar">
+      <div class="mf-container">
+        <a class="logo" href="#" aria-label="مون فلاور"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.3"><rect x="4" y="2.5" width="16" height="19" rx="8"/><path d="M12 7c2 2 2 6 0 9-2-3-2-7 0-9zM7 12c2 0 4 2 5 4-2 0-4-1-5-4zm10 0c-2 0-4 2-5 4 2 0 4-1 5-4z"/></svg>moonflower</a>
+        <label class="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>ابحث عن منتجك</label>
+        <div class="account"><a href="#">تسجيل الدخول</a><span class="sep"></span><a href="#" aria-label="السلة"><svg><use href="#cart"/></svg></a></div>
+      </div>
+    </div>
+    <nav class="navbar" aria-label="القائمة الرئيسية">
+      <ul class="mf-container">
+        <li><a href="#" aria-current="page">الرئيسية</a></li>
+        <li><a href="#">منتجاتنا</a></li>
+        <li><a href="#">عروض وتخفيضات</a></li>
+        <li><a href="#">بوكسات العناية</a></li>
+        <li><a href="#">مقشّرات</a></li>
+        <li><a href="#">مضاد وقطن</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero mf-wave-bottom">
+      <div class="mf-container">
+        <div>
+          <h1>امنحي بشرتك العناية التي تستحقها.</h1>
+          <p>اكتشفي مجموعة مختارة من منتجات العناية بالبشرة، لتمنحك إشراقة طبيعية وإحساسًا بالانتعاش في كل يوم.</p>
+          <a class="btn-on-brand" href="#">تسوّقي الآن</a>
+        </div>
+        <svg class="hero-art" viewBox="0 0 560 420" aria-hidden="true">
+          <ellipse cx="290" cy="360" rx="230" ry="34" fill="#EEEAF6"/>
+          <rect x="130" y="320" width="320" height="40" rx="14" fill="#FFFFFF"/>
+          <rect x="170" y="150" width="70" height="170" rx="18" fill="#FFFFFF"/><rect x="190" y="95" width="30" height="60" rx="6" fill="#C98C5A"/>
+          <rect x="260" y="190" width="64" height="130" rx="14" fill="#E9A36B" opacity=".9"/><rect x="278" y="150" width="28" height="44" rx="5" fill="#C98C5A"/>
+          <rect x="340" y="240" width="84" height="80" rx="12" fill="#FFFFFF"/><rect x="340" y="226" width="84" height="20" rx="6" fill="#F1ECE6"/>
+          <rect x="100" y="240" width="60" height="80" rx="14" fill="#FFFFFF"/>
+          <g fill="#6E9E57"><ellipse cx="110" cy="200" rx="46" ry="12" transform="rotate(-35 110 200)"/><ellipse cx="460" cy="190" rx="50" ry="13" transform="rotate(30 460 190)"/><ellipse cx="480" cy="310" rx="44" ry="12" transform="rotate(-20 480 310)"/></g>
+          <g fill="#FBE7DD"><circle cx="380" cy="120" r="34"/><circle cx="120" cy="350" r="30"/><circle cx="440" cy="270" r="28"/></g>
+          <g fill="#F2B24A"><circle cx="380" cy="120" r="6"/><circle cx="120" cy="350" r="5"/><circle cx="440" cy="270" r="5"/></g>
+        </svg>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="mf-container">
+        <div class="section-head">
+          <h2 class="mf-section-title brand-text">ما الذي يميزنا؟</h2>
+          <p>عناية حقيقية تبدأ من اختيار المنتج وتنتهي عند باب بيتك.</p>
+        </div>
+        <div class="features">
+          <article class="mf-card feature"><span class="mf-icon-disc"><svg><use href="#tulip"/></svg></span><h3>نتائج فعّالة ومضمونة</h3><p>منتجات مختارة بعناية لتعطيكِ أفضل النتائج.</p></article>
+          <article class="mf-card feature"><span class="mf-icon-disc"><svg><use href="#box"/></svg></span><h3>شحن سريع</h3><p>نوصل طلبك في أسرع وقت وبأمان كامل لحد باب البيت.</p></article>
+          <article class="mf-card feature"><span class="mf-icon-disc"><svg><use href="#card"/></svg></span><h3>طرق دفع آمنة وسهلة</h3><p>نقدًا عند الاستلام أو أونلاين عبر بوابات دفع موثوقة.</p></article>
+          <article class="mf-card feature"><span class="mf-icon-disc"><svg><use href="#bag"/></svg></span><h3>منتجات أصلية ١٠٠٪</h3><p>نضمن لكِ جودة وأصالة كل منتج واستخدام يدوم.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="mf-container split">
+        <div>
+          <h3>خلّي جمالك الطبيعي يزهر مع <span class="mf-latin" lang="en">Moon Flower</span></h3>
+          <p>منتجاتنا مستوحاة من نقاء الطبيعة لتمنح بشرتك النعومة والإشراقة اللي تستحقيها، لأننا نؤمن إن العناية الحقيقية تبدأ من مكونات بسيطة، ونتائج تدوم.</p>
+        </div>
+        <svg viewBox="0 0 520 360" aria-hidden="true">
+          <rect x="20" y="250" width="440" height="36" rx="10" fill="#E3CFB3"/><rect x="40" y="286" width="30" height="24" rx="8" fill="#D9C2A2"/><rect x="410" y="286" width="30" height="24" rx="8" fill="#D9C2A2"/>
+          <use href="#jar" x="70" y="160" width="100" height="100"/><use href="#jar" x="160" y="170" width="90" height="90"/>
+          <rect x="260" y="130" width="40" height="120" rx="10" fill="#FFFFFF" stroke="#E4E2EA"/><rect x="310" y="160" width="36" height="90" rx="9" fill="#FFFFFF" stroke="#E4E2EA"/>
+          <g fill="#5E8F48"><ellipse cx="330" cy="70" rx="90" ry="14" transform="rotate(-40 330 70)"/><ellipse cx="260" cy="90" rx="90" ry="14" transform="rotate(-70 260 90)"/><ellipse cx="390" cy="110" rx="80" ry="13" transform="rotate(-10 390 110)"/></g>
+          <g fill="#ECEBEE"><ellipse cx="400" cy="320" rx="50" ry="26"/><ellipse cx="480" cy="300" rx="36" ry="20"/><ellipse cx="220" cy="330" rx="30" ry="16"/></g>
+        </svg>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="mf-container">
+        <div class="row-head"><h2>منتجاتنا الأكثر مبيعًا</h2><a href="#">المزيد</a></div>
+        <div class="products">
+          <article class="product"><div class="mf-arch"><button class="add-pill">إضافة<svg><use href="#cart"/></svg></button><svg width="150" height="150"><use href="#jar"/></svg></div><h3>دلكة سودانية</h3><p class="price">٤٬١٦١٫٤٣ ج.م</p></article>
+          <article class="product"><div class="mf-arch"><button class="add-pill">إضافة<svg><use href="#cart"/></svg></button><svg width="150" height="150"><use href="#jar"/></svg></div><h3>كريم تفتيح</h3><p class="price">٤٬١٦١٫٤٣ ج.م</p></article>
+          <article class="product"><div class="mf-arch"><button class="add-pill">إضافة<svg><use href="#cart"/></svg></button><svg width="150" height="150"><use href="#jar"/></svg></div><h3>مزيل العرق</h3><p class="price">٤٬١٦١٫٤٣ ج.م</p></article>
+          <article class="product"><div class="mf-arch"><button class="add-pill">إضافة<svg><use href="#cart"/></svg></button><svg width="150" height="150"><use href="#jar"/></svg></div><h3>صابونة الكركم</h3><p class="price">٤٬١٦١٫٤٣ ج.م</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="mf-container">
+        <div class="section-head"><h2 class="mf-section-title">من المشكلة إلى الحل مع كريم التفتيح<br><span class="mf-latin" lang="en">Moon Flower</span></h2></div>
+        <div class="compare">
+          <article class="panel before">
+            <div class="copy"><span class="label">قبل العناية</span>
+            <p>بشرتي بهتت وبقت جافة من الشمس والتعب اليومي، وجرّبت منتجات كتير من غير نتيجة حقيقية.</p></div>
+            <svg class="person" viewBox="0 0 330 440" aria-hidden="true"><circle cx="190" cy="150" r="80" fill="#BDB6CC"/><path d="M40 440c0-120 70-190 150-190s140 70 140 190z" fill="#BDB6CC"/></svg>
+            <svg class="sparkle" viewBox="0 0 24 24" fill="#fff"><path d="M12 2c.8 5 2.5 7.2 8 8-5.5.8-7.2 3-8 8-.8-5-2.5-7.2-8-8 5.5-.8 7.2-3 8-8z"/></svg>
+          </article>
+          <article class="panel after">
+            <div class="copy"><span class="label">بعد العناية بالكريم</span>
+            <p>استرجعت نضارتي وتوحّد لون بشرتي، والترطيب بقى طبيعي وملمسي ناعم من أول أسبوع.</p></div>
+            <svg class="person" viewBox="0 0 330 440" aria-hidden="true"><circle cx="190" cy="150" r="80" fill="#9E92C0"/><path d="M40 440c0-120 70-190 150-190s140 70 140 190z" fill="#9E92C0"/></svg>
+            <svg class="sparkle" viewBox="0 0 24 24" fill="#CBC5DB"><path d="M12 2c.8 5 2.5 7.2 8 8-5.5.8-7.2 3-8 8-.8-5-2.5-7.2-8-8 5.5-.8 7.2-3 8-8z"/></svg>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="mf-container">
+        <div class="section-head"><h2 class="mf-section-title">آراء العملاء</h2><p>شاركينا رأيك وشوفي تجارب عميلاتنا مع منتجاتنا.</p></div>
+        <div class="reviews">
+          <article class="mf-card review"><span class="avatar" aria-hidden="true">س</span><div class="stars" role="img" aria-label="التقييم ٥ من ٥"><svg fill="var(--color-rating)"><use href="#star"/></svg><svg fill="var(--color-rating)"><use href="#star"/></svg><svg fill="var(--color-rating)"><use href="#star"/></svg><svg fill="var(--color-rating)"><use href="#star"/></svg><svg fill="var(--color-rating)"><use href="#star"/></svg></div><h4>نتيجة واضحة من أول أسبوع</h4><blockquote>«كريم التفتيح خفيف على البشرة وريحته هادية، ولاحظت فرق في النضارة بسرعة.»</blockquote><cite>سارة أحمد</cite></article>
+          <article class="mf-card review"><span class="avatar" aria-hidden="true">م</span><div class="stars" role="img" aria-label="التقييم ٥ من ٥"><svg fill="var(--color-rating)"><use href="#star"/></svg><svg fill="var(--color-rating)"><use href="#star"/></svg><svg fill="var(--color-rating)"><use href="#star"/></svg><svg fill="var(--color-rating)"><use href="#star"/></svg><svg fill="var(--color-rating)"><use href="#star"/></svg></div><h4>شحن سريع وتغليف ممتاز</h4><blockquote>«الطلب وصل في يومين والمنتجات متغلفة بعناية، وخدمة العملاء ردّت عليا فورًا.»</blockquote><cite>منى خالد</cite></article>
+          <article class="mf-card review"><span class="avatar" aria-hidden="true">ر</span><div class="stars" role="img" aria-label="التقييم ٤ من ٥"><svg fill="var(--color-rating)"><use href="#star"/></svg><svg fill="var(--color-rating)"><use href="#star"/></svg><svg fill="var(--color-rating)"><use href="#star"/></svg><svg fill="var(--color-rating)"><use href="#star"/></svg><svg fill="none" stroke="var(--mf-pebble)" stroke-width="1.5"><use href="#star"/></svg></div><h4>منتجات أصلية وسعر مناسب</h4><blockquote>«الدلكة السودانية أصلية فعلًا، وبقت جزء ثابت من روتيني كل أسبوع.»</blockquote><cite>ريم علي</cite></article>
+        </div>
+        <div class="dots" aria-label="التنقل بين الآراء"><button aria-current="true" aria-label="١"></button><button aria-label="٢"></button><button aria-label="٣"></button></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="mf-container">
+      <div class="cols">
+        <div class="about">
+          <a class="logo" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.3"><rect x="4" y="2.5" width="16" height="19" rx="8"/><path d="M12 7c2 2 2 6 0 9-2-3-2-7 0-9z"/></svg>moonflower</a>
+          <p>متجر متخصص في إزالة التصبغات وتوحيد لون الجسم. يسعدنا أن نقدّم لكِ خبرتنا في صناعة منتجات من مواد طبيعية وآمنة، وتواصلنا معكِ لا ينتهي بتسليم المنتج.</p>
+          <div class="socials"><a href="#" aria-label="إكس">X</a><a href="#" aria-label="لينكدإن">in</a><a href="#" aria-label="إنستغرام">ig</a><a href="#" aria-label="فيسبوك">f</a></div>
+        </div>
+        <div><h5>روابط مهمة</h5><ul class="links"><li><a href="#">الرئيسية</a></li><li><a href="#">سياسة الطلبات</a></li><li><a href="#">الاسترجاع والاستبدال</a></li></ul></div>
+        <div><h5>تواصل معنا</h5><ul class="links"><li><a href="#" dir="ltr">+966 54 983 7277</a></li><li><a href="#" dir="ltr">flowerv2121@gmail.com</a></li><li><a href="#" dir="ltr">t.me/ee0444</a></li></ul></div>
+        <div><h5>أرسلي لنا رسالة</h5><p style="font: var(--type-small)">متواجدون دائمًا للرد عليكِ خلال ٢٤ ساعة. أرسلي استفسارك الآن ولا تتردّدي.</p><form class="newsletter" onsubmit="return false"><input placeholder="بريدك أو رقم هاتفك" aria-label="بيانات التواصل" /><button>إرسال</button></form></div>
+      </div>
+      <p class="copyright">© ٢٠٢٥ مون فلاور. جميع الحقوق محفوظة.</p>
+    </div>
+  </footer>
+</div>
+</body>
+</html>

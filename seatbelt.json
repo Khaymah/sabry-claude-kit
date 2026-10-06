@@ -1,0 +1,7 @@
+{
+  "firstFire": 100000,
+  "interval": 50000,
+  "mode": "auto",
+  "maxInjectTokens": 3000,
+  "minTurnsBetween": 10
+}

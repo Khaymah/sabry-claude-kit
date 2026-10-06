@@ -1,0 +1,185 @@
+/* ==========================================================================
+   Aurora Dark UI — design tokens
+   Extracted from the "Daily AI" dashboard reference.
+   Scale: desktop 1440px. All sizes in px unless noted.
+   ========================================================================== */
+
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600&display=swap");
+
+:root {
+  /* ---------- Neutrals: blue-tinted graphite, layered by lightness ---------- */
+  --color-frame:        #05070A; /* hairline around the app shell            */
+  --color-canvas:       #0C1015; /* main content background                  */
+  --color-sidebar:      #13171C; /* left navigation rail                     */
+  --color-surface:      #1A1E23; /* card body (bottom of card gradient)      */
+  --color-surface-top:  #2A2E31; /* card top (start of card gradient)        */
+  --color-surface-inset:#161A1E; /* rows sitting inside a card               */
+  --color-surface-raised:#22262B;/* hover / selected row                     */
+  --color-bubble:       #191D21; /* chat bubble (user side)                  */
+  --color-input:        #05060F; /* composer / deepest well                  */
+  --color-track:        #34383D; /* progress track, disabled fills           */
+
+  --border-subtle:  rgba(255, 255, 255, 0.06);
+  --border-default: rgba(255, 255, 255, 0.10);
+  --border-strong:  rgba(255, 255, 255, 0.16);
+
+  /* ---------- Text ---------- */
+  --text-primary:   #F3F4F6;
+  --text-secondary: #B4B8BF;
+  --text-tertiary:  #8A8F97;
+  --text-muted:     #5E636B;
+  --text-on-light:  #16161C; /* on aurora / light cards */
+
+  /* ---------- Semantic accents (one hue = one category, everywhere) ---------- */
+  --accent-violet:      #6A5AE0; /* tasks / to-do            */
+  --accent-violet-soft: #B379E1; /* dots, bullets            */
+  --accent-amber:       #F49514; /* in progress / marketing  */
+  --accent-amber-soft:  #E8C17E;
+  --accent-green:       #6BBF72; /* completed (icons, deltas)*/
+  --accent-success:     #14EB78; /* vivid success badge      */
+  --accent-blue:        #68B3EC; /* primary data / focus     */
+  --accent-blue-strong: #2F6FDB; /* arrows, small indicators */
+  --accent-blue-soft:   #77A3E2;
+  --accent-coral:       #ED7572; /* secondary data / alerts  */
+  --accent-danger:      #D33A3A; /* notification badge, "today" dot */
+
+  /* ---------- Signature gradients ---------- */
+  /* Aurora: the ONE brand gradient. Active nav pill, primary AI moments. */
+  --gradient-aurora: linear-gradient(90deg,
+      #7BA9EC 0%, #A9C0EA 20%, #ECE1E9 44%, #FDD0D8 60%, #FE9FC1 82%, #F5A9CA 100%);
+  /* Aurora card: light surface used once per screen (AI suggestion). */
+  --gradient-aurora-card: linear-gradient(115deg,
+      #67A5F7 0%, #C9E0F8 26%, #FFFFFF 48%, #FEF8F5 70%, #FFD6C8 100%);
+  /* Aurora orb: circular primary action (send). */
+  --gradient-aurora-orb: radial-gradient(circle at 32% 28%,
+      #FFFFFF 0%, #FBD9D4 32%, #F4A39C 62%, #A8C4F5 100%);
+  /* Edge light: warm-left → neutral → cool-right, used as a 1px border. */
+  --gradient-edge: linear-gradient(90deg,
+      rgba(242, 170, 125, 0.95) 0%, rgba(255, 255, 255, 0.28) 22%,
+      rgba(255, 255, 255, 0.10) 55%, rgba(110, 155, 225, 0.95) 100%);
+  /* Card body: lit from the top. */
+  --gradient-card: linear-gradient(180deg, var(--color-surface-top) 0%, var(--color-surface) 60%);
+  --gradient-row: linear-gradient(180deg, #1C2025 0%, #14181C 100%);
+
+  /* ---------- Shadows & glows ---------- */
+  --shadow-frame: 0 40px 90px rgba(0, 0, 0, 0.35);
+  --shadow-card:  inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  --glow-composer:
+      -14px 0 36px -10px rgba(104, 160, 240, 0.45),
+       14px 0 36px -10px rgba(240, 140, 160, 0.40),
+       0 -10px 30px -14px rgba(240, 140, 160, 0.30);
+  --glow-avatar: 0 0 80px 10px rgba(80, 110, 200, 0.18);
+
+  /* ---------- Radii ---------- */
+  --radius-xs: 6px;
+  --radius-sm: 10px;   /* icon tiles inside rows */
+  --radius-md: 12px;   /* list rows, bubbles     */
+  --radius-lg: 16px;   /* cards, panels          */
+  --radius-xl: 22px;   /* composer, AI card      */
+  --radius-2xl: 28px;  /* app frame              */
+  --radius-pill: 999px;
+
+  /* ---------- Spacing (4px base) ---------- */
+  --space-1: 4px;  --space-2: 8px;  --space-3: 12px; --space-4: 16px;
+  --space-5: 20px; --space-6: 24px; --space-8: 32px; --space-10: 40px;
+
+  /* ---------- Layout ---------- */
+  --layout-sidebar: 220px;
+  --layout-aside: 330px;
+  --layout-topbar: 76px;
+  --layout-gap: 12px;
+
+  /* ---------- Typography ---------- */
+  --font-sans: "Poppins", "IBM Plex Sans Arabic", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-arabic: "IBM Plex Sans Arabic", "Poppins", system-ui, sans-serif;
+
+  --text-2xs: 11px;  /* meta, timestamps in rows     */
+  --text-xs: 12px;   /* labels, row text, percentages*/
+  --text-sm: 13px;   /* nav items, chips             */
+  --text-md: 14px;   /* body, chat messages          */
+  --text-lg: 16px;   /* card titles                  */
+  --text-xl: 18px;   /* greeting                     */
+  --text-2xl: 24px;
+  --text-stat: 34px; /* KPI numbers                  */
+
+  --weight-light: 300;
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+
+  --leading-tight: 1.2;
+  --leading-normal: 1.45;
+  --leading-relaxed: 1.6;
+
+  /* ---------- Motion ---------- */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --duration-fast: 140ms;
+  --duration-base: 200ms;
+  --duration-slow: 320ms;
+}
+
+/* ==========================================================================
+   Signature utilities
+   ========================================================================== */
+
+/* 1px gradient border that keeps a solid fill. Set --edge-fill per element. */
+.edge-light {
+  --edge-fill: var(--color-canvas);
+  border: 1px solid transparent;
+  background:
+    linear-gradient(var(--edge-fill), var(--edge-fill)) padding-box,
+    var(--gradient-edge) border-box;
+}
+
+/* Card lit from above, with an optional colored corner flare (--card-accent). */
+.surface-card {
+  position: relative;
+  background: var(--gradient-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+}
+.surface-card[data-accent]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: radial-gradient(70px 46px at 0 0, var(--card-accent), transparent 72%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  pointer-events: none;
+}
+[data-accent="violet"] { --card-accent: var(--accent-violet); }
+[data-accent="amber"]  { --card-accent: var(--accent-amber); }
+[data-accent="green"]  { --card-accent: var(--accent-green); }
+[data-accent="blue"]   { --card-accent: var(--accent-blue-strong); }
+[data-accent="coral"]  { --card-accent: var(--accent-coral); }
+
+.aurora        { background: var(--gradient-aurora); color: var(--text-on-light); }
+.aurora-card   { background: var(--gradient-aurora-card); color: var(--text-on-light); }
+.aurora-orb    { background: var(--gradient-aurora-orb); color: var(--text-on-light); }
+
+/* Data glows: a bar or dot glows in its own color. */
+.glow { box-shadow: 0 0 10px color-mix(in srgb, currentColor 55%, transparent); }
+
+/* Circular icon holder used in card headers. */
+.icon-well {
+  display: inline-grid;
+  place-items: center;
+  width: 34px; height: 34px;
+  border-radius: var(--radius-pill);
+  background: radial-gradient(circle at 50% 30%, #2C3036, #1B1F24);
+  border: 1px solid var(--border-default);
+  color: var(--text-secondary);
+}
+
+/* Visible, on-brand focus. */
+:where(a, button, input, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
