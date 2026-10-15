@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Test suite for enforce-commit-style.py. Kept in a file, not a heredoc: the cases
 themselves contain commit-shaped text that the hook would (correctly) flag."""
-import io, json, os, shutil, subprocess, sys
+import io, json, os, shutil, stat, subprocess, sys
 
 HOOK = r"C:\Users\PC\.claude\hooks\enforce-commit-style.py"
 TRAILER = "Co-Authored-By: " + "Claude Opus 5 <noreply@anthropic.com>"
@@ -13,9 +13,20 @@ FIX = os.path.join(HERE, "hookfix")
 REPO = os.path.join(FIX, "repo")
 
 
+def _force_writable(func, path, _):
+    os.chmod(path, stat.S_IWRITE)
+    func(path)
+
+
+def teardown():
+    """Git marks object files read-only; on Windows plain rmtree fails on them silently."""
+    if os.path.exists(FIX):
+        shutil.rmtree(FIX, onexc=_force_writable)
+
+
 def setup():
     """Message files for -F, plus a real repo whose HEAD carries a banned trailer."""
-    shutil.rmtree(FIX, ignore_errors=True)
+    teardown()
     os.makedirs(REPO)
     write = lambda n, t: io.open(os.path.join(FIX, n), "w", encoding="utf-8").write(t)
     write("clean.txt", "feat: add product rail\n\nEnglish body, nothing banned.\n")
@@ -78,6 +89,13 @@ def cases():
 
 def main() -> int:
     setup()
+    try:
+        return run_cases()
+    finally:
+        teardown()
+
+
+def run_cases() -> int:
     fails = 0
     for name, cmd, expect in cases():
         p = subprocess.run([sys.executable, HOOK],
