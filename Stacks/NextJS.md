@@ -273,6 +273,20 @@ export const metadata: Metadata = {
 
 ---
 
+## 🔒 مفروضة بـ hooks (2026-10-09)
+
+- `hooks/enforce-nextjs-structure.py` (PreToolUse): بيرفض أي ملف كود أكبر من 600 سطر و`PageContent` أكبر من 300،
+  وأي ملف أو مجلد **جديد** تحت `src/` اسمه مش PascalCase (المستثنى: ملفات الإطار، `_types/_hooks/_utils`،
+  مسارات `src/app` ومجلد `components` جوّاها). الملف القديم الضخم يتعدّل بس من غير ما يكبر.
+  وبيرفض كتابة مسار بحالة حروف مختلفة عن الموجود على القرص (`src/Components` والموجود `src/components`):
+  ويندوز بيخبّي الفرق، وبناء Linux بيقع.
+- `hooks/warn-duplication.py` (PostToolUse): بعد أي كتابة بيدوّر على 6 أسطر فعلية أو أكتر متكررة في `src/`،
+  وعلى نص ترجمة موجود في صفحة تانية أو في `Common`، ويرجّع القائمة للنموذج عشان يستخرج المشترك.
+- بيشتغلوا في مشاريع Next.js بس (أقرب `package.json` فيه `next`). الاختبارات: `hooks/test_nextjs_hooks.py`.
+- الترجمة: مجلد لكل صفحة `src/I18n/<Page>/{Ar,En,Fr}.ts` + `src/I18n/Common/` للمتكرر.
+
+---
+
 ## File Size Limit — MANDATORY
 
 > **ممنوع أي ملف يتجاوز 600 سطر مطلقاً.**

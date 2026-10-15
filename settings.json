@@ -67,6 +67,19 @@
             "async": true
           }
         ]
+      },
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python",
+            "args": [
+              "C:\\Users\\PC\\.claude\\hooks\\warn-duplication.py"
+            ],
+            "timeout": 30
+          }
+        ]
       }
     ],
     "PreToolUse": [
@@ -121,6 +134,32 @@
               "question.wav"
             ],
             "async": true
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python",
+            "args": [
+              "C:\\Users\\PC\\.claude\\hooks\\enforce-nextjs-structure.py"
+            ],
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python",
+            "args": [
+              "C:\\Users\\PC\\.claude\\hooks\\enforce-comment-discipline.py"
+            ],
+            "timeout": 10
           }
         ]
       }
@@ -238,7 +277,8 @@
     "playground@claude-plugins-official": true,
     "remember@claude-plugins-official": true,
     "seatbelt@seatbelt-marketplace": true,
-    "pyright-lsp@claude-plugins-official": true
+    "pyright-lsp@claude-plugins-official": true,
+    "sabry-kit@sabry-kit": true
   },
   "extraKnownMarketplaces": {
     "chrome-devtools-plugins": {
@@ -258,8 +298,15 @@
         "source": "github",
         "repo": "dripston/seatbelt"
       }
+    },
+    "sabry-kit": {
+      "source": {
+        "source": "git",
+        "url": "https://github.com/sabrydawood/sabry-claude-kit.git"
+      }
     }
   },
+  "outputStyle": "Concise",
   "effortLevel": "xhigh",
   "modelSettings": {
     "claude-sonnet-5": {
@@ -269,7 +316,7 @@
       "effortLevel": "xhigh"
     },
     "claude-opus-5-5": {
-      "effortLevel": "xhigh"
+      "effortLevel": "medium"
     },
     "claude-opus-4-8": {
       "effortLevel": "xhigh"
@@ -293,6 +340,5 @@
   "switchModelsOnFlag": true,
   "teammateMode": "in-process",
   "remoteControlAtStartup": false,
-  "teammateDefaultModel": "opus",
-  "outputStyle": "Concise"
+  "teammateDefaultModel": "opus"
 }

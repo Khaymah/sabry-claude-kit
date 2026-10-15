@@ -10,6 +10,7 @@
 | [rules/communication.md](rules/communication.md) | التواصل بالعربية · `AskUserQuestion` حصراً · لا تخمّن · عند التوقف اسأل |
 | [rules/operating-mode.md](rules/operating-mode.md) | CTO + PM لا كود · الأدوار · Stack الشركة · Session Startup |
 | [rules/output-language.md](rules/output-language.md) | لغة المخرجات · 🚫 لا نسبة لـ AI في الـ git |
+| [rules/comment-discipline.md](rules/comment-discipline.md) | الكود بلا كومنتات · JSDoc يُحذف · استثناء `IMPORTANT:` فقط · hook |
 | [rules/subagents.md](rules/subagents.md) | opus دائماً · متى أفوّض ومتى لا |
 | [rules/code-tools.md](rules/code-tools.md) | أدوات فهم الكود (graph vs Grep) |
 | [rules/completion-discipline.md](rules/completion-discipline.md) | typecheck قبل الانتهاء · Scope 3+ ملفات |

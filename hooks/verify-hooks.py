@@ -193,6 +193,8 @@ def test_registration():
     check("team-review-reminder مسجَّل عالمياً (Stop)", "team-review-reminder" in blob)
     check("لقطة الأساس مسجَّلة (SessionStart --baseline)", "--baseline" in blob,
           "بدونها لا يمكن تمييز عمل الجلسة عن الدَنَس السابق")
+    check("enforce-nextjs-structure مسجَّل عالمياً (PreToolUse)", "enforce-nextjs-structure" in blob)
+    check("warn-duplication مسجَّل عالمياً (PostToolUse)", "warn-duplication" in blob)
 
     # نسخة محلية + عالمية = الـ hook يعمل مرّتين. الحماية من التكرار تقرأ ملف الحالة،
     # فإن شُغّلا بالتوازي قد يقرآن قبل أن يكتب أيّهما → تذكيران لنفس التغيير.
@@ -258,12 +260,24 @@ def test_latency():
               info=f"{ms:.0f}ms (أدنى 3، دافئ)")
 
 
+def test_nextjs_hooks():
+    """Runs test_nextjs_hooks.py: every deny case is paired with an allow case."""
+    print("\n🧱 هيكل Next.js و DRY")
+    p = subprocess.run([sys.executable, os.path.join(HOOKS, "test_nextjs_hooks.py")],
+                       capture_output=True, text=True, encoding="utf-8")
+    failed = [l.strip() for l in p.stdout.splitlines() if l.startswith("  FAIL")]
+    passed = sum(1 for l in p.stdout.splitlines() if l.startswith("  PASS"))
+    check("enforce-nextjs-structure + warn-duplication", p.returncode == 0 and not failed,
+          "؛ ".join(failed)[:300] or p.stderr.strip()[:200], info=f"{passed} حالة")
+
+
 def main():
     print("=" * 74)
     print("  تحقّق سلوكي من الـ hooks — تشغيل فعلي بمُدخلات حقيقية، لا قراءة ملفات")
     print("=" * 74)
     test_enforce_opus()
     test_team_reminder()
+    test_nextjs_hooks()
     test_registration()
     test_graph_cli()
     test_latency()
