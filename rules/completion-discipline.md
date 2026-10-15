@@ -1,8 +1,18 @@
-# قبل الإعلان عن الانتهاء (TypeScript)
+# قبل الإعلان عن الانتهاء
 
-- Client (Next.js): `bun run typecheck` · Server (Bun/Hono): `bun tsc --noEmit`
-- عام: `bunx tsc --noEmit --skipLibCheck`
-- **مهمة 3+ ملفات:** batch أول ← typecheck ← أكمل. لا تراكم أخطاء.
+**typecheck بيمسك الأنواع، مش المنطق.** "خلصت" معناها إن الثلاثة دول عدّوا، أو إني قلت صراحةً أنهي واحد ما اتشغلش وليه.
+
+1. **Typecheck (TypeScript):**
+   - Client (Next.js): `bun run typecheck` · Server (Bun/Hono): `bun tsc --noEmit`
+   - عام: `bunx tsc --noEmit --skipLibCheck`
+2. **الاختبارات الموجودة المتعلقة بالملفات المعدّلة** — مش السويت كلها لو تقيلة:
+   `bun test <path>` · `bunx vitest run <path>` · أو الـ script اللي في `package.json`.
+   مفيش اختبارات تغطي التعديل؟ ← قول كده صراحةً، ولا تكتب اختبارات من غير طلب.
+3. **Lint لو موجود في المشروع** (`lint` script · biome · eslint) — على الملفات المعدّلة بس.
+
+- **مهمة 3+ ملفات:** batch أول ← typecheck + اختبارات الـ batch ← أكمل. لا تراكم أخطاء.
+- **اختبار فشل؟** اعرض الـ output كما هو. ممنوع "غالباً مش متعلق" من غير ما أثبت إنه فاشل قبل تعديلي برضه.
+- **تحقق من السلوك، مش من الملف.** hook أو config أو endpoint اتكتب ≠ شغّال. شغّله فعلاً، وإن ماقدرتش ← قول "ما اتحققتش".
 
 ## Scope — 3+ ملفات
 

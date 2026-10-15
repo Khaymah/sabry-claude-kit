@@ -20,11 +20,18 @@
 
 **Output:**
 
-```
-الخيار الأفضل هو Hono لأنه:
-- سهل التوسع
-- يدعم الميزات الحديثة
-- يوفر المزيد من الميزات
-- يدعم الميزات الحديثة
-- يدعم الميزات الحديثة
+```md
+## القرار: Hono
+
+| المعيار | Hono | Express |
+|---|---|---|
+| Runtime | Bun/Edge/Node نيتيف | Node أساساً، Bun بطبقة توافق |
+| Types | end-to-end مع `hc` client | يدوي (`@types/express`) |
+| Ecosystem | أصغر — middleware أقل | ضخم وناضج |
+| خبرة الفريق | Stack الافتراضي | معروف بس مش افتراضي |
+
+**ليه Hono هنا:** المشروع على Bun، والـ client محتاج types من الـ API مباشرة.
+**بنضحّي بـ:** middleware جاهز (مثلاً passport) — هنكتب auth بـ `jose` بإيدينا.
+**Express يكسب لو:** Node بس + اعتماد على middleware مش موجود لـ Hono.
+**الخطوة الجاية:** route واحد + `hc` client كـ spike قبل ما نعمّم.
 ```

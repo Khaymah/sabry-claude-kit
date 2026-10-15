@@ -278,7 +278,8 @@
     "remember@claude-plugins-official": true,
     "seatbelt@seatbelt-marketplace": true,
     "pyright-lsp@claude-plugins-official": true,
-    "sabry-kit@sabry-kit": true
+    "sabry-kit@sabry-kit": true,
+    "10x-Team@synced": false
   },
   "extraKnownMarketplaces": {
     "chrome-devtools-plugins": {
@@ -340,5 +341,10 @@
   "switchModelsOnFlag": true,
   "teammateMode": "in-process",
   "remoteControlAtStartup": false,
-  "teammateDefaultModel": "opus"
+  "teammateDefaultModel": "opus",
+  "attribution": {
+    "commit": "",
+    "pr": "",
+    "sessionUrl": false
+  }
 }

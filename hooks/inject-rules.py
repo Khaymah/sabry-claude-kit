@@ -7,6 +7,11 @@ Plugins bundle skills/agents/commands/hooks but NOT CLAUDE.md-style memory, so t
 rules live as plain .md files under rules/ at the plugin root and this hook
 concatenates them and returns them as additionalContext.
 
+Skips injection when the user-level rules directory already exists locally
+(~/.claude/rules, or $CLAUDE_CONFIG_DIR/rules): Claude Code loads those natively,
+so injecting again would double the tokens and could serve a stale plugin copy.
+Set SABRY_KIT_FORCE_INJECT=1 to inject anyway.
+
 Never breaks a session: any failure exits 0 with no output.
 """
 import json
@@ -24,8 +29,18 @@ def strip_frontmatter(text):
     return text
 
 
+def native_rules_present():
+    config_dir = os.environ.get("CLAUDE_CONFIG_DIR") or os.path.join(os.path.expanduser("~"), ".claude")
+    rules_dir = os.path.join(config_dir, "rules")
+    if not os.path.isdir(rules_dir):
+        return False
+    return any(name.endswith(".md") for name in os.listdir(rules_dir))
+
+
 def main():
     try:
+        if os.environ.get("SABRY_KIT_FORCE_INJECT") != "1" and native_rules_present():
+            return 0
         plugin_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         rules_dir = os.path.join(plugin_root, "rules")
         if not os.path.isdir(rules_dir):
