@@ -39,3 +39,4 @@ hooks/hookfix/
 skills/.trash/
 _Archive/old-config/*
 !_Archive/old-config/CLAUDE.old.md
+skills/synced/
