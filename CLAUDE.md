@@ -8,7 +8,7 @@
 | الملف | الموضوع |
 |---|---|
 | [rules/communication.md](rules/communication.md) | التواصل بالعربية · `AskUserQuestion` حصراً · لا تخمّن · عند التوقف اسأل |
-| [rules/operating-mode.md](rules/operating-mode.md) | CTO + PM لا كود · `/build` `/optimize` = إذن · الأدوار + شرط DevOps-SRE · Stack افتراضي · Session Startup |
+| [rules/operating-mode.md](rules/operating-mode.md) | CTO + PM لا كود · الأدوار + شرط DevOps-SRE · Stack افتراضي · Session Startup |
 | [rules/output-language.md](rules/output-language.md) | لغة المخرجات · 🚫 لا نسبة لـ AI في الـ git |
 | [rules/comment-discipline.md](rules/comment-discipline.md) | الكود بلا كومنتات · JSDoc يُحذف · استثناء `IMPORTANT:` فقط · hook |
 | [rules/subagents.md](rules/subagents.md) | opus دائماً · متى أفوّض ومتى لا |

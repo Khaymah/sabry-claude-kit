@@ -33,3 +33,9 @@ security
 chrome
 .gitignore
 cache/model-catalog/*
+
+__pycache__/
+hooks/hookfix/
+skills/.trash/
+_Archive/old-config/*
+!_Archive/old-config/CLAUDE.old.md
