@@ -45,26 +45,26 @@ def run_hook(script, payload, cwd=None, env=None, args=()):
     return p.stdout.strip(), p.returncode
 
 
-# ─────────────────────────────────────────────────────────── enforce-opus
-def test_enforce_opus():
-    print("\n🔒 enforce-opus  (PreToolUse · matcher Agent|Task)")
-    if not os.path.isfile(os.path.join(HOOKS, "enforce-opus.py")):
+# ─────────────────────────────────────────────────────────── enforce-sonnet
+def test_enforce_sonnet():
+    print("\n🔒 enforce-sonnet  (PreToolUse · matcher Agent|Task)")
+    if not os.path.isfile(os.path.join(HOOKS, "enforce-sonnet.py")):
         return check("الملف موجود", False, "مفقود")
 
     cases = [
-        ("model غير محدد → opus", {"tool_name": "Agent", "tool_input": {"prompt": "x"}}, True),
-        ("model=opus → opus",      {"tool_name": "Agent", "tool_input": {"model": "opus"}}, True),
-        ("model=haiku → opus",     {"tool_name": "Task",  "tool_input": {"model": "haiku"}}, True),
-        ("model=opus → صامت",      {"tool_name": "Agent", "tool_input": {"model": "opus"}}, False),
+        ("model غير محدد → sonnet", {"tool_name": "Agent", "tool_input": {"prompt": "x"}}, True),
+        ("model=sonnet → sonnet",      {"tool_name": "Agent", "tool_input": {"model": "sonnet"}}, True),
+        ("model=haiku → sonnet",     {"tool_name": "Task",  "tool_input": {"model": "haiku"}}, True),
+        ("model=sonnet → صامت",      {"tool_name": "Agent", "tool_input": {"model": "sonnet"}}, False),
         ("payload تالف → لا ينكسر",  "BROKEN", False),
     ]
     for label, payload, should_patch in cases:
         if payload == "BROKEN":
-            p = subprocess.run([sys.executable, os.path.join(HOOKS, "enforce-opus.py")],
+            p = subprocess.run([sys.executable, os.path.join(HOOKS, "enforce-sonnet.py")],
                                input="not json", capture_output=True, text=True, timeout=30)
             out, rc = p.stdout.strip(), p.returncode
         else:
-            out, rc = run_hook("enforce-opus.py", payload)
+            out, rc = run_hook("enforce-sonnet.py", payload)
 
         if rc != 0:
             check(label, False, f"exit={rc}")
@@ -77,7 +77,7 @@ def test_enforce_opus():
         except Exception:
             check(label, False, f"مخرَج غير متوقَّع: {out[:60]}")
             continue
-        check(label, got == "opus", f"أعاد {got!r}")
+        check(label, got == "sonnet", f"أعاد {got!r}")
 
 
 # ──────────────────────────────────────────────────── team-review-reminder
@@ -188,7 +188,7 @@ def test_registration():
     if blob is None:
         return check("settings.json يُحلَّل", False, "JSON تالف — Claude Code لن يقرأه")
     check("settings.json يُحلَّل", True)
-    check("enforce-opus مسجَّل عالمياً", "enforce-opus" in blob)
+    check("enforce-sonnet مسجَّل عالمياً", "enforce-sonnet" in blob)
     check("code-review-graph update مسجَّل (PostToolUse)", "code-review-graph update" in blob)
     check("team-review-reminder مسجَّل عالمياً (Stop)", "team-review-reminder" in blob)
     check("لقطة الأساس مسجَّلة (SessionStart --baseline)", "--baseline" in blob,
@@ -275,7 +275,7 @@ def main():
     print("=" * 74)
     print("  تحقّق سلوكي من الـ hooks — تشغيل فعلي بمُدخلات حقيقية، لا قراءة ملفات")
     print("=" * 74)
-    test_enforce_opus()
+    test_enforce_sonnet()
     test_team_reminder()
     test_nextjs_hooks()
     test_registration()

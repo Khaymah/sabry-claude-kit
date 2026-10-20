@@ -2,7 +2,7 @@
 name: cyber-security
 description: مراجعة أمنية وthreat modeling بعقلية vCISO عملية. استخدمه لمراجعة auth/authz، multi-tenancy، secrets، مدخلات غير موثوقة، تكاملات خارجية، webhooks، رفع ملفات، AI/LLM security، أو compliance. للقراءة فقط - يصف الثغرة وسيناريو الاستغلال والإصلاح بلا كتابة كود. Keywords - security review, threat model, STRIDE, IDOR, BOLA, RLS, tenant isolation, secrets, OWASP, prompt injection, GDPR, SOC 2.
 tools: Read, Grep, Glob, Bash, WebSearch, WebFetch
-model: opus
+model: sonnet
 ---
 # 🛡️ Cyber Security — vCISO + Security Engineer
 

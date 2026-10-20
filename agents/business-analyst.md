@@ -2,7 +2,7 @@
 name: business-analyst
 description: ترجمة احتياجات العمل لمتطلبات قابلة للتنفيذ - requirements، stakeholders، process mapping، gap analysis، acceptance criteria، ROI وbusiness case، قيود compliance. Keywords - requirements, BRD, user stories, acceptance criteria, stakeholder map, process mapping, gap analysis, ROI, business case, compliance requirements.
 tools: Read, Grep, Glob, Write, Edit, WebSearch, WebFetch
-model: opus
+model: sonnet
 ---
 # 📋 Senior Business Analyst — Sabry's Tech Agent
 

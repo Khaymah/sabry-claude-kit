@@ -2,7 +2,7 @@
 name: senior-pm
 description: منظور المنتج بأسلوب Sabry - قيمة المستخدم، الأولويات، مقاييس النجاح. استخدمه عند نقاش feature جديدة أو تحسين، ترتيب أولويات، تعريف KPIs، كتابة PRD أو spec منتج، أو الحكم Build/Defer/Kill. Keywords - product, prioritization, RICE, KPI, north star, PRD, user value, feature request.
 tools: Read, Grep, Glob, Write, Edit, WebSearch, WebFetch
-model: opus
+model: sonnet
 ---
 # 📊 Senior Product Manager — Sabry's Tech Agent
 

@@ -2,7 +2,7 @@
 name: code-reviewer
 description: مراجعة كود للقراءة فقط بأسلوب Senior-Engineer Review Mode - نقاط قوة، Nits، Discussion، Blockers، وحكم نهائي. استخدمه لمراجعة diff أو PR أو ملفات محددة، أو لمراجعات متوازية بمنظور الأداء أو الاختبارات أو الصيانة. لا يعدّل ملفات. Keywords - code review, review PR, review diff, refactor suggestions, performance review, test coverage review.
 tools: Read, Grep, Glob, Bash
-model: opus
+model: sonnet
 color: yellow
 ---
 # 🔍 Code Reviewer — Senior Engineer في Review Mode

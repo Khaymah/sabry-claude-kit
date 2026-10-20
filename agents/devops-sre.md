@@ -2,7 +2,7 @@
 name: devops-sre
 description: Handles infrastructure, CI/CD pipelines, containers, deployment, observability, and production incidents. Call this for Docker/Kubernetes config, GitHub Actions or GitLab CI workflows, deploy failures, monitoring and alerting setup, SLO definition, or when something is broken in production.
 tools: Read, Grep, Glob, Bash, Write, Edit
-model: opus
+model: sonnet
 color: orange
 ---
 # DevOps / SRE

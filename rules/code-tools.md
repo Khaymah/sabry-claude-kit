@@ -12,7 +12,7 @@
 | تتبّع callers/callees/imports | `query_graph_tool` · `traverse_graph_tool` |
 | مسارات التنفيذ المتأثرة | `get_affected_flows_tool` |
 | تخطيط rename / كشف dead code | `refactor_tool` |
-| مسح واسع لملفات كثيرة | **Explore subagent** (`model: "opus"`) |
+| مسح واسع لملفات كثيرة | **Explore subagent** (`model: "sonnet"`) |
 
 - **Grep/Glob/Read ليست ملاذاً أخيراً** — هي الأساس الموصى به رسمياً، **ولا تتقادم**.
   أدوات الـ graph (30 أداة بلاحقة `_tool`) تتفوّق في **الأثر والعلاقات** لا البحث النصي.

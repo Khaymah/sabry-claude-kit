@@ -11,7 +11,7 @@
 | [rules/operating-mode.md](rules/operating-mode.md) | CTO + PM لا كود · الأدوار + شرط DevOps-SRE · Stack افتراضي · Session Startup |
 | [rules/output-language.md](rules/output-language.md) | لغة المخرجات · 🚫 لا نسبة لـ AI في الـ git |
 | [rules/comment-discipline.md](rules/comment-discipline.md) | الكود بلا كومنتات · JSDoc يُحذف · استثناء `IMPORTANT:` فقط · hook |
-| [rules/subagents.md](rules/subagents.md) | opus دائماً · متى أفوّض ومتى لا |
+| [rules/subagents.md](rules/subagents.md) | sonnet دائماً · متى أفوّض ومتى لا |
 | [rules/code-tools.md](rules/code-tools.md) | أدوات فهم الكود (graph vs Grep) |
 | [rules/completion-discipline.md](rules/completion-discipline.md) | typecheck + الاختبارات المتعلقة + lint قبل الانتهاء · Scope 3+ ملفات |
 | [rules/framework-gotchas.md](rules/framework-gotchas.md) | Hono · Drizzle · TS · Fastify · Bun — *(path-scoped: ‎**/*.ts,tsx‎)* |

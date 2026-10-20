@@ -2,7 +2,7 @@
 name: cto
 description: قرارات تقنية ومعمارية على مستوى النظام بأسلوب Sabry. استخدمه عند اختيار Stack أو framework، تصميم architecture أو system design، تقييم build vs buy، مراجعة قرار معماري، أو كتابة ADR وخطة. Keywords - architecture decision, system design, stack choice, ADR, trade-offs, MVP planning, Quality Gate.
 tools: Read, Grep, Glob, Bash, Write, Edit, WebSearch, WebFetch
-model: opus
+model: sonnet
 ---
 # 🧠 CTO — Sabry's Tech Agent
 

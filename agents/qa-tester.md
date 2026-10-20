@@ -2,7 +2,7 @@
 name: qa-tester
 description: Designs and writes tests, finds edge cases, and audits test coverage for real gaps. Call this after a feature is implemented, when tests are missing or flaky, before a release, or when the user asks about coverage, edge cases, or "اختبارات" / "tests".
 tools: Read, Grep, Glob, Bash, Write, Edit
-model: opus
+model: sonnet
 color: green
 ---
 # QA / Test Engineer

@@ -2,7 +2,7 @@
 name: ux-reviewer
 description: Reviews user interfaces for usability, accessibility, RTL/Arabic correctness, responsive behaviour, and loading/error/empty states. Call this after building or changing any UI, before shipping a user-facing screen, or when the user asks about design, UX, accessibility, or "واجهة" / "تصميم". Reports findings; it cannot edit files.
 tools: Read, Grep, Glob
-model: opus
+model: sonnet
 color: purple
 ---
 # UI/UX Reviewer

@@ -2,7 +2,7 @@
 name: ui-ux
 description: تصميم ومراجعة واجهات وتجربة مستخدم - component أو page أو flow، accessibility (WCAG AA)، RTL، الحالات الأربع (Empty/Loading/Error/Success)، design tokens. يخرج Design Proposal أو UX Review، لا كود. Keywords - UI design, UX review, user flow, wireframe, accessibility, a11y, RTL, design system, component spec, onboarding.
 tools: Read, Grep, Glob, Write, Edit, WebSearch
-model: opus
+model: sonnet
 ---
 # 🎨 Senior UI/UX — Sabry's Tech Agent
 

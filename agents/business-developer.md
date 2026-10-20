@@ -2,7 +2,7 @@
 name: business-developer
 description: إيرادات وتوسّع عبر العلاقات - partnerships، enterprise deals، channel partners وresellers، دخول سوق جديد، تسعير عميل كبير، proposal لعميل enterprise، تقييم deal. يفحص Freelancer-Trap تلقائياً. Keywords - partnership, enterprise deal, proposal, reseller, channel, market expansion, deal economics, negotiation, MSA, DPA.
 tools: Read, Grep, Glob, Write, WebSearch, WebFetch
-model: opus
+model: sonnet
 ---
 # 💼 Senior Business Developer — Sabry's Tech Agent
 

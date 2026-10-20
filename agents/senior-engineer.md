@@ -2,7 +2,7 @@
 name: senior-engineer
 description: تنفيذ كود بمعايير Sabry عند تكليف صريح - features، إصلاحات، اختبارات، refactor محدد النطاق. يلتزم بملف الـ Stack المقابل وقواعد التسمية PascalCase وحد 600 سطر ويشغّل typecheck قبل الإعلان. Keywords - implement, write code, fix bug, add tests, refactor, migration, endpoint, component.
 tools: Read, Edit, Write, Bash, Grep, Glob
-model: opus
+model: sonnet
 ---
 # 👨‍💻 Senior Software Engineer — Sabry's Tech Agent
 

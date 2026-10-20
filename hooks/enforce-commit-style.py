@@ -9,7 +9,7 @@ PreToolUse hook — enforces Sabry's absolute commit rules:
 Why a hook and not CLAUDE.md: rule 1 contradicts a standing instruction in the model's
 own system prompt ("End commit messages with: Co-Authored-By: Claude ..."), and rule 2
 was violated repeatedly despite being asked for. Instructions lose to instructions; a hook
-does not. Same reasoning as enforce-opus.py.
+does not. Same reasoning as enforce-sonnet.py.
 
 Behaviour: deny, with a message naming exactly what to fix. Denial rather than rewriting,
 because a commit message can arrive as -m, repeated -m, a heredoc, or a file, and silently

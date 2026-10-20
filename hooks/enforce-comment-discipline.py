@@ -9,7 +9,7 @@ PreToolUse hook - enforces Sabry's absolute comment rule (all projects):
 Why a hook and not just CLAUDE.md: the "keep JSDoc" habit kept creeping back in
 after every cleanup, and the model's own training biases toward documenting code.
 Instructions lose to instructions; a hook does not. Same reasoning as
-enforce-opus.py / enforce-commit-style.py.
+enforce-sonnet.py / enforce-commit-style.py.
 
 Always exempt (removing them breaks the build, they are functional not prose):
   ts-expect-error / ts-ignore / ts-nocheck / ts-check, triple-slash <reference>,

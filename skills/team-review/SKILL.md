@@ -2,7 +2,7 @@
 name: team-review
 description: Runs a parallel multi-agent review of code changes across security, correctness, tests, and UX — then adversarially verifies every finding before reporting. Use when the user runs /team-review, or says "راجعوا" / "مراجعة فريق" / "team review" / "راجع الـ PR" / asks for a thorough review before shipping.
 argument-hint: "[مسار | رقم PR | فارغ = آخر التغييرات]"
-model: opus
+model: sonnet
 ---
 
 # مراجعة الفريق
@@ -42,13 +42,13 @@ git diff --stat main...HEAD   # فرع كامل
 كل الاستدعاءات في **رسالة واحدة** ليعملوا فعلاً بالتوازي.
 
 ```
-Agent(subagent_type: "<name>", model: "opus", run_in_background: true,
+Agent(subagent_type: "<name>", model: "sonnet", run_in_background: true,
       prompt: "راجع هذا الـ diff من زاويتك. النطاق: <files>.
                أبلغ عن كل شيء تجده — بما فيه المنخفض الثقة والمنخفض الخطورة —
                مع confidence و severity لكل نتيجة. لا تُصفِّ بنفسك.")
 ```
 
-**قاعدة مطلقة:** `model: "opus"` صراحةً على كل استدعاء.
+**قاعدة مطلقة:** `model: "sonnet"` صراحةً على كل استدعاء.
 (الـ `PreToolUse` hook يفرضها، لكن مرّرها صراحةً على أي حال.)
 
 استخدم `SendMessage` لطلب توضيح من زميل — يستأنف بسياقه كاملاً.
@@ -61,7 +61,7 @@ Agent(subagent_type: "<name>", model: "opus", run_in_background: true,
 لكل نتيجة ذات وزن، أطلق مُتحقِّقاً مهمته **الدحض**:
 
 ```
-Agent(subagent_type: "Explore", model: "opus",
+Agent(subagent_type: "Explore", model: "sonnet",
       prompt: "حاول دحض هذا الادعاء: '<finding>'.
                اقرأ الكود الفعلي. هل المسار المذكور قابل للوصول حقاً؟
                هل يوجد حارس أغفله المراجع؟

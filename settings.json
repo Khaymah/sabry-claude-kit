@@ -5,6 +5,11 @@
     "CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH": "3",
     "CLAUDE_CODE_MAX_OUTPUT_TOKENS": "64000"
   },
+  "attribution": {
+    "commit": "",
+    "pr": "",
+    "sessionUrl": false
+  },
   "permissions": {
     "allow": [
       "Bash(bun:*)",
@@ -55,7 +60,7 @@
     ],
     "defaultMode": "auto"
   },
-  "model": "opus",
+  "model": "claude-fable-5",
   "hooks": {
     "PostToolUse": [
       {
@@ -320,7 +325,7 @@
       "effortLevel": "medium"
     },
     "claude-opus-4-8": {
-      "effortLevel": "xhigh"
+      "effortLevel": "high"
     },
     "claude-fable-5-1": {
       "effortLevel": "high"
@@ -341,10 +346,5 @@
   "switchModelsOnFlag": true,
   "teammateMode": "in-process",
   "remoteControlAtStartup": false,
-  "teammateDefaultModel": "opus",
-  "attribution": {
-    "commit": "",
-    "pr": "",
-    "sessionUrl": false
-  }
+  "teammateDefaultModel": "opus"
 }

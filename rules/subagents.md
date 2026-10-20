@@ -1,10 +1,10 @@
-# الـ Subagents — opus دائماً
+# الـ Subagents — sonnet دائماً
 
-كل `Agent` أو `agent()` في Workflow: مرّر `model: "opus"` **صراحةً**.
+كل `Agent` أو `agent()` في Workflow: مرّر `model: "sonnet"` **صراحةً**.
 ممنوع `haiku`. ممنوع الاعتماد على inherit.
 
 > 🔒 **مُنفَّذ حتمياً, لا اعتماداً على ذاكرتي.** `PreToolUse` hook بـ matcher `Agent|Task`
-> (`hooks/enforce-opus.py`) يفحص كل استدعاء ويعيد كتابة الـ `model` إلى opus تلقائياً.
+> (`hooks/enforce-sonnet.py`) يفحص كل استدعاء ويعيد كتابة الـ `model` إلى sonnet تلقائياً.
 > القاعدة صارت **مستحيلة المخالفة** — لا مجرد تعليمة قد أنساها.
 
 ## متى أفوّض — ومتى لا

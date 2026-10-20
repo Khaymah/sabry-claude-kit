@@ -2,7 +2,7 @@
 name: tech-writer
 description: Writes and improves technical documentation — READMEs, API references, architecture notes, ADRs, runbooks, and onboarding guides. Call this when documentation is missing, stale, or requested, after a significant architectural change, or when the user asks to "وثّق" / "document" / "اكتب README".
 tools: Read, Grep, Glob, Write, Edit
-model: opus
+model: sonnet
 color: cyan
 ---
 # Technical Writer
