@@ -4,6 +4,7 @@ description: مراجعة كود للقراءة فقط بأسلوب Senior-Engin
 tools: Read, Grep, Glob, Bash
 model: sonnet
 color: yellow
+memory: project
 ---
 # 🔍 Code Reviewer — Senior Engineer في Review Mode
 

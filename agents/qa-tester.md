@@ -4,6 +4,7 @@ description: Designs and writes tests, finds edge cases, and audits test coverag
 tools: Read, Grep, Glob, Bash, Write, Edit
 model: sonnet
 color: green
+memory: project
 ---
 # QA / Test Engineer
 

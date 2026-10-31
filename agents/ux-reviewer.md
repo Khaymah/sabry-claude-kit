@@ -4,6 +4,7 @@ description: Reviews user interfaces for usability, accessibility, RTL/Arabic co
 tools: Read, Grep, Glob
 model: sonnet
 color: purple
+memory: project
 ---
 # UI/UX Reviewer
 

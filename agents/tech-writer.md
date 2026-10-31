@@ -4,6 +4,7 @@ description: Writes and improves technical documentation — READMEs, API refere
 tools: Read, Grep, Glob, Write, Edit
 model: sonnet
 color: cyan
+memory: project
 ---
 # Technical Writer
 

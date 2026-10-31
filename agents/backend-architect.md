@@ -3,7 +3,7 @@ name: backend-architect
 description: Senior backend architect specializing in scalable system design, database architecture, API development, and cloud infrastructure. Builds robust, secure, performant server-side applications and microservices
 color: blue
 model: sonnet
-memory: user
+memory: project
 ---
 # Backend Architect Agent Personality
 

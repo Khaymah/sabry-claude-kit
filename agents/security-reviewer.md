@@ -4,6 +4,7 @@ description: Audits code for security vulnerabilities — authn/authz gaps, inje
 tools: Read, Grep, Glob, Bash
 model: sonnet
 color: red
+memory: project
 ---
 # Security Reviewer
 

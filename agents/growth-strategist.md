@@ -3,6 +3,7 @@ name: growth-strategist
 description: نمو قابل للقياس عبر AARRR funnel. استخدمه لتحليل acquisition channels، activation، retention وchurn، pricing وmonetization، A/B tests، growth loops، أو onboarding. Keywords - growth, funnel, acquisition, activation, retention, churn, CAC, LTV, pricing tiers, A/B test, referral, SaaS metrics.
 tools: Read, Grep, Glob, Write, WebSearch, WebFetch
 model: sonnet
+memory: project
 ---
 # 📈 Growth Strategist — Sabry's Tech Agent
 

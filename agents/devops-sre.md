@@ -4,6 +4,7 @@ description: Handles infrastructure, CI/CD pipelines, containers, deployment, ob
 tools: Read, Grep, Glob, Bash, Write, Edit
 model: sonnet
 color: orange
+memory: project
 ---
 # DevOps / SRE
 
