@@ -60,7 +60,7 @@
     ],
     "defaultMode": "auto"
   },
-  "model": "claude-fable-5",
+  "model": "opus",
   "hooks": {
     "PostToolUse": [
       {
@@ -95,7 +95,7 @@
             "type": "command",
             "command": "python",
             "args": [
-              "C:\\Users\\PC\\.claude\\hooks\\enforce-opus.py"
+              "C:\\Users\\PC\\.claude\\hooks\\enforce-sonnet.py"
             ],
             "timeout": 10
           }
@@ -268,22 +268,10 @@
     "baseRef": "fresh"
   },
   "enabledPlugins": {
-    "figma@claude-plugins-official": false,
-    "claude-code-setup@claude-plugins-official": false,
-    "stripe@claude-plugins-official": false,
-    "frontend-design@claude-plugins-official": false,
-    "claude-md-management@claude-plugins-official": false,
-    "code-simplifier@claude-plugins-official": false,
-    "playwright@claude-plugins-official": true,
     "chrome-devtools-mcp@claude-plugins-official": true,
-    "cloudflare@claude-plugins-official": false,
     "superpowers@claude-plugins-official": true,
-    "typescript-lsp@claude-plugins-official": true,
-    "playground@claude-plugins-official": false,
     "remember@claude-plugins-official": true,
     "seatbelt@seatbelt-marketplace": true,
-    "pyright-lsp@claude-plugins-official": true,
-    "sabry-kit@sabry-kit": false,
     "10x-Team@synced": false
   },
   "extraKnownMarketplaces": {
@@ -291,12 +279,6 @@
       "source": {
         "source": "github",
         "repo": "ChromeDevTools/chrome-devtools-mcp"
-      }
-    },
-    "agricidaniel-claude-seo": {
-      "source": {
-        "source": "github",
-        "repo": "AgriciDaniel/claude-seo"
       }
     },
     "seatbelt-marketplace": {
@@ -322,7 +304,7 @@
       "effortLevel": "xhigh"
     },
     "claude-opus-5-5": {
-      "effortLevel": "medium"
+      "effortLevel": "high"
     },
     "claude-opus-4-8": {
       "effortLevel": "high"
@@ -346,5 +328,6 @@
   "switchModelsOnFlag": true,
   "teammateMode": "in-process",
   "remoteControlAtStartup": false,
-  "teammateDefaultModel": "opus"
+  "agentPushNotifEnabled": true,
+  "teammateDefaultModel": "sonnet"
 }
