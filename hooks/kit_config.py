@@ -30,6 +30,10 @@ DEFAULTS = {
     "duplication_warning": True,
     "team_review_reminder": True,
     "deal_economics": False,
+    "usage_meter": True,
+    "read_budget": True,
+    "verify_reminder": True,
+    "project_brief": True,
 }
 
 STORAGE_DIR = ".agents"

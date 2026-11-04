@@ -73,6 +73,7 @@ Built for [Claude Code](https://code.claude.com) as a plugin. Its hooks also run
 |---|---|
 | `/sabry-kit:kit-setup` | First-run setup, or change your settings |
 | `/sabry-kit:kit-doctor` | Find conflicts and fix them with consent |
+| `/sabry-kit:kit-stats` | Where the tokens went: per session and per tool, the largest results, re-read files, and savings backed by the numbers |
 | `/sabry-kit:team-review` | Parallel review of changes (security · correctness · tests · UX), every finding verified before it is shown |
 | `/sabry-kit:project-audit` | Full project audit: security, quality, performance, architecture, with an Arabic report |
 | `/sabry-kit:self-maintain` | Maintain the kit itself: opens a PR with improvements, never auto-merges |
@@ -147,6 +148,9 @@ Full list of switches: [hooks/README.md › profile](hooks/README.md#2-الـ-pr
 | Defaults: `effortLevel: high` · `autoCompactWindow: 200000` · `CLAUDE_CODE_MAX_OUTPUT_TOKENS: 32000` · `BASH_MAX_OUTPUT_LENGTH: 20000` | smaller context per turn, shorter outputs |
 | Subagent briefing template (`rules/subagents.md`): goal, what is ruled out, report length cap | shorter reports entering the main context |
 | `cost_profile` in the profile, checked by `/sabry-kit:kit-doctor` | alert when settings cost more than you chose |
+| Token meter (`usage.py`) + `/sabry-kit:kit-stats` | every session is measured: exactly where the waste is |
+| `read-budget`: no accidental full read of a file over 800 lines | read only the part needed, since results are re-sent every turn |
+| `verify-reminder`: a check before "done", using the project's own commands | fewer bugs, less rework |
 
 ---
 

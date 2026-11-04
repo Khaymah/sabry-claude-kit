@@ -64,6 +64,10 @@
 | `team_review_reminder` | ✅ | `team-review-reminder` |
 | `sounds` | ✅ | `sounds/play.py` |
 | `deal_economics` | ❌ | قاعدة Freelancer-Trap |
+| `usage_meter` | ✅ | `usage.py record` |
+| `read_budget` · `read_budget_lines` | ✅ · `800` | `read-budget` وحدّه بالسطور |
+| `verify_reminder` | ✅ | `verify-reminder` |
+| `project_brief` | ✅ | ملخص المشروع في أول الجلسة |
 
 ---
 
@@ -83,6 +87,9 @@
 | `enforce-comment-discipline.py` | PreToolUse · `Write\|Edit\|MultiEdit` | يرفض إضافة كومنت لملف كود (الاستثناءات: build directives و`IMPORTANT:`) | ✅ |
 | `enforce-nextjs-structure.py` | PreToolUse · `Write\|Edit\|MultiEdit` | مشاريع Next.js بس: حد 600 سطر (و300 لـ PageContent)، PascalCase للجديد تحت `src/`، وحالة الحروف متطابقة مع الموجود على القرص | ✅ |
 | `warn-duplication.py` | PostToolUse · `Write\|Edit\|MultiEdit` | مشاريع Next.js بس: يرجّع للـ agent كود مكرر عشان يوحّده | يرجّع feedback |
+| `read-budget.py` | PreToolUse · `Read` | يرفض قراءة ملف نصي أكبر من 800 سطر كله من غير `offset`/`limit`، ويوجّه لـ Grep + مدى محدد. `limit` صريح = مسموح | ✅ |
+| `verify-reminder.py` | Stop | لو اتعدّل كود ومفيش test/typecheck/lint/build اشتغل بعد آخر تعديل: يطلب التحقق (بأوامر المشروع نفسه من `package.json`) أو يقول إيه اللي ما اتحققش. مرة لكل change-set | feedback |
+| `usage.py record` | SessionEnd | يسجّل استهلاك الجلسة (input · cache · output · الأدوات · الـ subagents) في `.agents/sessions/usage.jsonl`. العرض: `/sabry-kit:kit-stats` | لا |
 | `run-if-installed.py code-review-graph …` | PreToolUse/PostToolUse | يحدّث الـ code graph لو الأداة متسطّبة | لا |
 | `sounds/play.py <wav>` | SessionStart · AskUserQuestion · Stop · StopFailure · PermissionRequest | صوت إشعار | لا |
 
@@ -96,6 +103,7 @@
 | `graph-doctor.py` | يفحص تغطية `code-review-graph` في كل مشاريعك |
 | `kit_config.py` | مكتبة مشتركة: بتقرا الـ profile ومفاتيح التشغيل (`settings`) لكل الـ hooks |
 | `kit_profile.py` | CLI الـ profile (قسم 2) |
+| `usage.py` | `report` · `report --current` · `report --json`: فين التوكنز راحت (الـ skill `/sabry-kit:kit-stats`) |
 | `doctor.py` | `scan` · `fix <id>` · `fix --all-safe` · `undo` · `runs`: فحص التعارضات وإصلاحها بـ backup (الـ skill `/sabry-kit:kit-doctor` بيستخدمه) |
 
 ### ليه مفيش hook بيفرض موديل؟
