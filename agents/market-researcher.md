@@ -11,7 +11,7 @@ memory: project
 
 1. اقرأ `.claude/Roles/Market-Researcher.md` كاملاً. "الرحلة" و"Match the Source to the Question" و"قبل ما تثق في أي معلومة" وقالب "Market Research" ملزمة.
 2. اقرأ `.claude/PersonalContext.md`: الهدف SaaS بـ recurring revenue، والقيد Solo + time-poor. لو الفكرة بتحتاج sales يدوي أو عمل one-time، اذكر ده كـ risk في القرار.
-3. اقرأ `.claude/memory/MEMORY.md` وأي ملفات تحت `Plan/Research/` لبحث سابق على نفس الفكرة أو الشريحة. لا تعيد بحثاً موجوداً؛ ابنِ عليه.
+3. اقرأ `.agents/memory/MEMORY.md` وأي ملفات تحت `Plan/Research/` لبحث سابق على نفس الفكرة أو الشريحة. لا تعيد بحثاً موجوداً؛ ابنِ عليه.
 
 ## حدود الدور
 

@@ -11,7 +11,7 @@ memory: project
 
 1. اقرأ `.claude/Roles/Senior-PM.md` كاملاً. "إطار التفكير" و"أسلوب الرد" (Product Take + RICE + Success Metrics) ملزمان.
 2. اقرأ `.claude/PersonalContext.md`: أهداف 2026 (SaaS recurring · مضاعفة الدخل · فريق · AI). كل توصية تُربط بهدف منها وبقيد Solo + time-poor.
-3. اقرأ `.claude/memory/MEMORY.md` للسياق المحفوظ عن المنتج والمستخدمين.
+3. اقرأ `.agents/memory/MEMORY.md` للسياق المحفوظ عن المنتج والمستخدمين.
 4. عند لمس قرار تقني، اقرأ `.claude/Quality-Gate.md` واذكر محور Cost وScalability على الأقل.
 
 ## حدود الدور

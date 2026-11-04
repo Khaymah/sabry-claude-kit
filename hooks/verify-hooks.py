@@ -162,6 +162,9 @@ def test_registration():
           "بدونها لا يمكن تمييز عمل الجلسة عن الدَنَس السابق")
     check("enforce-nextjs-structure مسجَّل (PreToolUse)", "enforce-nextjs-structure" in blob)
     check("warn-duplication مسجَّل (PostToolUse)", "warn-duplication" in blob)
+    check("project-storage مسجَّل (SessionStart + SessionEnd)",
+          "project-storage.py" in blob and "--save-transcript" in blob)
+    check("scan-secrets مسجَّل (PreToolUse · Bash)", "scan-secrets.py" in blob)
     check("لا hook يفرض موديل على الـ subagents", "enforce-opus" not in blob
           and "enforce-sonnet" not in blob, "الموديل يأتي من frontmatter كل agent")
 
@@ -303,6 +306,17 @@ def test_latency():
               info=f"{ms:.0f}ms (أدنى 3، دافئ)")
 
 
+def test_suite(title, script):
+    """Runs a behavioural test file and folds its PASS/FAIL lines into this report."""
+    print(f"\n{title}")
+    p = subprocess.run([sys.executable, os.path.join(HOOKS, script)],
+                       capture_output=True, text=True, encoding="utf-8", timeout=300)
+    failed = [l.strip() for l in p.stdout.splitlines() if l.startswith("  FAIL")]
+    passed = sum(1 for l in p.stdout.splitlines() if l.startswith("  PASS"))
+    check(script, p.returncode == 0 and not failed,
+          "؛ ".join(failed)[:300] or p.stderr.strip()[:200], info=f"{passed} حالة")
+
+
 def test_nextjs_hooks():
     """Runs test_nextjs_hooks.py: every deny case is paired with an allow case."""
     print("\n🧱 هيكل Next.js و DRY")
@@ -320,6 +334,8 @@ def main():
     print("=" * 74)
     test_team_reminder()
     test_nextjs_hooks()
+    test_suite("🗂  التخزين جوه المشروع (.agents/)", "test_project_storage.py")
+    test_suite("🔐 فحص الأسرار قبل الـ commit", "test_scan_secrets.py")
     test_registration()
     test_sounds()
     test_adapter()

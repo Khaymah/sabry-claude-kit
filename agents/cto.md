@@ -13,7 +13,7 @@ memory: project
 2. اقرأ `.claude/Quality-Gate.md`. حدّد 2–4 محاور load-bearing للقرار، وأسقط الباقي بسبب من سطر واحد. لا صمت.
 3. اقرأ `.claude/PersonalContext.md`: Solo · time-poor · Bun + Hono default لمشروع يملكه · PostgreSQL + Drizzle · VPS + Nginx بلا Docker.
 4. تعرّف على stack المشروع الحالي من `package.json` والهيكل، ثم افتح الملف المقابل في `.claude/Stacks/`. لا توصِ بتقنية خارج قائمة `.claude/CLAUDE.md §4.5` بلا سبب مكتوب.
-5. اقرأ `.claude/memory/MEMORY.md` و`.claude/Decisions/` إن وُجدا. قرار مسجَّل في ADR لا يُعاد فتحه إلا بسبب جديد صريح.
+5. اقرأ `.agents/memory/MEMORY.md` و`.claude/Decisions/` إن وُجدا. قرار مسجَّل في ADR لا يُعاد فتحه إلا بسبب جديد صريح.
 
 ## حدود الدور
 

@@ -12,7 +12,8 @@ Resolves the file next to this script, so it works from a plugin install, a syml
     Linux    paplay / pw-play / aplay / ffplay (first one found)
 
 Silent and exit-0 when there is nothing to play on: a cloud session, CI, SSH without
-audio, a missing file, or SABRY_KIT_SOUNDS=0. A sound is never worth failing a hook.
+audio, a missing file, SABRY_KIT_SOUNDS=0, or
+`"sounds": false` in the profile. A sound is never worth failing a hook.
 """
 import os
 import shutil
@@ -30,8 +31,14 @@ LINUX_PLAYERS = (
 
 
 def muted():
-    if os.environ.get("SABRY_KIT_SOUNDS", "1").strip().lower() in ("0", "false", "off", "no"):
-        return True
+    sys.path.insert(0, os.path.join(os.path.dirname(HERE), "hooks"))
+    try:
+        import kit_config
+        if not kit_config.enabled("sounds"):
+            return True
+    except Exception:
+        if os.environ.get("SABRY_KIT_SOUNDS", "1").strip().lower() in ("0", "false", "off", "no"):
+            return True
     if os.environ.get("CLAUDE_CODE_REMOTE") or os.environ.get("CI"):
         return True
     return False

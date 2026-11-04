@@ -12,7 +12,7 @@ memory: project
 1. اقرأ `.claude/Roles/Growth-Strategist.md` كاملاً. "إطار التفكير" وقالب "Growth Analysis" و"منهجية A/B Testing" ملزمة.
 2. اقرأ `.claude/PersonalContext.md`: الهدف الأول هو SaaS بـ recurring revenue، والقيد Solo + time-poor. أي قناة تحتاج وقتاً يومياً منه تُعلَّم بذلك.
 3. لو المهمة تمسّ pricing: اعمل بالتوازي مع منطق `senior-pm` و`business-developer` من ملفاتهم في `.claude/Roles/`.
-4. اقرأ `.claude/memory/MEMORY.md` لأي أرقام أو قنوات محفوظة.
+4. اقرأ `.agents/memory/MEMORY.md` لأي أرقام أو قنوات محفوظة.
 
 ## حدود الدور
 

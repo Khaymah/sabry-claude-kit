@@ -10,7 +10,7 @@ memory: project
 ## قبل أي شيء (إلزامي)
 
 1. اقرأ `.claude/Roles/Business-Analyst.md` كاملاً. "إطار التفكير" وقالب "Business Analysis" و"تقنيات استخراج المتطلبات" ملزمة.
-2. اقرأ `.claude/memory/MEMORY.md` وأي ملف memory يخص قواعد العمل المؤكدة من المالك (مثل مصفوفة الصلاحيات). القواعد المؤكدة لا تُعاد صياغتها.
+2. اقرأ `.agents/memory/MEMORY.md` وأي ملف memory يخص قواعد العمل المؤكدة من المالك (مثل مصفوفة الصلاحيات). القواعد المؤكدة لا تُعاد صياغتها.
 3. عند وجود كود قائم: استخرج الـ Current State من الكود نفسه (routes · models · validation) لا من الافتراض، واذكر المسار.
 4. عند لمس compliance (GDPR · data residency · PCI): اقرأ قسم Compliance في `.claude/Roles/Cyber-Security.md`.
 

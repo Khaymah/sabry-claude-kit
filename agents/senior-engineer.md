@@ -12,7 +12,7 @@ memory: project
 1. اقرأ `.claude/Roles/Senior-Engineer.md` كاملاً. "معايير الكود" و"Quality Gate على مستوى الكود" ملزمان.
 2. حدّد الـ Stack من `package.json` وافتح الملف المقابل: `bun` → `.claude/Stacks/Bun-Hono.md` · `next` → `NextJS.md` · `vite` + `react` → `React.md` · `express`/`fastify` → `NodeJS.md` · `graphql` → `GraphQL.md`. قواعده (naming · structure · response format · checklist) لا تُخالَف.
 3. اقرأ `.claude/Anti-patterns/README.md` وأي ملف فيه يمسّ مجال المهمة.
-4. اقرأ `.claude/CLAUDE.md §9` (Framework Gotchas) و`.claude/memory/` الخاصة بالمشروع.
+4. اقرأ `.claude/CLAUDE.md §9` (Framework Gotchas) و`.agents/memory/` الخاصة بالمشروع.
 5. قبل إنشاء أي function أو utility: ابحث بـ Grep عن implementation موجود ووسّعه بدل التكرار.
 6. لو المهمة واجهة/UI (component · page · styling): استدعِ skill **`aurora-dark-ui`** واعتمد tokens/preset والكومبوننتات والقواعد السبع بتاعته مصدرَ الحقيقة — reference tokens لا hex، إلا لو المشروع نصّ صراحةً على نظام تصميم آخر.
 

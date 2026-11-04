@@ -43,11 +43,14 @@
 
 | Hook | الحدث · الـ matcher | بيعمل إيه | بيمنع؟ |
 |---|---|---|---|
+| `project-storage.py` | SessionStart | يجهّز `.agents/` جوه المشروع ويحوّل الـ memory والخطط والـ agent-memory ليه ويركّب الـ pre-commit (قسم 4) | لا |
+| `project-storage.py --save-transcript` | SessionEnd | ينسخ الـ transcript لـ `.agents/sessions/` | لا |
 | `inject-rules.py` | SessionStart | يحقن `rules/*.md` في السياق (لو مش محمّلة أصلاً من `~/.claude/rules`) | لا |
 | `maintain-note.py` | SessionStart | تذكير مرة في اليوم بالصيانة الأسبوعية | لا |
 | `team-review-reminder.py --baseline` | SessionStart | يصوّر حالة الشجرة عشان يفرّق بين شغل الجلسة والتعديلات القديمة | لا |
 | `team-review-reminder.py` | Stop | لو كود اتغيّر في الجلسة: يقترح `/team-review` بالـ reviewers المناسبين، مرة واحدة لكل change-set | لا |
 | `enforce-commit-style.py` | PreToolUse · `Bash` | يرفض commit أو PR فيه نسبة لـ AI أو رسالة بالعربي (`-m` · heredoc · `-F` · `--amend` · `gh --body-file`) | ✅ |
+| `scan-secrets.py` | PreToolUse · `Bash` + git pre-commit | يمنع commit فيه مفتاح أو token أو private key أو `.env` (قسم 5) | ✅ |
 | `enforce-comment-discipline.py` | PreToolUse · `Write\|Edit\|MultiEdit` | يرفض إضافة كومنت لملف كود (الاستثناءات: build directives و`IMPORTANT:`) | ✅ |
 | `enforce-nextjs-structure.py` | PreToolUse · `Write\|Edit\|MultiEdit` | مشاريع Next.js بس: حد 600 سطر (و300 لـ PageContent)، PascalCase للجديد تحت `src/`، وحالة الحروف متطابقة مع الموجود على القرص | ✅ |
 | `warn-duplication.py` | PostToolUse · `Write\|Edit\|MultiEdit` | مشاريع Next.js بس: يرجّع للـ agent كود مكرر عشان يوحّده | يرجّع feedback |
@@ -60,8 +63,9 @@
 |---|---|
 | `verify-hooks.py` | يشغّل كل hook فعلياً بمُدخلات حقيقية ويتأكد من التسجيل في `hooks.json`. شغّله بعد أي تعديل |
 | `test_*.py` | اختبارات سلوكية لكل hook مانع |
-| `adapt.py` | يشغّل نفس الـ hooks تحت Codex أو Gemini CLI أو Cursor (قسم 5) |
+| `adapt.py` | يشغّل نفس الـ hooks تحت Codex أو Gemini CLI أو Cursor (قسم 7) |
 | `graph-doctor.py` | يفحص تغطية `code-review-graph` في كل مشاريعك |
+| `kit_config.py` | مكتبة مشتركة: بتقرا الـ profile ومفاتيح التشغيل (`settings`) لكل الـ hooks |
 
 ### ليه مفيش hook بيفرض موديل؟
 
@@ -96,7 +100,60 @@
 
 ---
 
-## 4. التحقق إنها شغالة
+## 4. التخزين جوه المشروع (`.agents/`)
+
+كل مشروع بيشيل ذاكرته بنفسه، بعيد عن الجهاز ونسخة الـ plugin والأداة. لو شلت الكيت، مفيش حاجة بتضيع.
+
+```text
+.agents/
+  memory/        auto memory (MEMORY.md + topic files)   ✅ git
+  agent-memory/  ذاكرة الـ subagents                       ✅ git
+  plans/         خطط plan mode                             ✅ git
+  scratch/       ملفات مؤقتة                               ❌ (.agents/.gitignore)
+  sessions/      نسخ الـ transcripts                       ❌ (.agents/.gitignore)
+  profile.json   (اختياري) إعدادات خاصة بالمشروع فوق الـ profile العام
+  secrets-allowlist  (اختياري) regex لكل false positive في فحص الأسرار
+```
+
+`project-storage.py` بيعمل الآتي في أول كل جلسة، وبيعدّي لو كان معمول قبل كده:
+
+| الخطوة | التفاصيل |
+|---|---|
+| الفولدرات + `.agents/.gitignore` | `scratch/` و`sessions/` بس اللي برّه git |
+| `autoMemoryDirectory` + `plansDirectory` | في `.claude/settings.local.json` (Claude Code بيقبل مسار مطلق بس للذاكرة، فده ملف محلي لكل جهاز). باقي المفاتيح بتفضل زي ما هي. **بيشتغل من الجلسة اللي بعدها** |
+| `.claude/agent-memory` ← `.agents/agent-memory` | symlink، أو junction على Windows من غير admin. لو كان فولدر حقيقي، محتواه بيتنقل الأول، ولو فيه ملف بنفس الاسم بيتحفظ الاتنين |
+| الذاكرة القديمة | `~/.claude/projects/<slug>/memory/` بتتنسخ مرة واحدة لو `.agents/memory/` فاضي. الأصل بيفضل زي ما هو |
+| `.git/info/exclude` | الـ link و`settings.local.json` بس. مفيش ملف tracked في المشروع بيتعدّل |
+| git pre-commit | بيتركّب لو مفيش pre-commit للمشروع ومفيش `core.hooksPath` (husky مثلاً). غير كده بيسيبه، و`/sabry-kit:doctor` بيقولك |
+
+**تقفله:** `"project_storage": false` في الـ profile، أو `SABRY_KIT_PROJECT_STORAGE=0`. ولو عايز تقفل نسخ الـ transcripts بس: `"keep_transcripts": false`.
+
+> الـ scratchpad بتاع الجلسة مكانه بيحدده Claude Code، و`CLAUDE_CODE_TMPDIR` بيتجاهله من إعدادات المشروع. عشان كده [`rules/project-storage.md`](../rules/project-storage.md) بيوجّه الملفات المؤقتة لـ `.agents/scratch/`.
+
+---
+
+## 5. فحص الأسرار قبل الـ commit
+
+الذاكرة بقت بتدخل git، فأي agent ممكن يلزق token في ملاحظة. `scan-secrets.py` بيقف قدام ده في مكانين بنفس القواعد:
+
+- **git pre-commit:** بيتنسخ في `.git/hooks/` (stdlib بس) فبيشتغل مع أي أداة أو أي شخص بيعمل commit، حتى من غير الكيت.
+- **Claude Code `PreToolUse`:** أي أمر `git commit` (ومعاه `-a`) بيتفحص قبل ما يتنفّذ، والـ agent بياخد السبب عشان يصلّح.
+
+بيفحص **السطور المضافة بس** (سر قديم في الـ history مش هيوقف كل commit بعده):
+مفاتيح AWS وGitHub وGitLab وAnthropic وOpenAI وGoogle وSlack وStripe وTwilio وSendGrid وnpm، وprivate keys، وJWT، وباسورد جوه URL، وأي `password`/`secret`/`api_key`/`token` بقيمة حقيقية (بيتجاهل placeholders زي `changeme` و`${VAR}` و`process.env`)، وملفات `.env` و`*.pem` و`id_rsa` (مسموح `.env.example`).
+القيم بتظهر **masked** في الرسالة.
+
+| عايز | تعمل |
+|---|---|
+| false positive في سطر | حط `allow-secret` على السطر |
+| false positive متكرر | regex في `.agents/secrets-allowlist` |
+| تعدّي commit واحد عن قصد | `git commit --no-verify` |
+| تفحص كل الملفات المتتبَّعة | `python3 hooks/scan-secrets.py --all-tracked` |
+| تقفله | `"secret_scan": false` (أو `"install_git_hook": false` للـ git hook بس) |
+
+---
+
+## 6. التحقق إنها شغالة
 
 ```bash
 python3 hooks/verify-hooks.py
@@ -112,7 +169,7 @@ for t in hooks/test_*.py; do python3 "$t" >/dev/null && echo "PASS $t" || echo "
 
 ---
 
-## 5. أدوات تانية (Codex · Gemini CLI · Cursor)
+## 7. أدوات تانية (Codex · Gemini CLI · Cursor)
 
 السكربتات مكتوبة بلغة الـ hooks بتاعة Claude Code. `adapt.py` بيترجم في الاتجاهين، فنفس القواعد بتشتغل في كل أداة من غير ما نعمل نسخة لكل واحدة:
 
@@ -127,6 +184,8 @@ python3 ~/sabry-claude-kit/hooks/adapt.py <codex|gemini|cursor> <script> [args]
 | Hook | Claude Code | Codex | Gemini CLI | Cursor |
 |---|---|---|---|---|
 | `enforce-commit-style` | ✅ | ✅ | ✅ | ✅ |
+| `scan-secrets` | ✅ | ✅ | ✅ | ✅ (والـ git pre-commit شغال في أي أداة) |
+| `project-storage` | ✅ | ✅ (`SessionStart`) | ✅ | ✅ |
 | `enforce-comment-discipline` | ✅ | ⚠️ لا (Codex بيعدّل بـ `apply_patch`) | ✅ (`write_file` · `replace`) | ⚠️ لا (`afterFileEdit` مش بيقدر يمنع) |
 | `enforce-nextjs-structure` | ✅ | ⚠️ لا | ✅ | ⚠️ لا |
 | `inject-rules` | ✅ | ✅ | ✅ | ✅ (`additional_context`) |
@@ -215,7 +274,7 @@ Codex بيقرأ نفس شكل `hooks.json` ونفس مخرجات `PreToolUse`،
 
 ---
 
-## 6. إضافة hook جديد
+## 8. إضافة hook جديد
 
 1. سكربت Python تحت `hooks/`: يقرأ JSON من stdin، ويطلع بـ exit 0 في كل حالات الفشل.
 2. سجّله في `hooks.json` بنفس شكل الأمر:

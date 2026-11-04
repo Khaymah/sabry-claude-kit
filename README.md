@@ -159,7 +159,7 @@ cp -r ~/sabry-claude-kit/agents ~/sabry-claude-kit/skills ~/sabry-claude-kit/rul
 
 ### 4. أدوات أخرى
 
-الكيت مبني حوالين Claude Code. الأدوات التانية تقدر تستفيد من الأجزاء المكتوبة: التعليمات والقواعد والأنماط والقرارات. الأجزاء الخاصة بـ Claude (`agents/` و `settings.json` و `.claude.json` و `.claude-plugin/`) مش هتشتغل هناك. أما الـ hooks فبتشتغل في Codex وGemini CLI وCursor عن طريق `hooks/adapt.py`، والإعداد لكل أداة في [hooks/README.md](hooks/README.md#5-أدوات-تانية-codex--gemini-cli--cursor).
+الكيت مبني حوالين Claude Code. الأدوات التانية تقدر تستفيد من الأجزاء المكتوبة: التعليمات والقواعد والأنماط والقرارات. الأجزاء الخاصة بـ Claude (`agents/` و `settings.json` و `.claude.json` و `.claude-plugin/`) مش هتشتغل هناك. أما الـ hooks فبتشتغل في Codex وGemini CLI وCursor عن طريق `hooks/adapt.py`، والإعداد لكل أداة في [hooks/README.md](hooks/README.md#7-أدوات-تانية-codex--gemini-cli--cursor).
 
 **Codex CLI**
 
