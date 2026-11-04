@@ -1,6 +1,6 @@
 ---
-name: setup
-description: إعداد أول مرة لـ sabry-kit - أسئلة قليلة عن المستخدم (الاسم، اللغة، أسلوب الرد، وضع العمل، الـ stack، التكلفة مقابل الجودة، القواعد اللي تتفرض) وبتتحفظ كـ profile بأولوية قصوى فوق كل القواعد في كل جلسة. استخدمه عند `/sabry-kit:setup`، أو لما الجلسة تقول إن الإعداد لسه ما اتعملش، أو لما المستخدم يقول "غيّر إعداداتي" / "change my preferences" / "reset setup".
+name: kit-setup
+description: إعداد أول مرة لـ sabry-kit - أسئلة قليلة عن المستخدم (الاسم، اللغة، أسلوب الرد، وضع العمل، الـ stack، التكلفة مقابل الجودة، القواعد اللي تتفرض) وبتتحفظ كـ profile بأولوية قصوى فوق كل القواعد في كل جلسة. استخدمه عند `/sabry-kit:kit-setup` أو `/kit-setup`، أو لما الجلسة تقول إن الإعداد لسه ما اتعملش، أو لما المستخدم يقول "غيّر إعداداتي" / "change my preferences" / "reset setup".
 ---
 
 # ⚙️ sabry-kit setup
@@ -63,8 +63,8 @@ python3 "<kit>/hooks/kit_profile.py" set '{"name":"…","language":"ar-eg","verb
 ## 5. اقفل
 
 1. اعرض اللي اتحفظ بـ `python3 "<kit>/hooks/kit_profile.py" render` (ده بالظبط اللي هيتحقن).
-2. قول بسطر: بيشتغل من **الجلسة الجاية**، والتعديل في أي وقت بـ `/sabry-kit:setup`.
-3. اقترح `/sabry-kit:doctor` عشان يفحص أي plugin أو skill أو agent متعارض مع الإعدادات دي.
+2. قول بسطر: بيشتغل من **الجلسة الجاية**، والتعديل في أي وقت بـ `/sabry-kit:kit-setup`.
+3. اقترح `/sabry-kit:kit-doctor` عشان يفحص أي plugin أو skill أو agent متعارض مع الإعدادات دي.
 
 ## قواعد
 

@@ -38,7 +38,7 @@ class InjectRulesTest(unittest.TestCase):
             code, out = run(d)
             self.assertEqual(code, 0)
             ctx = ctx_of(out)
-            self.assertIn("/sabry-kit:setup", ctx)
+            self.assertIn("/sabry-kit:kit-setup", ctx)
             self.assertNotIn("انضباط الكومنتات", ctx)
 
     def test_no_profile_nudges_setup_first(self):

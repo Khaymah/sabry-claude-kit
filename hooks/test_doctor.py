@@ -53,6 +53,7 @@ class DoctorTest(unittest.TestCase):
         write(os.path.join(plug, "skills", "remember", "SKILL.md"),
               "---\nname: remember\n---\nAlways update MEMORY.md with what you learned.\n")
         write(os.path.join(plug, "skills", "ship", "SKILL.md"), f"End every commit with\n{TRAILER}\n")
+        write(os.path.join(plug, "skills", "team-review", "SKILL.md"), "---\nname: team-review\n---\nreview\n")
         write(os.path.join(plug, "hooks", "hooks.json"),
               {"hooks": {"SessionStart": [{"hooks": [{"type": "command", "command": "echo hi"}]}]}})
         old_kit = os.path.join(self.cfg, "plugins", "cache", "mirror", "sabry-kit", "0.0.1")
@@ -91,6 +92,12 @@ class DoctorTest(unittest.TestCase):
         self.assertTrue(any(f.startswith("claude-md:") for f in ids), sorted(ids))
         self.assertEqual(ids["dup-hook:user:PreToolUse:1:0"]["severity"], "high", "machine path → high")
         self.assertNotIn("my-own-linter", json.dumps([f for f in ids.values() if f["id"].startswith(("dup-hook", "model-hook"))]))
+
+    def test_command_name_clashes(self):
+        ids = self.scan()
+        self.assertIn("name-clash:team-review:notes@acme", ids)
+        self.assertFalse([i for i in ids if i.startswith("name-builtin:")],
+                         "a kit skill shares its name with a built-in command")
 
     def test_switched_off_rule_is_not_a_conflict(self):
         write(os.path.join(self.home, ".agents", "profile.json"), {"settings": {"commit_style": False}})
@@ -137,7 +144,7 @@ class DoctorTest(unittest.TestCase):
     def test_brief_once_a_day_only_for_high(self):
         p = subprocess.run([sys.executable, DOCTOR, "brief"], input="{}", capture_output=True, text=True,
                            env=self.env, cwd=self.repo, timeout=60)
-        self.assertIn("/sabry-kit:doctor", p.stdout)
+        self.assertIn("/sabry-kit:kit-doctor", p.stdout)
         p = subprocess.run([sys.executable, DOCTOR, "brief"], input="{}", capture_output=True, text=True,
                            env=self.env, cwd=self.repo, timeout=60)
         self.assertEqual(p.stdout.strip(), "", "second run the same day is silent")

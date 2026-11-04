@@ -67,7 +67,7 @@
 | `seatbelt.json` | إعدادات حماية وأمان |
 | `AGENT_LEARNINGS.md` | دروس اتجمعت من شغل الوكلاء |
 | `CommunicationProfiles.md` | إزاي الوكيل يتواصل في المواقف المختلفة |
-| `PersonalContext.md` | قالب للسياق الشخصي. الحقيقي بيتحفظ برّه الكيت في `~/.agents/` عن طريق `/sabry-kit:setup` |
+| `PersonalContext.md` | قالب للسياق الشخصي. الحقيقي بيتحفظ برّه الكيت في `~/.agents/` عن طريق `/sabry-kit:kit-setup` |
 | `.sabry-kit-maintain-note` و `.self-maintain-last` | علامات بتُستخدم في صيانة الكيت وتحديثه |
 
 ---
@@ -105,8 +105,8 @@ claude --plugin-dir ~/sabry-claude-kit
 
 **أول مرة بعد التثبيت:**
 
-1. `/sabry-kit:setup`: أسئلة قليلة (الاسم، اللغة، وضع العمل، القواعد) وبتتحفظ في `~/.agents/` كإعدادات بأولوية قصوى.
-2. `/sabry-kit:doctor`: بيفحص الـ plugins والـ skills والـ agents والـ hooks اللي عندك، ويقولك إيه اللي متعارض مع الكيت، ويصلّح بموافقتك.
+1. `/sabry-kit:kit-setup`: أسئلة قليلة (الاسم، اللغة، وضع العمل، القواعد) وبتتحفظ في `~/.agents/` كإعدادات بأولوية قصوى.
+2. `/sabry-kit:kit-doctor`: بيفحص الـ plugins والـ skills والـ agents والـ hooks اللي عندك، ويقولك إيه اللي متعارض مع الكيت، ويصلّح بموافقتك.
 3. افتح أي مشروع: الذاكرة والخطط والملفات المؤقتة بتتجهّز لوحدها في `.agents/` جوه المشروع.
 
 > الـ plugin بيحمّل `agents/` و `skills/` و `hooks/`. أما ملفات زي `CLAUDE.md` و `settings.json` فالتنصيب كـ plugin مش بيطبّقها، فاستخدم الطريقة 2 كمان لو عايز تعليمات الكيت وإعداداته على مستوى الجهاز.
@@ -215,7 +215,7 @@ Cursor بيتوقع ملفات `.mdc` أو `.md` بـ front matter خاص بيه
 | الـ agents كلها على نفس الشكل المختصر (اتشال تكرار تعليمات الذاكرة اللي Claude Code بيحقنها لوحده) | 3 agents من 52KB لـ 8KB |
 | الافتراضي: `effortLevel: high` · `autoCompactWindow: 200000` · `CLAUDE_CODE_MAX_OUTPUT_TOKENS: 32000` · `BASH_MAX_OUTPUT_LENGTH: 20000` | سياق أصغر في كل دور ومخرجات أقصر |
 | قالب تكليف للـ subagents (`rules/subagents.md`): هدف + اللي اتستبعد + حد لطول التقرير | تقارير أقصر بتدخل الـ context الرئيسي |
-| `cost_profile` في الـ profile + `/sabry-kit:doctor` بيقارن الإعدادات بيه | تنبيه لو الإعدادات أغلى من اختيارك |
+| `cost_profile` في الـ profile + `/sabry-kit:kit-doctor` بيقارن الإعدادات بيه | تنبيه لو الإعدادات أغلى من اختيارك |
 
 ## التحديث
 
@@ -249,7 +249,7 @@ claude
 - ضيف skill جديدة بعمل فولدر تحت `skills/` فيه `SKILL.md`.
 - ضيف agent جديد بإضافة ملف Markdown تحت `agents/`.
 - سجّل أي اختيار تقني في `Decisions/`، وانقل اللي بتتعلمه لـ `Patterns/` أو `Anti-patterns/`.
-- شغّل `/sabry-kit:setup` مرة واحدة: بيسألك أسئلة قليلة ويحفظ إجاباتك في `~/.agents/` كإعدادات بأولوية قصوى فوق كل قواعد الكيت.
+- شغّل `/sabry-kit:kit-setup` مرة واحدة: بيسألك أسئلة قليلة ويحفظ إجاباتك في `~/.agents/` كإعدادات بأولوية قصوى فوق كل قواعد الكيت.
 
 ## ملاحظات أمنية
 

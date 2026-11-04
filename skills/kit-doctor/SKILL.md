@@ -1,6 +1,6 @@
 ---
-name: doctor
-description: يفحص إعداد Claude Code عند المستخدم (الـ plugins والـ skills والـ agents والـ commands والـ hooks والـ settings والـ CLAUDE.md) ويلاقي أي حاجة بتتعارض مع sabry-kit أو مع الـ profile، ويصلّحها بموافقته بس، مع backup وإمكانية الرجوع. استخدمه عند `/sabry-kit:doctor`، أو بعد `/sabry-kit:setup`، أو لما الجلسة تنبّه بتعارض، أو لما المستخدم يقول "فيه حاجة بتتعارض" / "نضّف الإعدادات" / "check conflicts".
+name: kit-doctor
+description: يفحص إعداد Claude Code عند المستخدم (الـ plugins والـ skills والـ agents والـ commands والـ hooks والـ settings والـ CLAUDE.md) ويلاقي أي حاجة بتتعارض مع sabry-kit أو مع الـ profile، ويصلّحها بموافقته بس، مع backup وإمكانية الرجوع. استخدمه عند `/sabry-kit:kit-doctor` أو `/kit-doctor`، أو بعد `/sabry-kit:kit-setup`، أو لما الجلسة تنبّه بتعارض، أو لما المستخدم يقول "فيه حاجة بتتعارض" / "نضّف الإعدادات" / "check conflicts".
 ---
 
 # 🩺 sabry-kit doctor
@@ -64,5 +64,6 @@ python3 "<kit>/hooks/doctor.py" fix <id> <id> ...
 | التكلفة | `effortLevel` · `autoCompactWindow` · `CLAUDE_CODE_MAX_OUTPUT_TOKENS` أعلى من `cost_profile` · plugins بتحقن context في كل جلسة |
 | الأمان | فحص الأسرار مش متركّب بسبب husky أو pre-commit خاص |
 | CLAUDE.md | سطور بتطلب كومنتات/JSDoc أو haiku أو توقيع AI |
+| أسامي الأوامر | أمر في الكيت بنفس اسم أمر مدمج في Claude Code (زي `/doctor`) أو skill/command في plugin تاني |
 
 قاعدة مقفولة في الـ profile (مثلاً `commit_style: false`) ← التعارضات الخاصة بيها مش بتظهر.

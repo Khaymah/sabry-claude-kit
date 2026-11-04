@@ -3,7 +3,7 @@
 SessionStart hook - puts the owner's profile (highest priority) and the kit's rules
 into context at the start of every session, on every project, local or cloud.
 
-Order matters: the profile from /sabry-kit:setup comes first and says it overrides
+Order matters: the profile from /sabry-kit:kit-setup comes first and says it overrides
 everything below it. With no profile yet, a one-line nudge to run the setup takes its
 place. Rules whose switch is off in the profile are not injected at all, which is both
 correct and cheaper than injecting them and telling the model to ignore them.

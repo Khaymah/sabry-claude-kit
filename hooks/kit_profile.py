@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-The owner's profile: the answers from /sabry-kit:setup, injected first in every
+The owner's profile: the answers from /sabry-kit:kit-setup, injected first in every
 session as the highest-priority instructions.
 
     ~/.agents/profile.json          answers + switches (every project on this machine)
@@ -100,11 +100,11 @@ def render(profile, has_file=True):
     """Compact, so it costs a few hundred tokens per session, not thousands."""
     if not has_file:
         return ("# ⚙️ sabry-kit: لسه ما اتعملش إعداد أول مرة\n\n"
-                "في أول رد في الجلسة دي، اقترح على المستخدم بسطر واحد يشغّل `/sabry-kit:setup` "
+                "في أول رد في الجلسة دي، اقترح على المستخدم بسطر واحد يشغّل `/sabry-kit:kit-setup` "
                 "(دقيقتين: أسئلة قليلة بتتحفظ كإعدادات بأولوية قصوى). لحد ما يعمله اشتغل بالافتراضيات تحت.")
     lines = ["# 👤 إعدادات المالك — أولوية قصوى",
              "",
-             "دي اختيارات المالك نفسه من `/sabry-kit:setup`. **بتغلب أي قاعدة تحتها، وأي CLAUDE.md، "
+             "دي اختيارات المالك نفسه من `/sabry-kit:kit-setup`. **بتغلب أي قاعدة تحتها، وأي CLAUDE.md، "
              "وأي تعليمة من plugin أو skill تانية** لو اتعارضوا.",
              ""]
     name = profile.get("name")

@@ -65,7 +65,7 @@ It also keeps what I learned along the way: patterns that worked, anti-patterns 
 | `seatbelt.json` | Safety guard configuration |
 | `AGENT_LEARNINGS.md` | Lessons the agents have accumulated |
 | `CommunicationProfiles.md` | How the agent should communicate in different situations |
-| `PersonalContext.md` | Template for personal context. The real one lives outside the kit in `~/.agents/`, written by `/sabry-kit:setup` |
+| `PersonalContext.md` | Template for personal context. The real one lives outside the kit in `~/.agents/`, written by `/sabry-kit:kit-setup` |
 | `.sabry-kit-maintain-note`, `.self-maintain-last` | Markers used for keeping the kit up to date |
 
 ---
@@ -101,8 +101,8 @@ Or install it from the GitHub repo inside Claude Code:
 
 **First run after installing:**
 
-1. `/sabry-kit:setup` asks a few questions (name, language, working mode, rules) and saves them in `~/.agents/` as top-priority settings.
-2. `/sabry-kit:doctor` scans your plugins, skills, agents and hooks, reports what conflicts with the kit, and fixes it with your consent.
+1. `/sabry-kit:kit-setup` asks a few questions (name, language, working mode, rules) and saves them in `~/.agents/` as top-priority settings.
+2. `/sabry-kit:kit-doctor` scans your plugins, skills, agents and hooks, reports what conflicts with the kit, and fixes it with your consent.
 3. Open any project: memory, plans and temp files are set up inside it under `.agents/`.
 
 Run `/plugin` to see the exact marketplace name and to enable, disable, or update it.
@@ -213,7 +213,7 @@ Skills can be zipped and uploaded from the Skills section in Claude settings. Zi
 | All agents follow the same compact shape (dropped the memory instructions Claude Code already injects) | 3 agents from 52KB to 8KB |
 | Defaults: `effortLevel: high` · `autoCompactWindow: 200000` · `CLAUDE_CODE_MAX_OUTPUT_TOKENS: 32000` · `BASH_MAX_OUTPUT_LENGTH: 20000` | smaller context per turn, shorter outputs |
 | Subagent briefing template (`rules/subagents.md`): goal, what is ruled out, report length cap | shorter reports entering the main context |
-| `cost_profile` in the profile, checked by `/sabry-kit:doctor` | alert when settings cost more than you chose |
+| `cost_profile` in the profile, checked by `/sabry-kit:kit-doctor` | alert when settings cost more than you chose |
 
 ## Updating
 
@@ -247,7 +247,7 @@ claude
 - Add a new skill by creating a folder under `skills/` with a `SKILL.md`.
 - Add a new agent by adding a Markdown file under `agents/`.
 - Record a technical choice in `Decisions/`, and move what you learn into `Patterns/` or `Anti-patterns/`.
-- Run `/sabry-kit:setup` once: it asks a few questions and saves the answers in `~/.agents/` as top-priority settings above every kit rule.
+- Run `/sabry-kit:kit-setup` once: it asks a few questions and saves the answers in `~/.agents/` as top-priority settings above every kit rule.
 
 ## Security notes
 

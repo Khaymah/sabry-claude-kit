@@ -41,7 +41,7 @@
 
 ## 2. الـ profile (إعداد أول مرة)
 
-`/sabry-kit:setup` بيسأل 3 جولات أسئلة (الاسم، اللغة، أسلوب الرد، وضع العمل، الـ stack، التكلفة مقابل الجودة، القواعد اللي تتفرض) ويحفظ:
+`/sabry-kit:kit-setup` بيسأل 3 جولات أسئلة (الاسم، اللغة، أسلوب الرد، وضع العمل، الـ stack، التكلفة مقابل الجودة، القواعد اللي تتفرض) ويحفظ:
 
 | الملف | فيه إيه | بيتحقن؟ |
 |---|---|---|
@@ -50,7 +50,7 @@
 | `<project>/.agents/profile.json` | override لمشروع واحد بنفس الشكل | بيتدمج فوق العام |
 
 - **الترتيب:** `DEFAULTS` < `~/.agents/profile.json` < `<project>/.agents/profile.json` < متغيرات `SABRY_KIT_<KEY>`.
-- **لسه ما اتعملش؟** `inject-rules` بيحط سطر بيقترح `/sabry-kit:setup` مكان الـ profile.
+- **لسه ما اتعملش؟** `inject-rules` بيحط سطر بيقترح `/sabry-kit:kit-setup` مكان الـ profile.
 - **قاعدة مقفولة = مش بتتحقن أصلاً** (توفير توكنز)، والـ hook بتاعها بيسكت.
 - **من الـ CLI:** `python3 hooks/kit_profile.py show | set '<json>' | set --project '<json>' | context '<md>' | render`.
 
@@ -73,7 +73,7 @@
 |---|---|---|---|
 | `project-storage.py` | SessionStart | يجهّز `.agents/` جوه المشروع ويحوّل الـ memory والخطط والـ agent-memory ليه ويركّب الـ pre-commit (قسم 5) | لا |
 | `project-storage.py --save-transcript` | SessionEnd | ينسخ الـ transcript لـ `.agents/sessions/` | لا |
-| `doctor.py brief` | SessionStart | مرة في اليوم: لو فيه تعارض خطير مع الكيت بيظهر للمستخدم سطر يقترح `/sabry-kit:doctor` | لا |
+| `doctor.py brief` | SessionStart | مرة في اليوم: لو فيه تعارض خطير مع الكيت بيظهر للمستخدم سطر يقترح `/sabry-kit:kit-doctor` | لا |
 | `inject-rules.py` | SessionStart | يحقن `rules/*.md` في السياق (لو مش محمّلة أصلاً من `~/.claude/rules`) | لا |
 | `maintain-note.py` | SessionStart | تذكير مرة في اليوم بالصيانة الأسبوعية | لا |
 | `team-review-reminder.py --baseline` | SessionStart | يصوّر حالة الشجرة عشان يفرّق بين شغل الجلسة والتعديلات القديمة | لا |
@@ -96,7 +96,7 @@
 | `graph-doctor.py` | يفحص تغطية `code-review-graph` في كل مشاريعك |
 | `kit_config.py` | مكتبة مشتركة: بتقرا الـ profile ومفاتيح التشغيل (`settings`) لكل الـ hooks |
 | `kit_profile.py` | CLI الـ profile (قسم 2) |
-| `doctor.py` | `scan` · `fix <id>` · `fix --all-safe` · `undo` · `runs`: فحص التعارضات وإصلاحها بـ backup (الـ skill `/sabry-kit:doctor` بيستخدمه) |
+| `doctor.py` | `scan` · `fix <id>` · `fix --all-safe` · `undo` · `runs`: فحص التعارضات وإصلاحها بـ backup (الـ skill `/sabry-kit:kit-doctor` بيستخدمه) |
 
 ### ليه مفيش hook بيفرض موديل؟
 
@@ -155,7 +155,7 @@
 | `.claude/agent-memory` ← `.agents/agent-memory` | symlink، أو junction على Windows من غير admin. لو كان فولدر حقيقي، محتواه بيتنقل الأول، ولو فيه ملف بنفس الاسم بيتحفظ الاتنين |
 | الذاكرة القديمة | `~/.claude/projects/<slug>/memory/` بتتنسخ مرة واحدة لو `.agents/memory/` فاضي. الأصل بيفضل زي ما هو |
 | `.git/info/exclude` | الـ link و`settings.local.json` بس. مفيش ملف tracked في المشروع بيتعدّل |
-| git pre-commit | بيتركّب لو مفيش pre-commit للمشروع ومفيش `core.hooksPath` (husky مثلاً). غير كده بيسيبه، و`/sabry-kit:doctor` بيقولك |
+| git pre-commit | بيتركّب لو مفيش pre-commit للمشروع ومفيش `core.hooksPath` (husky مثلاً). غير كده بيسيبه، و`/sabry-kit:kit-doctor` بيقولك |
 
 **تقفله:** `"project_storage": false` في الـ profile، أو `SABRY_KIT_PROJECT_STORAGE=0`. ولو عايز تقفل نسخ الـ transcripts بس: `"keep_transcripts": false`.
 

@@ -38,6 +38,21 @@ KIT_HOOKS = ("enforce-commit-style", "enforce-comment-discipline", "enforce-next
              "project-storage", "enforce-sonnet", "enforce-opus", "play.ps1", "play.py")
 SEVERITY_ORDER = {"high": 0, "medium": 1, "low": 2, "info": 3}
 
+BUILTIN_COMMANDS = set("""
+add-dir advisor agents allowed-tools android app artifacts auto-mode-setup autocompact
+autofix-pr background bashes batch bg branch btw bug cd checkpoint checkup chrome clear
+code-review color compact config context continue copy cost debug design desktop diff doctor
+effort exit export extra-usage fast feedback fewer-permission-prompts focus fork goal heapdump
+help hooks ide import init insights install-github-app install-slack-app ios keybindings
+list-agents login logout loop mcp memory mobile model new output-style passes peers permissions
+plan plugin powerup pr-comments privacy-settings proactive quit radio rate-limit-options rc recap
+release-notes reload-plugins reload-skills remote-control remote-env rename reset restart resume
+review rewind routines run sandbox schedule scroll-speed security-review settings setup-bedrock
+setup-vertex share simplify skill-doctor skills slides stats status statusline stickers stop
+subtask tasks team-onboarding teleport terminal-setup theme tp tui ultraplan ultrareview undo
+update update-config upgrade usage usage-credits verify vim voice web-setup workflows
+""".split())
+
 THEMES = [
     ("memory", "project_storage",
      re.compile(r"(?is)\b(write|update|save|append|create|maintain)\b.{0,60}(MEMORY\.md|CLAUDE\.md|memory/|memories)"),
@@ -104,11 +119,13 @@ class Scan:
             self.enabled_plugins.update(read_json(p).get("enabledPlugins") or {})
 
     def add(self, fid, severity, title, evidence, fix=None, why=""):
+        if any(f["id"] == fid for f in self.findings):
+            return
         self.findings.append({"id": fid, "severity": severity, "title": title, "evidence": evidence,
                               "why": why, "fix": fix or {"type": "manual"}})
 
     def run(self):
-        for step in (self.check_settings, self.check_plugins, self.check_user_dirs,
+        for step in (self.check_settings, self.check_plugins, self.check_user_dirs, self.check_names,
                      self.check_claude_md, self.check_git_hooks):
             try:
                 step()
@@ -275,6 +292,40 @@ class Scan:
                              f"{name}: " + ", ".join(os.path.relpath(h, root).replace("\\", "/") for h in hits[:3])
                              + (f" (+{len(hits) - 3})" if len(hits) > 3 else ""),
                              disable, why)
+
+    @staticmethod
+    def command_names(root):
+        """Slash-command names a plugin or config dir exposes: skill folders and command files."""
+        names = {}
+        for skill in glob.glob(os.path.join(root, "skills", "*", "SKILL.md")):
+            text = read_text(skill, 2000)
+            m = re.search(r"^name:\s*['\"]?([\w.-]+)", text, re.M)
+            names[(m.group(1) if m else os.path.basename(os.path.dirname(skill))).lower()] = skill
+        for cmd in glob.glob(os.path.join(root, "commands", "**", "*.md"), recursive=True):
+            names[os.path.splitext(os.path.basename(cmd))[0].lower()] = cmd
+        return names
+
+    def check_names(self):
+        """A bare `/name` resolves to a built-in first, and a name shared with another plugin
+        makes both the slash menu and the model's skill choice ambiguous."""
+        kit = self.command_names(KIT)
+        for name, path in sorted(kit.items()):
+            if name in BUILTIN_COMMANDS:
+                self.add(f"name-builtin:{name}", "medium", f"أمر الكيت `{name}` بنفس اسم أمر مدمج في Claude Code",
+                         f"/{name} بيشغّل المدمج · {short(path)}", None,
+                         f"استخدم `/sabry-kit:{name}`، أو غيّر اسم الـ skill في الكيت لاسم مميّز.")
+        others = []
+        for p in self.plugin_roots():
+            if (inside(p["root"], KIT) or inside(KIT, p["root"]) or p["name"] == "sabry-kit"
+                    or self.enabled_plugins.get(p["key"]) is False):
+                continue
+            others.append((p["name"], p["key"], p["root"]))
+        for name, key, root in others:
+            clash = sorted(set(kit) & set(self.command_names(root)))
+            for n in clash:
+                self.add(f"name-clash:{n}:{key}", "low", f"`{n}` موجود في الكيت وفي plugin `{name}`",
+                         f"/sabry-kit:{n} · /{name}:{n}", None,
+                         f"لما تكتب `/{n}` أو تقول اسمه بس، ممكن يشتغل بتاع `{name}`. استخدم الاسم الكامل `/sabry-kit:{n}`.")
 
     def check_user_dirs(self):
         cdir = config_dir()
@@ -545,7 +596,7 @@ def main():
             fh.write(today)
         if high:
             print(json.dumps({"systemMessage": f"[sabry-kit doctor] {len(high)} تعارض خطير مع الكيت "
-                              f"({high[0]['title']}{'…' if len(high) > 1 else ''}). شغّل /sabry-kit:doctor"}, ensure_ascii=False))
+                              f"({high[0]['title']}{'…' if len(high) > 1 else ''}). شغّل /sabry-kit:kit-doctor"}, ensure_ascii=False))
         return 0
     if cmd == "runs":
         base = runs_dir()
