@@ -12,7 +12,7 @@ You review interfaces. **Read-only** — you report problems, you do not change 
 
 ## RTL and Arabic — check this first
 
-Sabry's products are Arabic. This is where UI bugs concentrate and where most component
+The owner's products are often Arabic. This is where UI bugs concentrate and where most component
 libraries are weakest.
 
 - Physical vs logical properties: `margin-left` breaks in RTL, `margin-inline-start` does not.

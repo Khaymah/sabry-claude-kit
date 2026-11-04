@@ -22,6 +22,12 @@ import os
 import subprocess
 import sys
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+try:
+    import kit_config
+except Exception:
+    kit_config = None
+
 # path fragment -> (angle, agent). First match per angle wins.
 ANGLE_RULES = [
     ("security-reviewer", (
@@ -45,7 +51,7 @@ TEST_HINTS = (".test.", ".spec.", "__tests__", "/tests/", "/test/")
 CONFIG_DIR = os.path.abspath(
     os.environ.get("CLAUDE_CONFIG_DIR") or os.path.join(os.path.expanduser("~"), ".claude")
 )
-# State lives centrally, keyed by repo path. Running in every repository Sabry opens, writing
+# State lives centrally, keyed by repo path. Running in every repository the owner opens, writing
 # state inside each one would litter unrelated projects with an untracked `.claude/` directory.
 STATE_DIR = os.path.join(CONFIG_DIR, ".state", "review-reminders")
 
@@ -142,6 +148,8 @@ def read_state(path: str):
 
 
 def main() -> int:
+    if kit_config and not kit_config.enabled("team_review_reminder", kit_config.project_root()):
+        return 0
     baseline_mode = "--baseline" in sys.argv
 
     if not baseline_mode:
@@ -167,7 +175,7 @@ def main() -> int:
     raw = read_state(base_file)
     if raw is None:
         # No snapshot — cannot tell this session's work from pre-existing dirt. Establish the
-        # baseline and stay quiet rather than dumping the whole working tree at Sabry.
+        # baseline and stay quiet rather than dumping the whole working tree at the owner.
         write_state(base_file, json.dumps(cur))
         return 0
     try:
@@ -212,7 +220,7 @@ def main() -> int:
             "additionalContext": (
                 f"[team-review] {len(code)} code file(s) changed this session and not yet "
                 f"reviewed: {sample}. Suggested angles: {shown}. "
-                f"Offer Sabry a review (the /team-review skill runs them in parallel and "
+                f"Offer the owner a review (the /team-review skill runs them in parallel and "
                 f"adversarially verifies findings) — or say why it isn't warranted "
                 f"(trivial/mechanical change). Do not review silently without telling him. "
                 f"This reminder fires once per change-set; it is not a blocker."

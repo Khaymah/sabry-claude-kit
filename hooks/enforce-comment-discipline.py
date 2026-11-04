@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-PreToolUse hook - enforces Sabry's absolute comment rule (all projects):
+PreToolUse hook - enforces the owner's absolute comment rule (all projects):
 
   Code carries NO comments. Not line comments, not block comments, not JSDoc.
   The ONLY comment allowed in source is one that opens with `IMPORTANT:` and
@@ -29,6 +29,12 @@ import json
 import os
 import re
 import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+try:
+    import kit_config
+except Exception:
+    kit_config = None
 
 CODE_EXT = (".ts", ".tsx", ".mts", ".cts", ".js", ".jsx", ".mjs", ".cjs")
 
@@ -220,6 +226,9 @@ def main():
         payload = json.load(sys.stdin)
     except Exception:
         return 0
+
+    if kit_config and not kit_config.gate("comment_discipline", payload):
+        return 0
     ti = payload.get("tool_input") or {}
     if not isinstance(ti, dict):
         return 0
@@ -239,7 +248,7 @@ def main():
                 "[enforce-comment-discipline] Blocked: this edit adds a comment to "
                 f"{os.path.basename(str(ti.get('file_path')))}.\n"
                 f"Offending comment: {snippet}\n"
-                "Sabry's iron rule, all projects: source code carries NO comments - "
+                "The owner's iron rule, all projects: source code carries NO comments - "
                 "no line comments, no block comments, no JSDoc. Readable code is never "
                 "commented; rationale lives in ADR / Plan, not in the code.\n"
                 "Allowed exceptions: build directives (ts-expect-error, eslint-disable, "

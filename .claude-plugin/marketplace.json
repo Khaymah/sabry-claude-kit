@@ -1,11 +1,13 @@
 {
   "name": "sabry-kit",
-  "owner": { "name": "Sabry Dawood" },
+  "owner": {
+    "name": "Sabry Dawood"
+  },
   "plugins": [
     {
       "name": "sabry-kit",
       "source": "./",
-      "description": "Sabry's personal cross-project setup: rules, agents, commands, enforcement hooks."
+      "description": "Portable AI-agent brain: a top-priority owner profile from a first-run setup, role agents, per-project memory under .agents/, secret scanning, a conflict doctor, and enforcement hooks that also run under Codex, Gemini CLI and Cursor."
     }
   ]
 }

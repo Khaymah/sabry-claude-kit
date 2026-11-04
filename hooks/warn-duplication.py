@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-PostToolUse hook: strict DRY for Next.js projects (Sabry, 2026-10-09).
+PostToolUse hook: strict DRY for Next.js projects (2026-10-09).
 
 After a Write/Edit to a .ts/.tsx/.js/.jsx file under src/, it looks for:
 
@@ -25,6 +25,12 @@ import json
 import os
 import re
 import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+try:
+    import kit_config
+except Exception:
+    kit_config = None
 import tempfile
 
 WINDOW = 6
@@ -229,6 +235,9 @@ def main():
         data = json.load(sys.stdin)
     except ValueError:
         return
+
+    if kit_config and not kit_config.gate("duplication_warning", data):
+        return
     tool = data.get("tool_name", "")
     if tool not in ("Write", "Edit", "MultiEdit"):
         return
@@ -265,7 +274,7 @@ def main():
     if not lines:
         return
     kind = "translation strings" if is_i18n(rel) else f"{WINDOW}+ line blocks"
-    reason = (f"DRY check (Sabry's strict DRY rule): duplicated {kind} in what you just wrote.\n"
+    reason = (f"DRY check (the owner's strict DRY rule): duplicated {kind} in what you just wrote.\n"
               + "\n".join(lines)
               + "\nExtract the shared part (a hook in _hooks.ts or a shared Use* hook, a helper, "
                 "a component, or a Common translation key) and use it from both places. "

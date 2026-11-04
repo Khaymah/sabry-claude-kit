@@ -1,6 +1,8 @@
 {
   "name": "sabry-kit",
   "version": "0.1.0",
-  "description": "Sabry's personal cross-project setup: CTO+PM mindset rules (injected at session start), role agents, commands, and the opus + commit-style enforcement hooks. Portable across every project, local and cloud.",
-  "author": { "name": "Sabry Dawood" }
+  "description": "Portable AI-agent brain: a top-priority owner profile from a first-run setup, role agents, per-project memory under .agents/, secret scanning, a conflict doctor, and enforcement hooks that also run under Codex, Gemini CLI and Cursor.",
+  "author": {
+    "name": "Sabry Dawood"
+  }
 }

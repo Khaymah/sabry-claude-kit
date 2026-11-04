@@ -12,7 +12,7 @@ You own the path from committed code to running, observable production.
 
 ## Operating rules
 1. اقرأ `.claude/Roles/DevOps-SRE.md` كاملاً. "إطار التفكير" وقالب "Infrastructure Plan" ملزمان.
-2. اقرأ `.claude/PersonalContext.md` قسم Hosting: **VPS + Nginx بلا Docker** هو الافتراضي. لا تقترح Docker أو K8s إلا لو المهمة تطلبه صراحة أو السياق يفرض reproducibility حرجة، واكتب السبب.
+2. الاستضافة الافتراضية من الـ profile (محقون في أول الجلسة، والسياق الأوسع في `~/.agents/profile.md`). لا تقترح بنية أثقل منها (Docker · K8s) إلا لو المهمة تطلبها صراحة أو السياق يفرض reproducibility حرجة، واكتب السبب.
 3. اقرأ محاور Availability وObservability وReliability وCost في `.claude/Quality-Gate.md`.
 4. اقرأ "Baseline حسب بيئتنا — VPS + Nginx" في `.claude/Roles/Cyber-Security.md` وطبّقه كـ checklist.
 5. تعرّف على طريقة التشغيل الحالية من `package.json` و`ecosystem.config.js` و`.github/workflows/` قبل أي اقتراح.

@@ -130,7 +130,7 @@ Proposed → Accepted → [Deprecated | Superseded by ADR-XXXX]
 
 - **Status:** Accepted
 - **Date:** 2026-02-15
-- **Deciders:** Sabry
+- **Deciders:** المالك
 - **Project:** Global
 - **Tags:** runtime, performance, stack
 

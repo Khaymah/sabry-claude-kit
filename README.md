@@ -67,7 +67,7 @@
 | `seatbelt.json` | إعدادات حماية وأمان |
 | `AGENT_LEARNINGS.md` | دروس اتجمعت من شغل الوكلاء |
 | `CommunicationProfiles.md` | إزاي الوكيل يتواصل في المواقف المختلفة |
-| `PersonalContext.md` | خلفية شخصية يعرفها الوكيل (عدّلها بتفاصيلك أنت) |
+| `PersonalContext.md` | قالب للسياق الشخصي. الحقيقي بيتحفظ برّه الكيت في `~/.agents/` عن طريق `/sabry-kit:setup` |
 | `.sabry-kit-maintain-note` و `.self-maintain-last` | علامات بتُستخدم في صيانة الكيت وتحديثه |
 
 ---
@@ -102,6 +102,12 @@ claude --plugin-dir ~/sabry-claude-kit
 ```
 
 اكتب `/plugin` عشان تشوف اسم الـ marketplace بالظبط، وتفعّل أو تعطّل أو تحدّث.
+
+**أول مرة بعد التثبيت:**
+
+1. `/sabry-kit:setup`: أسئلة قليلة (الاسم، اللغة، وضع العمل، القواعد) وبتتحفظ في `~/.agents/` كإعدادات بأولوية قصوى.
+2. `/sabry-kit:doctor`: بيفحص الـ plugins والـ skills والـ agents والـ hooks اللي عندك، ويقولك إيه اللي متعارض مع الكيت، ويصلّح بموافقتك.
+3. افتح أي مشروع: الذاكرة والخطط والملفات المؤقتة بتتجهّز لوحدها في `.agents/` جوه المشروع.
 
 > الـ plugin بيحمّل `agents/` و `skills/` و `hooks/`. أما ملفات زي `CLAUDE.md` و `settings.json` فالتنصيب كـ plugin مش بيطبّقها، فاستخدم الطريقة 2 كمان لو عايز تعليمات الكيت وإعداداته على مستوى الجهاز.
 
@@ -159,7 +165,7 @@ cp -r ~/sabry-claude-kit/agents ~/sabry-claude-kit/skills ~/sabry-claude-kit/rul
 
 ### 4. أدوات أخرى
 
-الكيت مبني حوالين Claude Code. الأدوات التانية تقدر تستفيد من الأجزاء المكتوبة: التعليمات والقواعد والأنماط والقرارات. الأجزاء الخاصة بـ Claude (`agents/` و `settings.json` و `.claude.json` و `.claude-plugin/`) مش هتشتغل هناك. أما الـ hooks فبتشتغل في Codex وGemini CLI وCursor عن طريق `hooks/adapt.py`، والإعداد لكل أداة في [hooks/README.md](hooks/README.md#7-أدوات-تانية-codex--gemini-cli--cursor).
+الكيت مبني حوالين Claude Code. الأدوات التانية تقدر تستفيد من الأجزاء المكتوبة: التعليمات والقواعد والأنماط والقرارات. الأجزاء الخاصة بـ Claude (`agents/` و `settings.json` و `.claude.json` و `.claude-plugin/`) مش هتشتغل هناك. أما الـ hooks فبتشتغل في Codex وGemini CLI وCursor عن طريق `hooks/adapt.py`، والإعداد لكل أداة في [hooks/README.md](hooks/README.md#8-أدوات-تانية-codex--gemini-cli--cursor).
 
 **Codex CLI**
 
@@ -232,7 +238,7 @@ claude
 - ضيف skill جديدة بعمل فولدر تحت `skills/` فيه `SKILL.md`.
 - ضيف agent جديد بإضافة ملف Markdown تحت `agents/`.
 - سجّل أي اختيار تقني في `Decisions/`، وانقل اللي بتتعلمه لـ `Patterns/` أو `Anti-patterns/`.
-- استبدل محتوى `PersonalContext.md` و `CommunicationProfiles.md` بالخاص بيك.
+- شغّل `/sabry-kit:setup` مرة واحدة: بيسألك أسئلة قليلة ويحفظ إجاباتك في `~/.agents/` كإعدادات بأولوية قصوى فوق كل قواعد الكيت.
 
 ## ملاحظات أمنية
 

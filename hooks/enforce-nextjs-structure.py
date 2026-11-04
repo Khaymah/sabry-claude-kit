@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-PreToolUse hook: enforces Sabry's Next.js stack layout (Stacks/NextJS.md) on Write/Edit.
+PreToolUse hook: enforces the owner's Next.js stack layout (Stacks/NextJS.md) on Write/Edit.
 
 Applies only to files inside a Next.js project (nearest package.json lists "next").
 
@@ -15,7 +15,7 @@ Applies only to files inside a Next.js project (nearest package.json lists "next
      src/app (they are URLs), `components` and `_private` folders inside a route.
 
 Existing files and folders keep their names: the rule is for what is created or
-grown, per Sabry's 2026-10-09 decision ("new and touched").
+grown, per the 2026-10-09 kit decision ("new and touched").
 
 Behaviour: deny with a message that says how to comply. Wired to: PreToolUse,
 matcher "Write|Edit|MultiEdit".
@@ -24,6 +24,12 @@ import json
 import os
 import re
 import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+try:
+    import kit_config
+except Exception:
+    kit_config = None
 
 MAX_LINES = 600
 MAX_PAGE_CONTENT = 300
@@ -193,6 +199,9 @@ def main():
     try:
         data = json.load(sys.stdin)
     except ValueError:
+        return
+
+    if kit_config and not kit_config.gate("nextjs_structure", data):
         return
     tool = data.get("tool_name", "")
     if tool not in ("Write", "Edit", "MultiEdit"):

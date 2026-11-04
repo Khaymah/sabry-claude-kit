@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-SessionStart hook - once per day, inject a short awareness note telling Sabry that
+SessionStart hook - once per day, inject a short awareness note telling the owner that
 sabry-kit self-maintains weekly via a cloud Routine that opens a PR for review.
 
 It does NOT run the maintenance itself: a local hook runs inside whatever project is
-open (not the kit repo), and `git push` is denied by Sabry's settings, so a hook cannot
+open (not the kit repo), and `git push` is denied by the kit's settings, so a hook cannot
 reliably open a cross-repo PR. The real engine is the weekly cloud Routine; this hook
-only keeps Sabry aware when he opens a session.
+only keeps the owner aware when they open a session.
 
 Deduped to at most once per day via a stamp file. Never breaks a session: any failure
 exits 0 with no output. Opt out with SABRY_KIT_NO_MAINTAIN_NOTE=1.

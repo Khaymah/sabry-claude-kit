@@ -68,7 +68,7 @@ def test_team_reminder():
         write("src/legacy.ts", "export const l=1\n")
         g("add", "-A"); g("commit", "-qm", "base")
 
-        # ── دَنَس سابق للجلسة: ملف كان معدَّلاً قبل أن يفتح Sabry المشروع
+        # ── دَنَس سابق للجلسة: ملف كان معدَّلاً قبل أن يفتح المالك المشروع
         write("src/legacy.ts", "export const l=2 // edited last week\n")
         run_hook("team-review-reminder.py", {}, cwd=tmp, args=["--baseline"])
 
@@ -309,10 +309,12 @@ def test_latency():
 def test_suite(title, script):
     """Runs a behavioural test file and folds its PASS/FAIL lines into this report."""
     print(f"\n{title}")
-    p = subprocess.run([sys.executable, os.path.join(HOOKS, script)],
+    p = subprocess.run([sys.executable, os.path.join(HOOKS, script)], stdin=subprocess.DEVNULL,
                        capture_output=True, text=True, encoding="utf-8", timeout=300)
     failed = [l.strip() for l in p.stdout.splitlines() if l.startswith("  FAIL")]
     passed = sum(1 for l in p.stdout.splitlines() if l.startswith("  PASS"))
+    ran = re.search(r"Ran (\d+) test", p.stderr)
+    passed = passed or (int(ran.group(1)) if ran else 0)
     check(script, p.returncode == 0 and not failed,
           "؛ ".join(failed)[:300] or p.stderr.strip()[:200], info=f"{passed} حالة")
 
@@ -336,6 +338,8 @@ def main():
     test_nextjs_hooks()
     test_suite("🗂  التخزين جوه المشروع (.agents/)", "test_project_storage.py")
     test_suite("🔐 فحص الأسرار قبل الـ commit", "test_scan_secrets.py")
+    test_suite("👤 الـ profile والحقن", "test_kit_config.py")
+    test_suite("💉 inject-rules", "test_inject_rules.py")
     test_registration()
     test_sounds()
     test_adapter()

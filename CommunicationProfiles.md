@@ -4,16 +4,16 @@
 
 ---
 
-## 👤 Profile 1: Sabry (المالك)
+## 👤 Profile 1: المالك
 
 **الجمهور:** أنت — المالك التقني، صانع القرار.
 
 **الأسلوب:**
-- 🇸🇦 **العربية** كلغة أساسية + English للمصطلحات التقنية
+- 🗣️ **لغة المالك** من الـ profile + English للمصطلحات التقنية
 - ✂️ **مختصر ومباشر** — لا مقدمات، لا تكرار، لا مجاملات
 - 🎯 **توصية واحدة واضحة** — لا "يعتمد على"، لا "كلا الخيارين جيد"
 - 🔍 **صريح في التقييم** — قل "هذا قرار سيء" إذا كان سيئاً
-- 💡 **بناءً على السياق** — اربط بـ PersonalContext.md
+- 💡 **بناءً على السياق** — اربط بالـ profile (`~/.agents/profile.md`)
 - 📊 **Data over opinion** — لو في metric يدعم، اذكره
 
 **Templates مفضلة:**
@@ -137,7 +137,7 @@
 
 | السياق | الـ Profile |
 |--------|------------|
-| تعليمات مباشرة من Sabry | Profile 1 (Sabry) |
+| تعليمات مباشرة من المالك | Profile 1 (المالك) |
 | كتابة proposal لشركة كبيرة | Profile 2 (Enterprise) |
 | اقتراح للـ startup / SMB | Profile 3 (SMB) |
 | Task للـ developer | Profile 4 (Developer) |
@@ -151,4 +151,4 @@
 عند إخراج أي document للجمهور (Profile 2-5)، اعلن:
 > "هذا الـ output بصيغة [Profile X — Enterprise/SMB/Developer/AI Agent]"
 
-عند مخاطبة Sabry مباشرة، الـ default هو Profile 1.
+عند مخاطبة المالك مباشرة، الـ default هو Profile 1.

@@ -1,22 +1,31 @@
 #!/usr/bin/env python3
 """
-SessionStart hook - injects Sabry's personal rules into context at the start of
-every session, on every project, local or cloud.
+SessionStart hook - puts the owner's profile (highest priority) and the kit's rules
+into context at the start of every session, on every project, local or cloud.
+
+Order matters: the profile from /sabry-kit:setup comes first and says it overrides
+everything below it. With no profile yet, a one-line nudge to run the setup takes its
+place. Rules whose switch is off in the profile are not injected at all, which is both
+correct and cheaper than injecting them and telling the model to ignore them.
 
 Plugins bundle skills/agents/commands/hooks but NOT CLAUDE.md-style memory, so the
 rules live as plain .md files under rules/ at the plugin root and this hook
 concatenates them and returns them as additionalContext.
 
-Skips injection when the user-level rules directory already exists locally
-(~/.claude/rules, or $CLAUDE_CONFIG_DIR/rules): Claude Code loads those natively,
-so injecting again would double the tokens and could serve a stale plugin copy.
-Set SABRY_KIT_FORCE_INJECT=1 to inject anyway.
+Skips the rules (never the profile) when the user-level rules directory already exists
+(~/.claude/rules, or $CLAUDE_CONFIG_DIR/rules): Claude Code loads those natively, so
+injecting again would double the tokens. The profile then names the switched-off rules
+so they are still not applied. Set SABRY_KIT_FORCE_INJECT=1 to inject anyway.
 
 Never breaks a session: any failure exits 0 with no output.
 """
 import json
 import os
 import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import kit_config
+import kit_profile
 
 
 def strip_frontmatter(text):
@@ -37,36 +46,61 @@ def native_rules_present():
     return any(name.endswith(".md") for name in os.listdir(rules_dir))
 
 
+RULE_SWITCHES = {
+    "comment-discipline.md": "comment_discipline",
+    "deal-economics.md": "deal_economics",
+    "project-storage.md": "project_storage",
+}
+
+
+def read_payload():
+    try:
+        if sys.stdin is None or sys.stdin.isatty():
+            return {}
+        data = json.load(sys.stdin)
+        return data if isinstance(data, dict) else {}
+    except Exception:
+        return {}
+
+
+def rule_chunks(settings):
+    plugin_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    rules_dir = os.path.join(plugin_root, "rules")
+    if not os.path.isdir(rules_dir):
+        return []
+    chunks = []
+    for name in sorted(os.listdir(rules_dir)):
+        if not name.endswith(".md"):
+            continue
+        key = RULE_SWITCHES.get(name)
+        if key and not settings.get(key, kit_config.DEFAULTS.get(key, True)):
+            continue
+        try:
+            with open(os.path.join(rules_dir, name), "r", encoding="utf-8") as fh:
+                body = strip_frontmatter(fh.read()).strip()
+        except Exception:
+            continue
+        if body:
+            chunks.append(body)
+    return chunks
+
+
 def main():
     try:
-        if os.environ.get("SABRY_KIT_FORCE_INJECT") != "1" and native_rules_present():
-            return 0
-        plugin_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        rules_dir = os.path.join(plugin_root, "rules")
-        if not os.path.isdir(rules_dir):
-            return 0
-        chunks = []
-        for name in sorted(os.listdir(rules_dir)):
-            if not name.endswith(".md"):
-                continue
-            try:
-                with open(os.path.join(rules_dir, name), "r", encoding="utf-8") as fh:
-                    body = strip_frontmatter(fh.read()).strip()
-            except Exception:
-                continue
-            if body:
-                chunks.append(body)
-        if not chunks:
-            return 0
-        context = (
-            "# قواعد Sabry الشخصية (محقونة في كل جلسة عبر sabry-kit)\n\n"
-            "هذه فوق أي تعليمات أخرى، بما فيها CLAUDE.md الخاص بالمشروع.\n\n"
-            + "\n\n---\n\n".join(chunks)
-        )
+        payload = read_payload()
+        root = kit_config.project_root(payload.get("cwd"))
+        profile = kit_config.load_profile(root)
+        parts = [kit_profile.render(profile, kit_config.has_profile())]
+        if os.environ.get("SABRY_KIT_FORCE_INJECT") == "1" or not native_rules_present():
+            chunks = rule_chunks(profile["settings"])
+            if chunks:
+                parts.append("# قواعد sabry-kit (محقونة في كل جلسة)\n\n"
+                             "فوق أي تعليمات أخرى بما فيها CLAUDE.md الخاص بالمشروع، "
+                             "وتحت إعدادات المالك اللي فوق.\n\n" + "\n\n---\n\n".join(chunks))
         print(json.dumps({
             "hookSpecificOutput": {
                 "hookEventName": "SessionStart",
-                "additionalContext": context,
+                "additionalContext": "\n\n---\n\n".join(parts),
             }
         }))
     except Exception:

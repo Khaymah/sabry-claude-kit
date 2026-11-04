@@ -29,6 +29,7 @@ DEFAULTS = {
     "nextjs_structure": True,
     "duplication_warning": True,
     "team_review_reminder": True,
+    "deal_economics": False,
 }
 
 STORAGE_DIR = ".agents"
@@ -94,6 +95,15 @@ def load_profile(root=None):
 
 def has_profile():
     return os.path.isfile(user_profile_path())
+
+
+def gate(key, payload):
+    """True when the hook for `key` should run for this hook payload."""
+    cwd = payload.get("cwd") if isinstance(payload, dict) else None
+    try:
+        return enabled(key, project_root(cwd))
+    except Exception:
+        return True
 
 
 def enabled(key, root=None):

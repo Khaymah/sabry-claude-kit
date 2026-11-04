@@ -39,18 +39,46 @@
 
 ---
 
-## 2. كل hook بيعمل إيه
+## 2. الـ profile (إعداد أول مرة)
+
+`/sabry-kit:setup` بيسأل 3 جولات أسئلة (الاسم، اللغة، أسلوب الرد، وضع العمل، الـ stack، التكلفة مقابل الجودة، القواعد اللي تتفرض) ويحفظ:
+
+| الملف | فيه إيه | بيتحقن؟ |
+|---|---|---|
+| `~/.agents/profile.json` | الإجابات + مفاتيح التشغيل (`settings`) | ✅ ملخص صغير في **أول** الـ context بأولوية قصوى |
+| `~/.agents/profile.md` | سياق شخصي حر (أهداف، قيود، عملاء) | ❌ مسار بس؛ الـ agents بتقراه عند القرارات الاستراتيجية |
+| `<project>/.agents/profile.json` | override لمشروع واحد بنفس الشكل | بيتدمج فوق العام |
+
+- **الترتيب:** `DEFAULTS` < `~/.agents/profile.json` < `<project>/.agents/profile.json` < متغيرات `SABRY_KIT_<KEY>`.
+- **لسه ما اتعملش؟** `inject-rules` بيحط سطر بيقترح `/sabry-kit:setup` مكان الـ profile.
+- **قاعدة مقفولة = مش بتتحقن أصلاً** (توفير توكنز)، والـ hook بتاعها بيسكت.
+- **من الـ CLI:** `python3 hooks/kit_profile.py show | set '<json>' | set --project '<json>' | context '<md>' | render`.
+
+| المفتاح (`settings`) | الافتراضي | بيتحكم في |
+|---|---|---|
+| `commit_style` | ✅ | `enforce-commit-style` |
+| `comment_discipline` | ✅ | `enforce-comment-discipline` + قاعدتها |
+| `nextjs_structure` · `duplication_warning` | ✅ | hooks الـ Next.js |
+| `secret_scan` · `install_git_hook` | ✅ | `scan-secrets` + الـ git pre-commit |
+| `project_storage` · `keep_transcripts` | ✅ | `project-storage` + قاعدتها |
+| `team_review_reminder` | ✅ | `team-review-reminder` |
+| `sounds` | ✅ | `sounds/play.py` |
+| `deal_economics` | ❌ | قاعدة Freelancer-Trap |
+
+---
+
+## 3. كل hook بيعمل إيه
 
 | Hook | الحدث · الـ matcher | بيعمل إيه | بيمنع؟ |
 |---|---|---|---|
-| `project-storage.py` | SessionStart | يجهّز `.agents/` جوه المشروع ويحوّل الـ memory والخطط والـ agent-memory ليه ويركّب الـ pre-commit (قسم 4) | لا |
+| `project-storage.py` | SessionStart | يجهّز `.agents/` جوه المشروع ويحوّل الـ memory والخطط والـ agent-memory ليه ويركّب الـ pre-commit (قسم 5) | لا |
 | `project-storage.py --save-transcript` | SessionEnd | ينسخ الـ transcript لـ `.agents/sessions/` | لا |
 | `inject-rules.py` | SessionStart | يحقن `rules/*.md` في السياق (لو مش محمّلة أصلاً من `~/.claude/rules`) | لا |
 | `maintain-note.py` | SessionStart | تذكير مرة في اليوم بالصيانة الأسبوعية | لا |
 | `team-review-reminder.py --baseline` | SessionStart | يصوّر حالة الشجرة عشان يفرّق بين شغل الجلسة والتعديلات القديمة | لا |
 | `team-review-reminder.py` | Stop | لو كود اتغيّر في الجلسة: يقترح `/team-review` بالـ reviewers المناسبين، مرة واحدة لكل change-set | لا |
 | `enforce-commit-style.py` | PreToolUse · `Bash` | يرفض commit أو PR فيه نسبة لـ AI أو رسالة بالعربي (`-m` · heredoc · `-F` · `--amend` · `gh --body-file`) | ✅ |
-| `scan-secrets.py` | PreToolUse · `Bash` + git pre-commit | يمنع commit فيه مفتاح أو token أو private key أو `.env` (قسم 5) | ✅ |
+| `scan-secrets.py` | PreToolUse · `Bash` + git pre-commit | يمنع commit فيه مفتاح أو token أو private key أو `.env` (قسم 6) | ✅ |
 | `enforce-comment-discipline.py` | PreToolUse · `Write\|Edit\|MultiEdit` | يرفض إضافة كومنت لملف كود (الاستثناءات: build directives و`IMPORTANT:`) | ✅ |
 | `enforce-nextjs-structure.py` | PreToolUse · `Write\|Edit\|MultiEdit` | مشاريع Next.js بس: حد 600 سطر (و300 لـ PageContent)، PascalCase للجديد تحت `src/`، وحالة الحروف متطابقة مع الموجود على القرص | ✅ |
 | `warn-duplication.py` | PostToolUse · `Write\|Edit\|MultiEdit` | مشاريع Next.js بس: يرجّع للـ agent كود مكرر عشان يوحّده | يرجّع feedback |
@@ -63,9 +91,10 @@
 |---|---|
 | `verify-hooks.py` | يشغّل كل hook فعلياً بمُدخلات حقيقية ويتأكد من التسجيل في `hooks.json`. شغّله بعد أي تعديل |
 | `test_*.py` | اختبارات سلوكية لكل hook مانع |
-| `adapt.py` | يشغّل نفس الـ hooks تحت Codex أو Gemini CLI أو Cursor (قسم 7) |
+| `adapt.py` | يشغّل نفس الـ hooks تحت Codex أو Gemini CLI أو Cursor (قسم 8) |
 | `graph-doctor.py` | يفحص تغطية `code-review-graph` في كل مشاريعك |
 | `kit_config.py` | مكتبة مشتركة: بتقرا الـ profile ومفاتيح التشغيل (`settings`) لكل الـ hooks |
+| `kit_profile.py` | CLI الـ profile (قسم 2) |
 
 ### ليه مفيش hook بيفرض موديل؟
 
@@ -75,7 +104,7 @@
 
 ---
 
-## 3. الأصوات
+## 4. الأصوات
 
 | الحدث | الملف |
 |---|---|
@@ -95,12 +124,12 @@
 
 **بيسكت تلقائياً** في جلسة Claude Code السحابية (`CLAUDE_CODE_REMOTE`)، وفي CI، ولو مفيش مشغّل، ولو الملف مش موجود.
 
-**تقفل الصوت:** `SABRY_KIT_SOUNDS=0` في `env` جوه `settings.json` أو في الـ shell.
+**تقفل الصوت:** `"sounds": false` في الـ profile، أو `SABRY_KIT_SOUNDS=0`.
 **تغيّر صوت:** استبدل الـ `.wav` بنفس الاسم.
 
 ---
 
-## 4. التخزين جوه المشروع (`.agents/`)
+## 5. التخزين جوه المشروع (`.agents/`)
 
 كل مشروع بيشيل ذاكرته بنفسه، بعيد عن الجهاز ونسخة الـ plugin والأداة. لو شلت الكيت، مفيش حاجة بتضيع.
 
@@ -132,7 +161,7 @@
 
 ---
 
-## 5. فحص الأسرار قبل الـ commit
+## 6. فحص الأسرار قبل الـ commit
 
 الذاكرة بقت بتدخل git، فأي agent ممكن يلزق token في ملاحظة. `scan-secrets.py` بيقف قدام ده في مكانين بنفس القواعد:
 
@@ -153,7 +182,7 @@
 
 ---
 
-## 6. التحقق إنها شغالة
+## 7. التحقق إنها شغالة
 
 ```bash
 python3 hooks/verify-hooks.py
@@ -169,7 +198,7 @@ for t in hooks/test_*.py; do python3 "$t" >/dev/null && echo "PASS $t" || echo "
 
 ---
 
-## 7. أدوات تانية (Codex · Gemini CLI · Cursor)
+## 8. أدوات تانية (Codex · Gemini CLI · Cursor)
 
 السكربتات مكتوبة بلغة الـ hooks بتاعة Claude Code. `adapt.py` بيترجم في الاتجاهين، فنفس القواعد بتشتغل في كل أداة من غير ما نعمل نسخة لكل واحدة:
 
@@ -274,7 +303,7 @@ Codex بيقرأ نفس شكل `hooks.json` ونفس مخرجات `PreToolUse`،
 
 ---
 
-## 8. إضافة hook جديد
+## 9. إضافة hook جديد
 
 1. سكربت Python تحت `hooks/`: يقرأ JSON من stdin، ويطلع بـ exit 0 في كل حالات الفشل.
 2. سجّله في `hooks.json` بنفس شكل الأمر:

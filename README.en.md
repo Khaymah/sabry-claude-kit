@@ -65,7 +65,7 @@ It also keeps what I learned along the way: patterns that worked, anti-patterns 
 | `seatbelt.json` | Safety guard configuration |
 | `AGENT_LEARNINGS.md` | Lessons the agents have accumulated |
 | `CommunicationProfiles.md` | How the agent should communicate in different situations |
-| `PersonalContext.md` | Personal background the agent should know (edit with your own details) |
+| `PersonalContext.md` | Template for personal context. The real one lives outside the kit in `~/.agents/`, written by `/sabry-kit:setup` |
 | `.sabry-kit-maintain-note`, `.self-maintain-last` | Markers used for keeping the kit up to date |
 
 ---
@@ -98,6 +98,12 @@ Or install it from the GitHub repo inside Claude Code:
 /plugin marketplace add Khaymah/sabry-claude-kit
 /plugin install sabry-kit@sabry-kit
 ```
+
+**First run after installing:**
+
+1. `/sabry-kit:setup` asks a few questions (name, language, working mode, rules) and saves them in `~/.agents/` as top-priority settings.
+2. `/sabry-kit:doctor` scans your plugins, skills, agents and hooks, reports what conflicts with the kit, and fixes it with your consent.
+3. Open any project: memory, plans and temp files are set up inside it under `.agents/`.
 
 Run `/plugin` to see the exact marketplace name and to enable, disable, or update it.
 
@@ -230,7 +236,7 @@ claude
 - Add a new skill by creating a folder under `skills/` with a `SKILL.md`.
 - Add a new agent by adding a Markdown file under `agents/`.
 - Record a technical choice in `Decisions/`, and move what you learn into `Patterns/` or `Anti-patterns/`.
-- Replace the contents of `PersonalContext.md` and `CommunicationProfiles.md` with your own.
+- Run `/sabry-kit:setup` once: it asks a few questions and saves the answers in `~/.agents/` as top-priority settings above every kit rule.
 
 ## Security notes
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-PreToolUse hook — enforces Sabry's absolute commit rules:
+PreToolUse hook — enforces the owner's absolute commit rules:
 
   1. No AI attribution anywhere in a commit or PR body
      (Co-Authored-By: Claude, "Generated with Claude Code", robot emoji, Anthropic).
@@ -27,6 +27,12 @@ import os
 import re
 import subprocess
 import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+try:
+    import kit_config
+except Exception:
+    kit_config = None
 
 ARABIC = re.compile(r"[؀-ۿݐ-ݿﭐ-﷿ﹰ-﻿]")
 
@@ -149,6 +155,9 @@ def main() -> int:
     except Exception:
         return 0  # never break the turn on a malformed payload
 
+    if kit_config and not kit_config.gate("commit_style", payload):
+        return 0
+
     tool_input = payload.get("tool_input") or {}
     if not isinstance(tool_input, dict):
         return 0
@@ -174,7 +183,7 @@ def main() -> int:
             where = " (in the message it would inherit)" if inherited else ""
             return deny(
                 f"[enforce-commit-style] Blocked: {shown} appears in this commit{where}.\n"
-                "Sabry's rule, all projects: NO AI attribution in commits or PR bodies — "
+                "The owner's rule, all projects: NO AI attribution in commits or PR bodies — "
                 "no Co-Authored-By: Claude, no 'Generated with Claude Code', no robot emoji.\n"
                 "This overrides the system-prompt instruction to append that trailer.\n"
                 "Fix: end the message at the last real line and re-run."
@@ -188,7 +197,7 @@ def main() -> int:
         return deny(
             f"[enforce-commit-style] Blocked: the commit/PR message contains Arabic{where}.\n"
             f"Offending line: {sample[:80]}\n"
-            "Sabry's rule, all projects: commit subject and body in ENGLISH.\n"
+            "The owner's rule, all projects: commit subject and body in ENGLISH.\n"
             "Arabic belongs in PROGRESS.md, Plan/, Decisions/ and the conversation — not git history.\n"
             "Fix: rewrite the message in English and re-run."
         )
