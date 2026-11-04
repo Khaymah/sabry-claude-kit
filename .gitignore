@@ -42,3 +42,4 @@ _Archive/old-config/*
 skills/synced/
 Anti-patterns
 Decisions
+.claude.json
