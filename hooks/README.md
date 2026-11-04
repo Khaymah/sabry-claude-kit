@@ -73,6 +73,7 @@
 |---|---|---|---|
 | `project-storage.py` | SessionStart | يجهّز `.agents/` جوه المشروع ويحوّل الـ memory والخطط والـ agent-memory ليه ويركّب الـ pre-commit (قسم 5) | لا |
 | `project-storage.py --save-transcript` | SessionEnd | ينسخ الـ transcript لـ `.agents/sessions/` | لا |
+| `doctor.py brief` | SessionStart | مرة في اليوم: لو فيه تعارض خطير مع الكيت بيظهر للمستخدم سطر يقترح `/sabry-kit:doctor` | لا |
 | `inject-rules.py` | SessionStart | يحقن `rules/*.md` في السياق (لو مش محمّلة أصلاً من `~/.claude/rules`) | لا |
 | `maintain-note.py` | SessionStart | تذكير مرة في اليوم بالصيانة الأسبوعية | لا |
 | `team-review-reminder.py --baseline` | SessionStart | يصوّر حالة الشجرة عشان يفرّق بين شغل الجلسة والتعديلات القديمة | لا |
@@ -95,6 +96,7 @@
 | `graph-doctor.py` | يفحص تغطية `code-review-graph` في كل مشاريعك |
 | `kit_config.py` | مكتبة مشتركة: بتقرا الـ profile ومفاتيح التشغيل (`settings`) لكل الـ hooks |
 | `kit_profile.py` | CLI الـ profile (قسم 2) |
+| `doctor.py` | `scan` · `fix <id>` · `fix --all-safe` · `undo` · `runs`: فحص التعارضات وإصلاحها بـ backup (الـ skill `/sabry-kit:doctor` بيستخدمه) |
 
 ### ليه مفيش hook بيفرض موديل؟
 

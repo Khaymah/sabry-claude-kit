@@ -165,6 +165,7 @@ def test_registration():
     check("project-storage مسجَّل (SessionStart + SessionEnd)",
           "project-storage.py" in blob and "--save-transcript" in blob)
     check("scan-secrets مسجَّل (PreToolUse · Bash)", "scan-secrets.py" in blob)
+    check("doctor brief مسجَّل (SessionStart)", "doctor.py" in blob and " brief" in blob)
     check("لا hook يفرض موديل على الـ subagents", "enforce-opus" not in blob
           and "enforce-sonnet" not in blob, "الموديل يأتي من frontmatter كل agent")
 
@@ -340,6 +341,7 @@ def main():
     test_suite("🔐 فحص الأسرار قبل الـ commit", "test_scan_secrets.py")
     test_suite("👤 الـ profile والحقن", "test_kit_config.py")
     test_suite("💉 inject-rules", "test_inject_rules.py")
+    test_suite("🩺 doctor", "test_doctor.py")
     test_registration()
     test_sounds()
     test_adapter()
