@@ -1,210 +1,143 @@
-# sabry-claude-kit
+# sabry-kit
 
-[العربية](README.ar.md) · **English**
+[العربية](README.md) · **English**
 
-My portable AI-coding-agent setup in a single repo: rules, agents, skills, hooks, patterns, and decisions. Clone it on any machine, server, or VPS and keep working the same way, with the same standards, without rebuilding your configuration each time.
+One portable brain for your coding agent. It asks how you work once and keeps the answers as top-priority settings. It keeps each project's memory inside that project, stops secrets from being committed, and finds plugins or settings that fight it, then fixes them with your consent.
 
-Built for [Claude Code](https://www.anthropic.com/claude-code). Parts of it also work with Codex CLI, Gemini CLI, Cursor, and other agents (see [Other tools](#4-other-tools)).
-
----
-
-## Table of contents
-
-1. [What is this?](#what-is-this)
-2. [Repository structure](#repository-structure)
-3. [Installation](#installation)
-   - [1. Claude Code as a plugin](#1-claude-code-as-a-plugin)
-   - [2. Claude Code globally (symlinks)](#2-claude-code-globally-symlinks)
-   - [3. Claude Code per project](#3-claude-code-per-project)
-   - [4. Other tools](#4-other-tools)
-4. [Updating](#updating)
-5. [Using it on a new machine](#using-it-on-a-new-machine)
-6. [Customizing](#customizing)
-7. [Security notes](#security-notes)
-8. [Contributing](#contributing)
+Built for [Claude Code](https://code.claude.com) as a plugin. Its hooks also run under Codex CLI, Gemini CLI and Cursor ([details](hooks/README.md#8-أدوات-تانية-codex--gemini-cli--cursor)).
 
 ---
 
-## What is this?
+## Contents
 
-Anyone who uses Claude Code for a while ends up tuning it: rules, custom agents, skills, hooks, a quality bar. That setup lives in `~/.claude` on one machine, and every new laptop, server, or VPS starts from zero.
-
-**sabry-claude-kit** keeps all of it in one Git repository so that moving to a new environment is a `git clone` and a few commands.
-
-It also keeps what I learned along the way: patterns that worked, anti-patterns to avoid, and the reasoning behind technical decisions.
-
-## Repository structure
-
-### Folders
-
-| Folder | Purpose |
-|---|---|
-| `.claude-plugin/` | Plugin manifest, so the kit can be loaded as a Claude Code plugin |
-| `agents/` | Custom sub-agent definitions |
-| `skills/` | Reusable skills the agent loads when a task matches |
-| `hooks/` | Hooks that run automatically at points in the agent workflow |
-| `rules/` | Rule files that shape how the agent writes and reviews code |
-| `Patterns/` | Approaches that worked and are worth repeating |
-| `Anti-patterns/` | Approaches to avoid, and why |
-| `Decisions/` | Technical decisions and their reasoning |
-| `Roles/` | Role profiles the agent can work under |
-| `Stacks/` | Guidance specific to a technology stack |
-| `agent-memory/` | Persistent notes kept for agents between sessions |
-| `sounds/` | Sound files used for notifications |
-| `_Audit/` | Audit and review output |
-| `_Archive/` | Retired material kept for reference |
-
-### Root files
-
-| File | Purpose |
-|---|---|
-| `CLAUDE.md` | Main instructions loaded into every session |
-| `settings.json` | Claude Code settings (permissions, hooks wiring, and so on) |
-| `.claude.json` | Claude Code client configuration |
-| `Quality-Gate.md` | The quality checklist work must pass before it counts as done |
-| `seatbelt.json` | Safety guard configuration |
-| `AGENT_LEARNINGS.md` | Lessons the agents have accumulated |
-| `CommunicationProfiles.md` | How the agent should communicate in different situations |
-| `PersonalContext.md` | Template for personal context. The real one lives outside the kit in `~/.agents/`, written by `/sabry-kit:kit-setup` |
-| `.sabry-kit-maintain-note`, `.self-maintain-last` | Markers used for keeping the kit up to date |
+1. [Quick start](#quick-start)
+2. [What it does](#what-it-does)
+3. [Commands](#commands)
+4. [The agent family](#the-agent-family)
+5. [Inside every project: `.agents/`](#inside-every-project-agents)
+6. [Your settings (the profile)](#your-settings-the-profile)
+7. [Cost and performance](#cost-and-performance)
+8. [Repository layout](#repository-layout)
+9. [Other ways to install](#other-ways-to-install)
+10. [Updating](#updating)
+11. [Customizing](#customizing)
+12. [Security and privacy](#security-and-privacy)
 
 ---
 
-## Installation
+## Quick start
 
-### Requirements
-
-- Git
-- An AI coding agent: [Claude Code](https://www.anthropic.com/claude-code) (full support), or another tool from [Other tools](#4-other-tools) (partial support)
-- macOS, Linux, WSL, or Windows PowerShell
-
-First, clone the repo once:
-
-```bash
-git clone https://github.com/Khaymah/sabry-claude-kit.git ~/sabry-claude-kit
-```
-
-### 1. Claude Code as a plugin
-
-The quickest way to try it. Start Claude Code with the kit loaded for one session:
-
-```bash
-claude --plugin-dir ~/sabry-claude-kit
-```
-
-Or install it from the GitHub repo inside Claude Code:
+**1. Install the plugin** from inside Claude Code:
 
 ```text
 /plugin marketplace add Khaymah/sabry-claude-kit
 /plugin install sabry-kit@sabry-kit
 ```
 
-**First run after installing:**
+**2. First-run setup:** two minutes of questions; your answers become top-priority settings:
 
-1. `/sabry-kit:kit-setup` asks a few questions (name, language, working mode, rules) and saves them in `~/.agents/` as top-priority settings.
-2. `/sabry-kit:kit-doctor` scans your plugins, skills, agents and hooks, reports what conflicts with the kit, and fixes it with your consent.
-3. Open any project: memory, plans and temp files are set up inside it under `.agents/`.
-
-Run `/plugin` to see the exact marketplace name and to enable, disable, or update it.
-
-> Plugins load `agents/`, `skills/`, and `hooks/`. Files such as `CLAUDE.md` and `settings.json` are not applied by a plugin install, so use method 2 as well if you want the kit's global instructions and settings.
-
-### 2. Claude Code globally (symlinks)
-
-This gives you the full kit in every project, and `git pull` updates it instantly.
-
-**macOS / Linux / WSL**
-
-```bash
-# Back up what you already have
-cp -r ~/.claude ~/.claude.backup 2>/dev/null
-
-mkdir -p ~/.claude
-KIT=~/sabry-claude-kit
-
-ln -sfn "$KIT/CLAUDE.md"     ~/.claude/CLAUDE.md
-ln -sfn "$KIT/settings.json" ~/.claude/settings.json
-ln -sfn "$KIT/rules"         ~/.claude/rules
+```text
+/sabry-kit:kit-setup
 ```
 
-**Windows (PowerShell, run as Administrator or with Developer Mode on)**
+**3. Conflict check:** finds any plugin, skill, hook or setting that fights the kit, and fixes only what you approve:
 
-```powershell
-$Kit = "$HOME\sabry-claude-kit"
-New-Item -ItemType Directory -Force "$HOME\.claude" | Out-Null
-
-New-Item -ItemType SymbolicLink -Force -Path "$HOME\.claude\CLAUDE.md"     -Target "$Kit\CLAUDE.md"
-New-Item -ItemType SymbolicLink -Force -Path "$HOME\.claude\settings.json" -Target "$Kit\settings.json"
-New-Item -ItemType SymbolicLink -Force -Path "$HOME\.claude\rules"         -Target "$Kit\rules"
+```text
+/sabry-kit:kit-doctor
 ```
 
-> `settings.json` enables the plugin (`sabry-kit@sabry-kit`), which brings `agents/`, `skills/` and `hooks/`. They are not symlinked, otherwise every agent would show up twice.
->
-> ⚠️ Symlinks do not activate hooks. Every hook is registered in `hooks/hooks.json` and comes from the plugin (method 1) via `${CLAUDE_PLUGIN_ROOT}` paths, so it works on any machine unchanged. Details and verification: [hooks/README.md](hooks/README.md).
+**4. Open any project.** `.agents/` is set up automatically, and from the next session memory and plans are written inside the project.
 
-Then start Claude Code in any project:
-
-```bash
-claude
-```
-
-### 3. Claude Code per project
-
-To use the kit in one project only, copy the parts you want into that project's `.claude/` folder:
-
-```bash
-cd your-project
-mkdir -p .claude
-cp ~/sabry-claude-kit/CLAUDE.md ./CLAUDE.md
-cp -r ~/sabry-claude-kit/agents ~/sabry-claude-kit/skills ~/sabry-claude-kit/rules .claude/
-```
-
-Project files take effect for everyone who clones that project, so only copy what you want to share with the team.
-
-### 4. Other tools
-
-The kit is built around Claude Code. Other agents can still use the written parts: instructions, rules, patterns, and decisions. Claude-specific parts (`agents/`, `settings.json`, `.claude.json`, `.claude-plugin/`) will not carry over. Hooks do: `hooks/adapt.py` runs them under Codex, Gemini CLI and Cursor; per-tool setup is in [hooks/README.md](hooks/README.md).
-
-**Codex CLI**
-
-Codex reads an `AGENTS.md` file. Use the kit's instructions as your global one:
-
-```bash
-mkdir -p ~/.codex
-cp ~/sabry-claude-kit/CLAUDE.md ~/.codex/AGENTS.md
-```
-
-For a single project, put it at the project root as `AGENTS.md`. If your Codex version supports skills, point it at the `skills/` folder following the Codex documentation.
-
-**Gemini CLI**
-
-```bash
-mkdir -p ~/.gemini
-cp ~/sabry-claude-kit/CLAUDE.md ~/.gemini/GEMINI.md
-```
-
-**Cursor**
-
-Copy rule files into your project:
-
-```bash
-mkdir -p .cursor/rules
-cp ~/sabry-claude-kit/rules/* .cursor/rules/
-```
-
-Cursor expects `.mdc` or `.md` rule files with its own front matter, so adjust the extension and header if a rule does not load.
-
-**Windsurf, Copilot, and others**
-
-Most agents read a Markdown instruction file (`AGENTS.md`, `.github/copilot-instructions.md`, `.windsurfrules`, and so on). Copy the contents of `CLAUDE.md` into the file your tool expects.
-
-**Claude.ai / Claude Desktop**
-
-Skills can be zipped and uploaded from the Skills section in Claude settings. Zip one skill folder at a time.
+> Requirements: Python 3.8+ on PATH (every hook is stdlib only) and Git. Works on Windows, macOS, Linux and in Claude Code cloud sessions.
 
 ---
 
-## 💸 Cost and performance
+## What it does
+
+| Feature | Details |
+|---|---|
+| 👤 **Top-priority profile** | `/sabry-kit:kit-setup` asks for your name, language, reply style, working mode, stack, cost vs quality and which rules to enforce. The answers are injected **first** in every session and override any rule, CLAUDE.md or other plugin |
+| 🗂️ **Each project keeps its memory** | Auto memory, agent memory, plans, temp files and session copies live in `.agents/` inside the project, not in `~/.claude`. Remove the kit and nothing is lost |
+| 🔐 **Secret scan before every commit** | API keys, tokens, private keys, `.env` files. Runs as a Claude Code hook and as a git pre-commit hook, so the project is protected from any tool or person |
+| 🩺 **Conflict doctor** | `/sabry-kit:kit-doctor` scans everything installed, ranks conflicts by severity, and fixes them with your consent, with a backup and one-command undo. Once a day it alerts you to a high-severity conflict |
+| 🎭 **Agent family** | 18 agents with clear roles (CTO · PM · BA · Market Research · Security · DevOps …), all in the same compact shape, each reading its role file from `Roles/` |
+| 🔒 **Rules enforced by hooks** | English commits with no AI attribution · code without comments · Next.js layout · duplication warning · team review reminder. Each one can be switched off in the profile |
+| 🔌 **Any AI agent** | `hooks/adapt.py` runs the same hooks under Codex, Gemini CLI and Cursor without forking them |
+| 💸 **Lower cost** | Smaller context per session, lighter agents, cheaper defaults ([details](#cost-and-performance)) |
+
+---
+
+## Commands
+
+| Command | What it does |
+|---|---|
+| `/sabry-kit:kit-setup` | First-run setup, or change your settings |
+| `/sabry-kit:kit-doctor` | Find conflicts and fix them with consent |
+| `/sabry-kit:team-review` | Parallel review of changes (security · correctness · tests · UX), every finding verified before it is shown |
+| `/sabry-kit:project-audit` | Full project audit: security, quality, performance, architecture, with an Arabic report |
+| `/sabry-kit:self-maintain` | Maintain the kit itself: opens a PR with improvements, never auto-merges |
+| `/sabry-kit:brag-slim` | A short launch video for a project or site |
+| `aurora-dark-ui` · `moonflower-design-system` | Design systems loaded automatically for UI work in that style |
+
+> The names avoid Claude Code's built-in commands (such as `/doctor`) and other plugins; `kit-doctor` warns you if a clash appears later.
+
+---
+
+## The agent family
+
+The right role activates from the context of the request (full table in [Roles/README.md](Roles/README.md)). Each agent's model comes from `model:` in its file; all are `sonnet` today.
+
+| Area | Agents |
+|---|---|
+| Decisions and product | `cto` · `senior-pm` · `business-analyst` · `market-researcher` · `growth-strategist` · `business-developer` |
+| Building | `senior-engineer` · `backend-architect` · `Frontend Developer` · `Database-Optimizer` · `devops-sre` · `qa-tester` · `tech-writer` |
+| Review (read-only) | `code-reviewer` · `security-reviewer` · `cyber-security` · `ux-reviewer` · `ui-ux` |
+
+Order for a new product idea: `market-researcher` (worth it?) → `senior-pm` (what to build?) → `business-analyst` (requirements) → `cto` (architecture).
+
+---
+
+## Inside every project: `.agents/`
+
+```text
+your-project/
+  .agents/
+    memory/          auto memory (MEMORY.md + one file per topic)        ✅ git
+    agent-memory/    per-agent memory (.claude/agent-memory links here)  ✅ git
+    plans/           plan-mode files                                      ✅ git
+    scratch/         temp files instead of /tmp                           ❌
+    sessions/        session transcript copies                            ❌
+    profile.json     (optional) settings for this project only
+    secrets-allowlist  (optional) secret-scan exceptions
+```
+
+- **First session in a project:** sets this up automatically; the hook skips steps that are already done.
+- **Old memory:** copied once from `~/.claude/projects/`; the original stays where it was.
+- **Project files:** no tracked file is edited. Machine-specific paths go to `.git/info/exclude`.
+- **When it takes effect:** Claude Code picks up the new memory path from the **next session**.
+- **Memory is committed:** so it travels with the project to any machine. The secret scan stops any commit that contains a secret.
+
+Details and switches: [hooks/README.md › storage](hooks/README.md#5-التخزين-جوه-المشروع-agents).
+
+---
+
+## Your settings (the profile)
+
+| File | Contents |
+|---|---|
+| `~/.agents/profile.json` | `kit-setup` answers and rule switches (`settings`) |
+| `~/.agents/profile.md` | Free-form personal context (goals, constraints, preferred hosting); read only for strategic decisions |
+| `<project>/.agents/profile.json` | Override for one project |
+
+- **Order:** kit defaults < `~/.agents/profile.json` < project profile < `SABRY_KIT_<KEY>` env vars (for example `SABRY_KIT_SOUNDS=0`).
+- **Switched-off rule:** not injected at all, and its hook stays silent.
+- **Where your data lives:** always outside the kit repository, so the kit stays generic and shareable.
+
+Full list of switches: [hooks/README.md › profile](hooks/README.md#2-الـ-profile-إعداد-أول-مرة).
+
+---
+
+## Cost and performance
 
 | Change | Effect |
 |---|---|
@@ -215,49 +148,118 @@ Skills can be zipped and uploaded from the Skills section in Claude settings. Zi
 | Subagent briefing template (`rules/subagents.md`): goal, what is ruled out, report length cap | shorter reports entering the main context |
 | `cost_profile` in the profile, checked by `/sabry-kit:kit-doctor` | alert when settings cost more than you chose |
 
-## Updating
+---
 
-```bash
-cd ~/sabry-claude-kit
-git pull
-```
+## Repository layout
 
-With the symlink method nothing else is needed. With the copy method, copy the changed files again.
+| Path | Purpose |
+|---|---|
+| `.claude-plugin/` | Plugin and marketplace manifests |
+| `agents/` | The 18 agents |
+| `Roles/` | One file per role (thinking frame · reply template · anti-patterns), read by the agent before it works |
+| `rules/` | Rules injected every session (communication · working mode · language · comments · subagents · storage …) |
+| `skills/` | Commands and design systems (table above) |
+| `hooks/` | Every hook plus `kit_profile.py`, `doctor.py`, `adapt.py` and the tests. **Full guide: [hooks/README.md](hooks/README.md)** |
+| `sounds/` | Notification sounds + `play.py` (Windows · macOS · Linux) |
+| `Stacks/` | Per-stack guidance (Next.js · Bun/Hono · Node · React · Go · Rust · PHP · .NET · Astro · GraphQL) |
+| `Patterns/` · `Anti-patterns/` · `Decisions/` | Accumulated knowledge: what worked, what to avoid, why decisions were made (ADRs) |
+| `Quality-Gate.md` | The eight axes for architectural decisions |
+| `CommunicationProfiles.md` | Writing style per audience |
+| `PersonalContext.md` | **Template** for personal context (the real one is `~/.agents/profile.md`) |
+| `CLAUDE.md` · `settings.json` | For the symlink install (method 2 below) |
+| `_Audit/` · `_Archive/` | Older audit output and archived material |
 
-To save a change you made while working:
+---
 
-```bash
-cd ~/sabry-claude-kit
-git add -A
-git commit -m "Update kit"
-git push
-```
+## Other ways to install
 
-## Using it on a new machine
+### Try it: one session from a local clone
 
 ```bash
 git clone https://github.com/Khaymah/sabry-claude-kit.git ~/sabry-claude-kit
-# then run the symlink commands from method 2
-claude
+claude --plugin-dir ~/sabry-claude-kit
 ```
+
+### Machine-wide `CLAUDE.md` and `settings.json` (symlinks)
+
+The plugin brings agents, skills and hooks, but not `CLAUDE.md` or `settings.json`. To use those too:
+
+**macOS / Linux / WSL**
+
+```bash
+cp -r ~/.claude ~/.claude.backup 2>/dev/null
+mkdir -p ~/.claude
+KIT=~/sabry-claude-kit
+ln -sfn "$KIT/CLAUDE.md"     ~/.claude/CLAUDE.md
+ln -sfn "$KIT/settings.json" ~/.claude/settings.json
+ln -sfn "$KIT/rules"         ~/.claude/rules
+```
+
+**Windows (PowerShell as Administrator or with Developer Mode)**
+
+```powershell
+$Kit = "$HOME\sabry-claude-kit"
+New-Item -ItemType Directory -Force "$HOME\.claude" | Out-Null
+New-Item -ItemType SymbolicLink -Force -Path "$HOME\.claude\CLAUDE.md"     -Target "$Kit\CLAUDE.md"
+New-Item -ItemType SymbolicLink -Force -Path "$HOME\.claude\settings.json" -Target "$Kit\settings.json"
+New-Item -ItemType SymbolicLink -Force -Path "$HOME\.claude\rules"         -Target "$Kit\rules"
+```
+
+- **The kit's `settings.json`:** registers the marketplace and enables `sabry-kit@sabry-kit`, so the plugin installs itself.
+- **`agents/`, `skills/`, `hooks/`:** don't symlink them, or everything shows up twice (`kit-doctor` flags it).
+- **Hooks:** never run from symlinks; they come from the plugin only.
+
+### Codex · Gemini CLI · Cursor · others
+
+| Tool | Instructions | Hooks |
+|---|---|---|
+| Codex CLI | `cp ~/sabry-claude-kit/CLAUDE.md ~/.codex/AGENTS.md` | `~/.codex/hooks.json`, same shape as Claude Code |
+| Gemini CLI | `cp ~/sabry-claude-kit/CLAUDE.md ~/.gemini/GEMINI.md` | `~/.gemini/settings.json` through `adapt.py gemini` |
+| Cursor | copy `rules/` to `.cursor/rules/` | `~/.cursor/hooks.json` through `adapt.py cursor` |
+| Windsurf · Copilot · others | copy `CLAUDE.md` into the tool's instruction file | secret scan works through the git pre-commit hook |
+
+Copy-ready config per tool and a what-runs-where table: [hooks/README.md › other tools](hooks/README.md#8-أدوات-تانية-codex--gemini-cli--cursor).
+
+---
+
+## Updating
+
+```text
+/plugin update sabry-kit@sabry-kit
+```
+
+With symlinks, or when developing the kit:
+
+```bash
+cd ~/sabry-claude-kit && git pull
+```
+
+> ⚠️ **2026-11 update:** the repository history was rewritten to remove personal data. A clone made before that needs `git fetch origin && git reset --hard origin/main` (this discards unpushed local changes) or a fresh clone.
+
+A new machine follows the same quick start. The profile is set once per machine, or copy `~/.agents/profile.json` and `profile.md`.
+
+---
 
 ## Customizing
 
-- Edit `CLAUDE.md` to change the global instructions.
-- Add a new skill by creating a folder under `skills/` with a `SKILL.md`.
-- Add a new agent by adding a Markdown file under `agents/`.
-- Record a technical choice in `Decisions/`, and move what you learn into `Patterns/` or `Anti-patterns/`.
-- Run `/sabry-kit:kit-setup` once: it asks a few questions and saves the answers in `~/.agents/` as top-priority settings above every kit rule.
+- **Your settings:** run `/sabry-kit:kit-setup` at any time. Don't edit kit files to change a personal preference.
+- **New agent:** a file under `agents/` plus a role file under `Roles/` (steps in [Roles/README.md](Roles/README.md#إضافة-دور-جديد)).
+- **New skill:** a folder under `skills/` with a `SKILL.md`, named so it doesn't clash with a built-in command.
+- **New hook:** [hooks/README.md › adding a hook](hooks/README.md#9-إضافة-hook-جديد).
+- **Technical decision:** an ADR in `Decisions/`; lessons go to `Patterns/` or `Anti-patterns/`.
+- **After any change, verify:**
 
-## Security notes
+```bash
+python3 hooks/verify-hooks.py
+```
 
-This repository may hold configuration that is personal to its author. Before you reuse it or make your own copy public:
+---
 
-- Review `PersonalContext.md` and `CommunicationProfiles.md` for personal details.
-- Review `.claude.json`, `settings.json`, and `hooks/` for tokens, API keys, internal URLs, or machine-specific paths.
-- Keep secrets in environment variables or a secrets manager, never in the repo.
-- Read `settings.json` before applying it. It can grant permissions and run hooks on your machine.
+## Security and privacy
 
-## Contributing
+- **Secrets:** never in the repo or in `.agents/`. `scan-secrets` blocks the commit; use `allow-secret` for an exception and `git commit --no-verify` for a deliberate bypass.
+- **Personal data:** lives in `~/.agents/` outside the kit. Don't put it in `PersonalContext.md` (a template) or anywhere in the repo.
+- **`settings.json`:** read it before applying it; it grants permissions and changes defaults.
+- **`kit-doctor`:** changes nothing without your consent. Every change is backed up in `~/.agents/doctor/runs/` and undone with `doctor.py undo`.
 
-Issues and pull requests are welcome. Please read the code of conduct in this repository first.
+Issues and pull requests are welcome.

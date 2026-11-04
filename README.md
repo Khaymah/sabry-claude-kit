@@ -1,212 +1,145 @@
 <div dir="rtl">
 
-# sabry-claude-kit
+# sabry-kit
 
-**العربية** · [English](README.md)
+**العربية** · [English](README.en.md)
 
-إعداد وكيل البرمجة بالذكاء الاصطناعي الخاص بي في ريبو واحد، قابل للنقل: قواعد، وكلاء (agents)، مهارات (skills)، hooks، أنماط، وقرارات. تسحبه على أي جهاز أو سيرفر أو VPS وتكمل شغلك بنفس الأسلوب ونفس المعايير، من غير ما تعيد ضبط الإعدادات كل مرة.
+عقل واحد لوكيل البرمجة بتاعك، بيتنقل معاك على أي جهاز. بيسألك عن طريقتك مرة واحدة ويحفظها كإعدادات بأولوية قصوى، وبيشيل ذاكرة كل مشروع جوه المشروع نفسه. وبيمنع الأسرار من إنها تتعمل لها commit، وبيكتشف أي plugin أو إعداد متعارض معاه ويصلّحه بموافقتك.
 
-مبني لـ [Claude Code](https://www.anthropic.com/claude-code). وأجزاء منه تشتغل كمان مع Codex CLI و Gemini CLI و Cursor وأدوات تانية (شوف [أدوات أخرى](#4-أدوات-أخرى)).
+مبني لـ [Claude Code](https://code.claude.com) كـ plugin. والـ hooks بتاعته بتشتغل كمان في Codex CLI وGemini CLI وCursor ([التفاصيل](hooks/README.md#8-أدوات-تانية-codex--gemini-cli--cursor)).
 
 ---
 
 ## الفهرس
 
-1. [إيه هو الكيت ده؟](#إيه-هو-الكيت-ده)
-2. [هيكل الريبو](#هيكل-الريبو)
-3. [التنصيب](#التنصيب)
-   - [1. Claude Code كـ plugin](#1-claude-code-كـ-plugin)
-   - [2. Claude Code على مستوى الجهاز (symlinks)](#2-claude-code-على-مستوى-الجهاز-symlinks)
-   - [3. Claude Code لمشروع واحد](#3-claude-code-لمشروع-واحد)
-   - [4. أدوات أخرى](#4-أدوات-أخرى)
-4. [التحديث](#التحديث)
-5. [الشغل على جهاز جديد](#الشغل-على-جهاز-جديد)
-6. [التخصيص](#التخصيص)
-7. [ملاحظات أمنية](#ملاحظات-أمنية)
-8. [المساهمة](#المساهمة)
+1. [البداية السريعة](#البداية-السريعة)
+2. [بيعمل إيه](#بيعمل-إيه)
+3. [الأوامر](#الأوامر)
+4. [عيلة الـ agents](#عيلة-الـ-agents)
+5. [جوه كل مشروع: `.agents/`](#جوه-كل-مشروع-agents)
+6. [الإعدادات بتاعتك (الـ profile)](#الإعدادات-بتاعتك-الـ-profile)
+7. [التكلفة والأداء](#التكلفة-والأداء)
+8. [هيكل الريبو](#هيكل-الريبو)
+9. [طرق تنصيب تانية](#طرق-تنصيب-تانية)
+10. [التحديث](#التحديث)
+11. [التخصيص](#التخصيص)
+12. [الأمان والخصوصية](#الأمان-والخصوصية)
 
 ---
 
-## إيه هو الكيت ده؟
+## البداية السريعة
 
-أي حد بيستخدم Claude Code فترة بيبدأ يظبّط فيه حاجات: قواعد، agents مخصصة، skills، hooks، ومعيار جودة. الإعدادات دي بتفضل في `~/.claude` على جهاز واحد، وأي لابتوب أو سيرفر جديد بيبدأ من الصفر.
-
-**sabry-claude-kit** بيجمع كل ده في ريبو Git واحد، فالانتقال لبيئة جديدة يبقى `git clone` وكام أمر.
-
-وكمان بيحفظ اللي اتعلمته في الطريق: أنماط نجحت، وأنماط لازم نتجنبها، وأسباب القرارات التقنية.
-
-## هيكل الريبو
-
-### الفولدرات
-
-| الفولدر | الغرض |
-|---|---|
-| `.claude-plugin/` | ملف تعريف الـ plugin عشان الكيت يتحمّل كـ plugin في Claude Code |
-| `agents/` | تعريفات الـ sub-agents المخصصة |
-| `skills/` | مهارات قابلة لإعادة الاستخدام، بيحمّلها الوكيل لما المهمة تناسبها |
-| `hooks/` | Hooks بتشتغل تلقائيًا في نقاط محددة من الـ workflow |
-| `rules/` | ملفات قواعد بتحدد طريقة كتابة ومراجعة الكود |
-| `Patterns/` | أساليب نجحت وتستاهل التكرار |
-| `Anti-patterns/` | أساليب لازم نتجنبها، وليه |
-| `Decisions/` | القرارات التقنية وأسبابها |
-| `Roles/` | بروفايلات أدوار يشتغل الوكيل على أساسها |
-| `Stacks/` | إرشادات خاصة بكل stack تقني |
-| `agent-memory/` | ملاحظات دائمة محفوظة للوكلاء بين الجلسات |
-| `sounds/` | ملفات صوتية للإشعارات |
-| `_Audit/` | مخرجات المراجعة والتدقيق |
-| `_Archive/` | مواد قديمة محفوظة للرجوع إليها |
-
-### الملفات في الجذر
-
-| الملف | الغرض |
-|---|---|
-| `CLAUDE.md` | التعليمات الرئيسية اللي بتتحمّل في كل جلسة |
-| `settings.json` | إعدادات Claude Code (الصلاحيات، ربط الـ hooks، وغيرها) |
-| `.claude.json` | إعدادات عميل Claude Code |
-| `Quality-Gate.md` | قائمة الجودة اللي لازم الشغل يعدّيها قبل ما يتحسب منتهي |
-| `seatbelt.json` | إعدادات حماية وأمان |
-| `AGENT_LEARNINGS.md` | دروس اتجمعت من شغل الوكلاء |
-| `CommunicationProfiles.md` | إزاي الوكيل يتواصل في المواقف المختلفة |
-| `PersonalContext.md` | قالب للسياق الشخصي. الحقيقي بيتحفظ برّه الكيت في `~/.agents/` عن طريق `/sabry-kit:kit-setup` |
-| `.sabry-kit-maintain-note` و `.self-maintain-last` | علامات بتُستخدم في صيانة الكيت وتحديثه |
-
----
-
-## التنصيب
-
-### المتطلبات
-
-- Git
-- وكيل برمجة: [Claude Code](https://www.anthropic.com/claude-code) (دعم كامل)، أو أداة من [أدوات أخرى](#4-أدوات-أخرى) (دعم جزئي)
-- macOS أو Linux أو WSL أو Windows PowerShell
-
-الأول، اسحب الريبو مرة واحدة:
-
-```bash
-git clone https://github.com/Khaymah/sabry-claude-kit.git ~/sabry-claude-kit
-```
-
-### 1. Claude Code كـ plugin
-
-أسرع طريقة للتجربة. شغّل Claude Code والكيت متحمّل لجلسة واحدة:
-
-```bash
-claude --plugin-dir ~/sabry-claude-kit
-```
-
-أو نصّبه من ريبو GitHub من جوه Claude Code:
+**1. نصّب الـ plugin** من جوه Claude Code:
 
 ```text
 /plugin marketplace add Khaymah/sabry-claude-kit
 /plugin install sabry-kit@sabry-kit
 ```
 
-اكتب `/plugin` عشان تشوف اسم الـ marketplace بالظبط، وتفعّل أو تعطّل أو تحدّث.
+**2. الإعداد لأول مرة:** دقيقتين أسئلة، وإجاباتك بتتحفظ كإعدادات بأولوية قصوى:
 
-**أول مرة بعد التثبيت:**
-
-1. `/sabry-kit:kit-setup`: أسئلة قليلة (الاسم، اللغة، وضع العمل، القواعد) وبتتحفظ في `~/.agents/` كإعدادات بأولوية قصوى.
-2. `/sabry-kit:kit-doctor`: بيفحص الـ plugins والـ skills والـ agents والـ hooks اللي عندك، ويقولك إيه اللي متعارض مع الكيت، ويصلّح بموافقتك.
-3. افتح أي مشروع: الذاكرة والخطط والملفات المؤقتة بتتجهّز لوحدها في `.agents/` جوه المشروع.
-
-> الـ plugin بيحمّل `agents/` و `skills/` و `hooks/`. أما ملفات زي `CLAUDE.md` و `settings.json` فالتنصيب كـ plugin مش بيطبّقها، فاستخدم الطريقة 2 كمان لو عايز تعليمات الكيت وإعداداته على مستوى الجهاز.
-
-### 2. Claude Code على مستوى الجهاز (symlinks)
-
-الطريقة دي بتديك الكيت كامل في كل مشروع، و `git pull` بيحدّثه فورًا.
-
-**macOS / Linux / WSL**
-
-```bash
-# خد نسخة احتياطية من اللي عندك
-cp -r ~/.claude ~/.claude.backup 2>/dev/null
-
-mkdir -p ~/.claude
-KIT=~/sabry-claude-kit
-
-ln -sfn "$KIT/CLAUDE.md"     ~/.claude/CLAUDE.md
-ln -sfn "$KIT/settings.json" ~/.claude/settings.json
-ln -sfn "$KIT/rules"         ~/.claude/rules
+```text
+/sabry-kit:kit-setup
 ```
 
-**Windows (PowerShell، شغّله Administrator أو مع تفعيل Developer Mode)**
+**3. فحص التعارضات:** بيلاقي أي plugin أو skill أو hook أو إعداد بيتعارض مع الكيت، ويصلّح بموافقتك بس:
 
-```powershell
-$Kit = "$HOME\sabry-claude-kit"
-New-Item -ItemType Directory -Force "$HOME\.claude" | Out-Null
-
-New-Item -ItemType SymbolicLink -Force -Path "$HOME\.claude\CLAUDE.md"     -Target "$Kit\CLAUDE.md"
-New-Item -ItemType SymbolicLink -Force -Path "$HOME\.claude\settings.json" -Target "$Kit\settings.json"
-New-Item -ItemType SymbolicLink -Force -Path "$HOME\.claude\rules"         -Target "$Kit\rules"
+```text
+/sabry-kit:kit-doctor
 ```
 
-> الـ `settings.json` بيفعّل الـ plugin (`sabry-kit@sabry-kit`)، والـ plugin بيجيب `agents/` و `skills/` و `hooks/`. عشان كده مش بنعمل لهم symlink، وإلا كل agent هيظهر مرتين.
->
-> ⚠️ الـ symlinks مش بتشغّل الـ hooks. الـ hooks كلها متسجلة في `hooks/hooks.json` وبتيجي من الـ plugin (الطريقة 1) بمسارات `${CLAUDE_PLUGIN_ROOT}`، فشغّالة على أي جهاز من غير تعديل. التفاصيل والتحقق في [hooks/README.md](hooks/README.md).
+**4. افتح أي مشروع.** فولدر `.agents/` بيتجهّز لوحده، ومن الجلسة اللي بعدها الذاكرة والخطط بتتكتب جوه المشروع.
 
-بعد كده شغّل Claude Code في أي مشروع:
-
-```bash
-claude
-```
-
-### 3. Claude Code لمشروع واحد
-
-لو عايز الكيت في مشروع واحد بس، انسخ الأجزاء اللي عايزها لفولدر `.claude/` بتاع المشروع:
-
-```bash
-cd your-project
-mkdir -p .claude
-cp ~/sabry-claude-kit/CLAUDE.md ./CLAUDE.md
-cp -r ~/sabry-claude-kit/agents ~/sabry-claude-kit/skills ~/sabry-claude-kit/rules .claude/
-```
-
-ملفات المشروع بتأثر على أي حد بيسحب المشروع، فانسخ بس اللي عايز تشاركه مع الفريق.
-
-### 4. أدوات أخرى
-
-الكيت مبني حوالين Claude Code. الأدوات التانية تقدر تستفيد من الأجزاء المكتوبة: التعليمات والقواعد والأنماط والقرارات. الأجزاء الخاصة بـ Claude (`agents/` و `settings.json` و `.claude.json` و `.claude-plugin/`) مش هتشتغل هناك. أما الـ hooks فبتشتغل في Codex وGemini CLI وCursor عن طريق `hooks/adapt.py`، والإعداد لكل أداة في [hooks/README.md](hooks/README.md#8-أدوات-تانية-codex--gemini-cli--cursor).
-
-**Codex CLI**
-
-Codex بيقرأ ملف `AGENTS.md`. استخدم تعليمات الكيت كملف عام:
-
-```bash
-mkdir -p ~/.codex
-cp ~/sabry-claude-kit/CLAUDE.md ~/.codex/AGENTS.md
-```
-
-لمشروع واحد، حطه في جذر المشروع باسم `AGENTS.md`. ولو نسخة Codex عندك بتدعم الـ skills، وجّهها لفولدر `skills/` حسب وثائق Codex.
-
-**Gemini CLI**
-
-```bash
-mkdir -p ~/.gemini
-cp ~/sabry-claude-kit/CLAUDE.md ~/.gemini/GEMINI.md
-```
-
-**Cursor**
-
-انسخ ملفات القواعد لمشروعك:
-
-```bash
-mkdir -p .cursor/rules
-cp ~/sabry-claude-kit/rules/* .cursor/rules/
-```
-
-Cursor بيتوقع ملفات `.mdc` أو `.md` بـ front matter خاص بيه، فعدّل الامتداد والهيدر لو قاعدة مااتحمّلتش.
-
-**Windsurf و Copilot وغيرهم**
-
-معظم الوكلاء بتقرأ ملف تعليمات Markdown (`AGENTS.md` أو `.github/copilot-instructions.md` أو `.windsurfrules` وهكذا). انسخ محتوى `CLAUDE.md` في الملف اللي أداتك بتتوقعه.
-
-**Claude.ai / Claude Desktop**
-
-الـ skills ممكن تتضغط zip وتترفع من قسم Skills في إعدادات Claude. اضغط skill واحدة في كل مرة.
+> المتطلبات: Python 3.8+ على PATH (الـ hooks كلها stdlib بس) وGit. شغّال على Windows وmacOS وLinux وفي جلسات Claude Code السحابية.
 
 ---
 
-## 💸 التكلفة والأداء
+## بيعمل إيه
+
+| الميزة | التفاصيل |
+|---|---|
+| 👤 **Profile بأولوية قصوى** | `/sabry-kit:kit-setup` بيسأل عن الاسم، واللغة، وأسلوب الرد، ووضع العمل، والـ stack، والتكلفة مقابل الجودة، والقواعد. الإجابات بتتحقن **أول حاجة** في كل جلسة، وبتغلب أي قاعدة أو CLAUDE.md أو plugin تاني |
+| 🗂️ **ذاكرة كل مشروع جواه** | الـ auto memory، وذاكرة الـ agents، والخطط، والملفات المؤقتة، ونسخ الجلسات بتتخزن في `.agents/` جوه المشروع، مش في `~/.claude`. لو شلت الكيت، مفيش حاجة بتضيع |
+| 🔐 **فحص الأسرار قبل كل commit** | مفاتيح API وtokens وprivate keys وملفات `.env`. بيشتغل كـ hook في Claude Code وكـ git pre-commit، فبيحمي المشروع من أي أداة أو أي شخص |
+| 🩺 **فحص التعارضات** | `/sabry-kit:kit-doctor` بيفحص كل اللي متسطّب عندك ويعرض التعارضات بالخطورة. بيصلّح بموافقتك، مع backup ورجوع بأمر واحد. ومرة في اليوم بينبّهك لو فيه تعارض خطير |
+| 🎭 **عيلة agents** | 18 agent بأدوار واضحة (CTO · PM · BA · Market Research · Security · DevOps …)، كلهم بنفس الشكل المختصر، وكل واحد بيقرا ملف الدور بتاعه من `Roles/` |
+| 🔒 **قواعد مفروضة بـ hooks** | commits بالإنجليزي ومن غير توقيع AI · كود بلا كومنتات · هيكل Next.js · تحذير التكرار · تذكير team review. كل قاعدة تقدر تقفلها من الـ profile |
+| 🔌 **أي AI agent** | `hooks/adapt.py` بيشغّل نفس الـ hooks في Codex وGemini CLI وCursor من غير نسخ الكود |
+| 💸 **تكلفة أقل** | context أصغر في كل جلسة، و agents أخف، وافتراضيات أوفر ([التفاصيل](#التكلفة-والأداء)) |
+
+---
+
+## الأوامر
+
+| الأمر | بيعمل إيه |
+|---|---|
+| `/sabry-kit:kit-setup` | الإعداد لأول مرة أو تعديل إعداداتك |
+| `/sabry-kit:kit-doctor` | فحص التعارضات وإصلاحها بموافقتك |
+| `/sabry-kit:team-review` | مراجعة متوازية للتعديلات (أمان · صحة · اختبارات · UX)، وكل نتيجة بتتراجع قبل ما تتعرض |
+| `/sabry-kit:project-audit` | تدقيق شامل لمشروع: أمان وجودة وأداء ومعمارية، وتقرير بالعربي |
+| `/sabry-kit:self-maintain` | صيانة الكيت نفسه: بيفتح PR بالتحسينات، ومن غير دمج تلقائي |
+| `/sabry-kit:brag-slim` | فيديو إطلاق قصير لمشروع أو موقع |
+| `aurora-dark-ui` · `moonflower-design-system` | design systems بتتحمّل تلقائياً لما الشغل يكون واجهة بالستايل ده |
+
+> الأسامي اتختارت عشان ماتتصادمش مع أوامر Claude Code المدمجة (زي `/doctor`) أو مع plugins تانية، و`kit-doctor` بينبّهك لو حصل تصادم بعد كده.
+
+---
+
+## عيلة الـ agents
+
+الدور المناسب بيتفعّل تلقائياً من سياق الطلب (الجدول الكامل في [Roles/README.md](Roles/README.md)). الموديل بيتحدد من `model:` في ملف كل agent، وكلهم دلوقتي `sonnet`.
+
+| المجال | الـ agents |
+|---|---|
+| القرار والمنتج | `cto` · `senior-pm` · `business-analyst` · `market-researcher` · `growth-strategist` · `business-developer` |
+| التنفيذ | `senior-engineer` · `backend-architect` · `Frontend Developer` · `Database-Optimizer` · `devops-sre` · `qa-tester` · `tech-writer` |
+| المراجعة (قراءة فقط) | `code-reviewer` · `security-reviewer` · `cyber-security` · `ux-reviewer` · `ui-ux` |
+
+الترتيب لفكرة منتج جديدة: `market-researcher` (تستاهل؟) ← `senior-pm` (نبني إيه؟) ← `business-analyst` (المتطلبات) ← `cto` (المعمارية).
+
+---
+
+## جوه كل مشروع: `.agents/`
+
+```text
+your-project/
+  .agents/
+    memory/          الـ auto memory (MEMORY.md + ملف لكل موضوع)        ✅ git
+    agent-memory/    ذاكرة كل agent (.claude/agent-memory بيشاور هنا)   ✅ git
+    plans/           خطط plan mode                                       ✅ git
+    scratch/         الملفات المؤقتة بدل /tmp                           ❌
+    sessions/        نسخ الجلسات                                         ❌
+    profile.json     (اختياري) إعدادات خاصة بالمشروع ده
+    secrets-allowlist  (اختياري) استثناءات فحص الأسرار
+```
+
+- **أول جلسة في المشروع:** بتجهّز ده لوحدها. الـ hook بيعدّي لو كان متجهّز قبل كده.
+- **الذاكرة القديمة:** بتتنسخ مرة واحدة من `~/.claude/projects/`، والأصل بيفضل زي ما هو.
+- **ملفات المشروع:** ولا ملف tracked بيتعدّل. المسارات الخاصة بالجهاز بتتكتب في `.git/info/exclude`.
+- **من إمتى:** Claude Code بيقبل مسار الذاكرة الجديد من **الجلسة اللي بعدها**.
+- **الذاكرة بتدخل git:** عشان تروح مع المشروع لأي جهاز. وفحص الأسرار بيوقف أي commit فيه سر.
+
+التفاصيل والتحكم: [hooks/README.md › التخزين](hooks/README.md#5-التخزين-جوه-المشروع-agents).
+
+---
+
+## الإعدادات بتاعتك (الـ profile)
+
+| الملف | فيه إيه |
+|---|---|
+| `~/.agents/profile.json` | إجابات `kit-setup` ومفاتيح تشغيل القواعد (`settings`) |
+| `~/.agents/profile.md` | سياق شخصي حر (أهداف، قيود، استضافة مفضّلة). بيتقري عند القرارات الاستراتيجية بس |
+| `<project>/.agents/profile.json` | override لمشروع واحد |
+
+- **الترتيب:** افتراضيات الكيت < `~/.agents/profile.json` < profile المشروع < متغيرات `SABRY_KIT_<KEY>` (مثلاً `SABRY_KIT_SOUNDS=0`).
+- **قاعدة مقفولة:** مش بتتحقن أصلاً، والـ hook بتاعها بيسكت.
+- **مكان الملفات:** بياناتك الشخصية بتتحفظ برّه ريبو الكيت دايماً، فالكيت نفسه يفضل عام وينفع يتشارك.
+
+قايمة المفاتيح كاملة: [hooks/README.md › الـ profile](hooks/README.md#2-الـ-profile-إعداد-أول-مرة).
+
+---
+
+## التكلفة والأداء
 
 | الإجراء | الأثر |
 |---|---|
@@ -217,51 +150,120 @@ Cursor بيتوقع ملفات `.mdc` أو `.md` بـ front matter خاص بيه
 | قالب تكليف للـ subagents (`rules/subagents.md`): هدف + اللي اتستبعد + حد لطول التقرير | تقارير أقصر بتدخل الـ context الرئيسي |
 | `cost_profile` في الـ profile + `/sabry-kit:kit-doctor` بيقارن الإعدادات بيه | تنبيه لو الإعدادات أغلى من اختيارك |
 
-## التحديث
+---
 
-```bash
-cd ~/sabry-claude-kit
-git pull
-```
+## هيكل الريبو
 
-مع طريقة الـ symlinks مفيش حاجة تانية مطلوبة. ومع طريقة النسخ، انسخ الملفات اللي اتغيّرت تاني.
+| المسار | الغرض |
+|---|---|
+| `.claude-plugin/` | تعريف الـ plugin والـ marketplace |
+| `agents/` | الـ 18 agent |
+| `Roles/` | ملف تفصيلي لكل دور (إطار التفكير · قالب الرد · anti-patterns)، والـ agent بيقراه قبل ما يشتغل |
+| `rules/` | القواعد اللي بتتحقن في كل جلسة (التواصل · وضع العمل · اللغة · الكومنتات · الـ subagents · التخزين …) |
+| `skills/` | الأوامر والـ design systems (الجدول فوق) |
+| `hooks/` | كل الـ hooks + `kit_profile.py` + `doctor.py` + `adapt.py` + الاختبارات. **دليلها الكامل: [hooks/README.md](hooks/README.md)** |
+| `sounds/` | أصوات الإشعارات + `play.py` (Windows · macOS · Linux) |
+| `Stacks/` | إرشادات لكل stack (Next.js · Bun/Hono · Node · React · Go · Rust · PHP · .NET · Astro · GraphQL) |
+| `Patterns/` · `Anti-patterns/` · `Decisions/` | المعرفة المتراكمة: اللي نجح، واللي نتجنبه، وأسباب القرارات (ADR) |
+| `Quality-Gate.md` | المحاور الثمانية للقرارات المعمارية |
+| `CommunicationProfiles.md` | أسلوب الكتابة حسب الجمهور |
+| `PersonalContext.md` | **قالب** للسياق الشخصي (الحقيقي في `~/.agents/profile.md`) |
+| `CLAUDE.md` · `settings.json` | للتنصيب بالـ symlinks (الطريقة 2 تحت) |
+| `_Audit/` · `_Archive/` | مخرجات تدقيق قديمة ومواد محفوظة |
 
-ولحفظ تعديل عملته أثناء الشغل:
+---
 
-```bash
-cd ~/sabry-claude-kit
-git add -A
-git commit -m "Update kit"
-git push
-```
+## طرق تنصيب تانية
 
-## الشغل على جهاز جديد
+### للتجربة: جلسة واحدة من نسخة محلية
 
 ```bash
 git clone https://github.com/Khaymah/sabry-claude-kit.git ~/sabry-claude-kit
-# بعدين شغّل أوامر الـ symlinks من الطريقة 2
-claude
+claude --plugin-dir ~/sabry-claude-kit
 ```
+
+### `CLAUDE.md` و`settings.json` على مستوى الجهاز (symlinks)
+
+الـ plugin بيجيب الـ agents والـ skills والـ hooks، لكن مش بيطبّق `CLAUDE.md` و`settings.json`. لو عايزهم:
+
+**macOS / Linux / WSL**
+
+```bash
+cp -r ~/.claude ~/.claude.backup 2>/dev/null
+mkdir -p ~/.claude
+KIT=~/sabry-claude-kit
+ln -sfn "$KIT/CLAUDE.md"     ~/.claude/CLAUDE.md
+ln -sfn "$KIT/settings.json" ~/.claude/settings.json
+ln -sfn "$KIT/rules"         ~/.claude/rules
+```
+
+**Windows (PowerShell كـ Administrator أو مع Developer Mode)**
+
+```powershell
+$Kit = "$HOME\sabry-claude-kit"
+New-Item -ItemType Directory -Force "$HOME\.claude" | Out-Null
+New-Item -ItemType SymbolicLink -Force -Path "$HOME\.claude\CLAUDE.md"     -Target "$Kit\CLAUDE.md"
+New-Item -ItemType SymbolicLink -Force -Path "$HOME\.claude\settings.json" -Target "$Kit\settings.json"
+New-Item -ItemType SymbolicLink -Force -Path "$HOME\.claude\rules"         -Target "$Kit\rules"
+```
+
+- **`settings.json` بتاع الكيت:** بيعرّف الـ marketplace وبيفعّل `sabry-kit@sabry-kit`، فالـ plugin بيتسطّب لوحده.
+- **`agents/` و`skills/` و`hooks/`:** ما تعملش لهم symlink، وإلا كل حاجة هتظهر مرتين، و`kit-doctor` هينبّهك.
+- **الـ hooks:** مابتشتغلش من الـ symlinks، بتيجي من الـ plugin بس.
+
+### Codex · Gemini CLI · Cursor · غيرهم
+
+| الأداة | التعليمات | الـ hooks |
+|---|---|---|
+| Codex CLI | `cp ~/sabry-claude-kit/CLAUDE.md ~/.codex/AGENTS.md` | `~/.codex/hooks.json` بنفس شكل Claude Code |
+| Gemini CLI | `cp ~/sabry-claude-kit/CLAUDE.md ~/.gemini/GEMINI.md` | `~/.gemini/settings.json` عن طريق `adapt.py gemini` |
+| Cursor | انسخ `rules/` لـ `.cursor/rules/` | `~/.cursor/hooks.json` عن طريق `adapt.py cursor` |
+| Windsurf · Copilot · غيرهم | انسخ `CLAUDE.md` لملف التعليمات بتاع الأداة | فحص الأسرار شغال عن طريق الـ git pre-commit |
+
+إعداد جاهز للنسخ لكل أداة، وجدول بيقول إيه اللي بيشتغل فين: [hooks/README.md › أدوات تانية](hooks/README.md#8-أدوات-تانية-codex--gemini-cli--cursor).
+
+---
+
+## التحديث
+
+```text
+/plugin update sabry-kit@sabry-kit
+```
+
+ولو عامل symlinks أو بتطوّر في الكيت:
+
+```bash
+cd ~/sabry-claude-kit && git pull
+```
+
+> ⚠️ **تحديث 2026-11:** الـ history بتاع الريبو اتعاد كتابته عشان تتشال منه بيانات شخصية. أي نسخة متكلونة قبل كده محتاجة `git fetch origin && git reset --hard origin/main` (بيمسح التعديلات المحلية اللي مش معمول لها push) أو clone جديد.
+
+جهاز جديد = نفس "البداية السريعة". الـ profile بيتعمل مرة واحدة لكل جهاز، أو انسخ `~/.agents/profile.json` و`profile.md`.
+
+---
 
 ## التخصيص
 
-- عدّل `CLAUDE.md` لتغيير التعليمات العامة.
-- ضيف skill جديدة بعمل فولدر تحت `skills/` فيه `SKILL.md`.
-- ضيف agent جديد بإضافة ملف Markdown تحت `agents/`.
-- سجّل أي اختيار تقني في `Decisions/`، وانقل اللي بتتعلمه لـ `Patterns/` أو `Anti-patterns/`.
-- شغّل `/sabry-kit:kit-setup` مرة واحدة: بيسألك أسئلة قليلة ويحفظ إجاباتك في `~/.agents/` كإعدادات بأولوية قصوى فوق كل قواعد الكيت.
+- **إعداداتك:** `/sabry-kit:kit-setup` في أي وقت. ماتعدّلش ملفات الكيت عشان تغيّر تفضيل شخصي.
+- **agent جديد:** ملف تحت `agents/` + ملف دور تحت `Roles/` (الخطوات في [Roles/README.md](Roles/README.md#إضافة-دور-جديد)).
+- **skill جديدة:** فولدر تحت `skills/` فيه `SKILL.md` باسم مايتصادمش مع أمر مدمج.
+- **hook جديد:** [hooks/README.md › إضافة hook](hooks/README.md#9-إضافة-hook-جديد).
+- **قرار تقني:** ADR في `Decisions/`. واللي بتتعلمه يروح `Patterns/` أو `Anti-patterns/`.
+- **التحقق بعد أي تعديل:**
 
-## ملاحظات أمنية
+```bash
+python3 hooks/verify-hooks.py
+```
 
-الريبو ده ممكن يحتوي على إعدادات شخصية لصاحبه. قبل ما تعيد استخدامه أو تنشر نسختك منه:
+---
 
-- راجع `PersonalContext.md` و `CommunicationProfiles.md` وشوف فيهم تفاصيل شخصية.
-- راجع `.claude.json` و `settings.json` و `hooks/` وشوف فيهم tokens أو مفاتيح API أو روابط داخلية أو مسارات خاصة بجهاز معين.
-- خلّي الأسرار في متغيرات البيئة أو مدير أسرار، ومتحطهاش في الريبو أبدًا.
-- اقرأ `settings.json` قبل ما تطبّقه. ممكن يمنح صلاحيات ويشغّل hooks على جهازك.
+## الأمان والخصوصية
 
-## المساهمة
+- **الأسرار:** ممنوعة في الريبو وفي `.agents/`. `scan-secrets` بيوقف الـ commit، وفيه `allow-secret` للاستثناء و`git commit --no-verify` للتخطي المقصود.
+- **البيانات الشخصية:** بتتحفظ في `~/.agents/` برّه الكيت. ماتحطهاش في `PersonalContext.md` (ده قالب) ولا في أي ملف في الريبو.
+- **`settings.json`:** اقراه قبل ما تطبّقه. بيمنح صلاحيات وبيغيّر افتراضيات.
+- **`kit-doctor`:** مابيغيّرش أي حاجة من غير موافقتك، وكل تغيير ليه backup في `~/.agents/doctor/runs/` ورجوع بـ `doctor.py undo`.
 
-الـ Issues والـ Pull Requests مرحّب بيها. اقرأ ميثاق السلوك الموجود في الريبو الأول.
+الـ Issues والـ Pull Requests مرحّب بيها.
 
 </div>
