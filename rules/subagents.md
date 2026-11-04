@@ -1,11 +1,12 @@
-# الـ Subagents — sonnet دائماً
+# الـ Subagents — الموديل من الـ frontmatter
 
-كل `Agent` أو `agent()` في Workflow: مرّر `model: "sonnet"` **صراحةً**.
-ممنوع `haiku`. ممنوع الاعتماد على inherit.
-
-> 🔒 **مُنفَّذ حتمياً, لا اعتماداً على ذاكرتي.** `PreToolUse` hook بـ matcher `Agent|Task`
-> (`hooks/enforce-sonnet.py`) يفحص كل استدعاء ويعيد كتابة الـ `model` إلى sonnet تلقائياً.
-> القاعدة صارت **مستحيلة المخالفة** — لا مجرد تعليمة قد أنساها.
+- **agents الكيت** (`agents/*.md`): الموديل مكتوب في `model:` في الـ frontmatter بتاع كل agent
+  (كلهم `sonnet` حالياً). **لا تمرّر `model`** في الاستدعاء: أي قيمة فيه بتلغي الـ frontmatter.
+- **الـ agents المدمجة** (`Explore` · `general-purpose` · `Plan`) مالهاش frontmatter عندنا،
+  فمن غير `model` بترث موديل الجلسة (opus). مرّر `model: "sonnet"` صراحةً إلا لو المهمة محتاجة أقوى.
+- ممنوع `haiku`.
+- لتغيير موديل agent: عدّل `model:` في ملفه. **مفيش hook بيفرض موديل**، عشان الـ hook بيكتب
+  `model` في الاستدعاء فبيغلب الـ frontmatter (ده اللي كان مخلّي `enforce-opus` يلغي `sonnet`).
 
 ## متى أفوّض — ومتى لا
 

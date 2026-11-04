@@ -148,11 +148,12 @@ def check_case(path, root):
     cur = os.path.join(root, "src")
     parts = rel.split("/")[1:]
     for i, seg in enumerate(parts):
-        parent, cur = cur, os.path.join(cur, seg)
-        if not os.path.exists(cur):
-            return
+        parent = cur
         actual = actual_name(parent, seg)
-        if actual and actual != seg:
+        if actual is None:
+            return
+        cur = os.path.join(parent, actual)
+        if actual != seg:
             deny(f"'{seg}' already exists on disk as '{actual}' (in src/{'/'.join(parts[:i])}). "
                  f"Use '{actual}': this machine hides the difference, but a Linux build "
                  f"will not find '{seg}'.")

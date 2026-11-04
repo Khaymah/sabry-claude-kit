@@ -98,7 +98,7 @@ claude --plugin-dir ~/sabry-claude-kit
 
 ```text
 /plugin marketplace add Khaymah/sabry-claude-kit
-/plugin install sabry-claude-kit@<marketplace-name>
+/plugin install sabry-kit@sabry-kit
 ```
 
 اكتب `/plugin` عشان تشوف اسم الـ marketplace بالظبط، وتفعّل أو تعطّل أو تحدّث.
@@ -140,7 +140,7 @@ New-Item -ItemType SymbolicLink -Force -Path "$HOME\.claude\hooks"         -Targ
 New-Item -ItemType SymbolicLink -Force -Path "$HOME\.claude\rules"         -Target "$Kit\rules"
 ```
 
-سكربتات الـ hooks ممكن تستخدم مسارات مطلقة. لو hook فشل على جهاز جديد، راجع المسارات في `settings.json` و `hooks/`.
+> ⚠️ الـ symlinks مش بتشغّل الـ hooks. الـ hooks كلها متسجلة في `hooks/hooks.json` وبتيجي من الـ plugin (الطريقة 1) بمسارات `${CLAUDE_PLUGIN_ROOT}`، فشغّالة على أي جهاز من غير تعديل. التفاصيل والتحقق في [hooks/README.md](hooks/README.md).
 
 بعد كده شغّل Claude Code في أي مشروع:
 
@@ -163,7 +163,7 @@ cp -r ~/sabry-claude-kit/agents ~/sabry-claude-kit/skills ~/sabry-claude-kit/rul
 
 ### 4. أدوات أخرى
 
-الكيت مبني حوالين Claude Code. الأدوات التانية تقدر تستفيد من الأجزاء المكتوبة: التعليمات والقواعد والأنماط والقرارات. الأجزاء الخاصة بـ Claude (`agents/` و `hooks/` و `settings.json` و `.claude.json` و `.claude-plugin/`) مش هتشتغل هناك.
+الكيت مبني حوالين Claude Code. الأدوات التانية تقدر تستفيد من الأجزاء المكتوبة: التعليمات والقواعد والأنماط والقرارات. الأجزاء الخاصة بـ Claude (`agents/` و `settings.json` و `.claude.json` و `.claude-plugin/`) مش هتشتغل هناك. أما الـ hooks فبتشتغل في Codex وGemini CLI وCursor عن طريق `hooks/adapt.py`، والإعداد لكل أداة في [hooks/README.md](hooks/README.md#5-أدوات-تانية-codex--gemini-cli--cursor).
 
 **Codex CLI**
 

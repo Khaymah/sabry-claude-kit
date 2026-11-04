@@ -12,6 +12,7 @@ verify-hooks — يتحقق أن الـ hooks تعمل **سلوكياً**، لا
 """
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -43,41 +44,6 @@ def run_hook(script, payload, cwd=None, env=None, args=()):
         cwd=cwd, env=e, timeout=60,
     )
     return p.stdout.strip(), p.returncode
-
-
-# ─────────────────────────────────────────────────────────── enforce-sonnet
-def test_enforce_sonnet():
-    print("\n🔒 enforce-sonnet  (PreToolUse · matcher Agent|Task)")
-    if not os.path.isfile(os.path.join(HOOKS, "enforce-sonnet.py")):
-        return check("الملف موجود", False, "مفقود")
-
-    cases = [
-        ("model غير محدد → sonnet", {"tool_name": "Agent", "tool_input": {"prompt": "x"}}, True),
-        ("model=sonnet → sonnet",      {"tool_name": "Agent", "tool_input": {"model": "sonnet"}}, True),
-        ("model=haiku → sonnet",     {"tool_name": "Task",  "tool_input": {"model": "haiku"}}, True),
-        ("model=sonnet → صامت",      {"tool_name": "Agent", "tool_input": {"model": "sonnet"}}, False),
-        ("payload تالف → لا ينكسر",  "BROKEN", False),
-    ]
-    for label, payload, should_patch in cases:
-        if payload == "BROKEN":
-            p = subprocess.run([sys.executable, os.path.join(HOOKS, "enforce-sonnet.py")],
-                               input="not json", capture_output=True, text=True, timeout=30)
-            out, rc = p.stdout.strip(), p.returncode
-        else:
-            out, rc = run_hook("enforce-sonnet.py", payload)
-
-        if rc != 0:
-            check(label, False, f"exit={rc}")
-            continue
-        if not should_patch:
-            check(label, out == "", "أخرج شيئاً وكان يجب أن يصمت" if out else "")
-            continue
-        try:
-            got = json.loads(out)["hookSpecificOutput"]["updatedInput"]["model"]
-        except Exception:
-            check(label, False, f"مخرَج غير متوقَّع: {out[:60]}")
-            continue
-        check(label, got == "sonnet", f"أعاد {got!r}")
 
 
 # ──────────────────────────────────────────────────── team-review-reminder
@@ -182,19 +148,40 @@ def _hooks_of(path):
 
 
 def test_registration():
-    print("\n📋 التسجيل في الإعدادات")
-    g = os.path.join(CLAUDE, "settings.json")
+    print("\n📋 التسجيل في hooks/hooks.json (مصدر الـ hooks الوحيد)")
+    g = os.path.join(HOOKS, "hooks.json")
     blob = _hooks_of(g)
     if blob is None:
-        return check("settings.json يُحلَّل", False, "JSON تالف — Claude Code لن يقرأه")
-    check("settings.json يُحلَّل", True)
-    check("enforce-sonnet مسجَّل عالمياً", "enforce-sonnet" in blob)
+        return check("hooks.json يُحلَّل", False, "JSON تالف — Claude Code لن يقرأه")
+    check("hooks.json يُحلَّل", True)
+    check("enforce-commit-style مسجَّل (PreToolUse)", "enforce-commit-style" in blob)
+    check("enforce-comment-discipline مسجَّل (PreToolUse)", "enforce-comment-discipline" in blob)
     check("code-review-graph update مسجَّل (PostToolUse)", "code-review-graph update" in blob)
-    check("team-review-reminder مسجَّل عالمياً (Stop)", "team-review-reminder" in blob)
+    check("team-review-reminder مسجَّل (Stop)", "team-review-reminder" in blob)
     check("لقطة الأساس مسجَّلة (SessionStart --baseline)", "--baseline" in blob,
           "بدونها لا يمكن تمييز عمل الجلسة عن الدَنَس السابق")
-    check("enforce-nextjs-structure مسجَّل عالمياً (PreToolUse)", "enforce-nextjs-structure" in blob)
-    check("warn-duplication مسجَّل عالمياً (PostToolUse)", "warn-duplication" in blob)
+    check("enforce-nextjs-structure مسجَّل (PreToolUse)", "enforce-nextjs-structure" in blob)
+    check("warn-duplication مسجَّل (PostToolUse)", "warn-duplication" in blob)
+    check("لا hook يفرض موديل على الـ subagents", "enforce-opus" not in blob
+          and "enforce-sonnet" not in blob, "الموديل يأتي من frontmatter كل agent")
+
+    refs = sorted(set(re.findall(r"\$\{CLAUDE_PLUGIN_ROOT\}/([\w./-]+)", blob)))
+    missing = [r for r in refs if not os.path.isfile(os.path.join(CLAUDE, r))]
+    check(f"كل سكربت مُشار إليه موجود ({len(refs)})", not missing, "؛ ".join(missing))
+
+    hardcoded = []
+    for fn in ("hooks/hooks.json", "settings.json"):
+        try:
+            text = open(os.path.join(CLAUDE, fn), encoding="utf-8").read()
+        except OSError:
+            continue
+        if re.search(r"[A-Za-z]:\\\\|/Users/|/home/|powershell", text, re.I):
+            hardcoded.append(fn)
+    check("لا مسارات خاصة بجهاز ولا powershell", not hardcoded, "؛ ".join(hardcoded))
+
+    settings = _hooks_of(os.path.join(CLAUDE, "settings.json"))
+    check("settings.json بلا hooks (لا تشغيل مزدوج مع الـ plugin)",
+          settings in (None, "{}"), "انقلها لـ hooks/hooks.json")
 
     # نسخة محلية + عالمية = الـ hook يعمل مرّتين. الحماية من التكرار تقرأ ملف الحالة،
     # فإن شُغّلا بالتوازي قد يقرآن قبل أن يكتب أيّهما → تذكيران لنفس التغيير.
@@ -226,11 +213,67 @@ def test_registration():
     check("كل ملفات الإعداد تُحلَّل", not broken, "؛ ".join(broken))
 
 
+def test_sounds():
+    print("\n🔔 الصوت (sounds/play.py)")
+    script = os.path.join(CLAUDE, "sounds", "play.py")
+    if not os.path.isfile(script):
+        return check("الملف موجود", False, "مفقود")
+    wavs = ("notification.wav", "question.wav", "done.wav", "error.wav", "needs-input.wav")
+    missing = [w for w in wavs if not os.path.isfile(os.path.join(CLAUDE, "sounds", w))]
+    check("ملفات الصوت موجودة", not missing, "؛ ".join(missing))
+    for label, args, env in (
+        ("SABRY_KIT_SOUNDS=0 → صامت", ["done.wav"], {"SABRY_KIT_SOUNDS": "0"}),
+        ("ملف غير موجود → صامت", ["nope.wav"], {}),
+        ("بلا وسيط → صامت", [], {}),
+    ):
+        e = dict(os.environ); e.update(env)
+        p = subprocess.run([sys.executable, script] + args, capture_output=True,
+                           text=True, env=e, timeout=30)
+        check(label, p.returncode == 0 and not p.stdout and not p.stderr,
+              f"exit={p.returncode} {p.stderr[:80]}")
+
+
+def test_adapter():
+    print("\n🔌 adapt.py  (Codex · Gemini CLI · Cursor)")
+    trailer = "Co-Authored-By: " + "Claude <noreply@anthropic.com>"
+    bad = 'git commit -m "feat: x\n\n%s"' % trailer
+    cases = (
+        ("cursor: commit بتوقيع AI → deny", "cursor", "enforce-commit-style.py",
+         {"hook_event_name": "beforeShellExecution", "command": bad, "cwd": HOOKS},
+         lambda o: o.get("permission") == "deny"),
+        ("cursor: أمر عادي → allow صريح", "cursor", "enforce-commit-style.py",
+         {"hook_event_name": "beforeShellExecution", "command": "ls", "cwd": HOOKS},
+         lambda o: o == {"permission": "allow"}),
+        ("cursor: سكربت مفقود → allow (fail-open)", "cursor", "nope.py",
+         {"hook_event_name": "beforeShellExecution", "command": "ls"},
+         lambda o: o == {"permission": "allow"}),
+        ("gemini: run_shell_command بتوقيع AI → deny", "gemini", "enforce-commit-style.py",
+         {"hook_event_name": "BeforeTool", "tool_name": "run_shell_command",
+          "tool_input": {"command": bad}, "cwd": HOOKS},
+         lambda o: o.get("decision") == "deny"),
+        ("gemini: write_file بكومنت → deny", "gemini", "enforce-comment-discipline.py",
+         {"hook_event_name": "BeforeTool", "tool_name": "write_file",
+          "tool_input": {"file_path": "a.ts", "content": "// x\nconst a = 1\n"}},
+         lambda o: o.get("decision") == "deny"),
+        ("codex: نفس شكل Claude (pass-through)", "codex", "enforce-commit-style.py",
+         {"hook_event_name": "PreToolUse", "tool_name": "Bash", "tool_input": {"command": bad}},
+         lambda o: o.get("hookSpecificOutput", {}).get("permissionDecision") == "deny"),
+    )
+    for label, agent, script, payload, ok in cases:
+        out, rc = run_hook("adapt.py", payload, args=(agent, script))
+        try:
+            got = json.loads(out) if out else {}
+        except Exception:
+            got = {}
+        check(label, rc == 0 and ok(got), f"exit={rc} out={out[:70]}")
+
+
 def test_graph_cli():
     print("\n🕸  code-review-graph CLI")
     exe = shutil.which("code-review-graph")
-    check("موجود على PATH", bool(exe),
-          "غير موجود — الـ PostToolUse hook لن يفعل شيئاً", info=exe or "")
+    if not exe:
+        return print("  ⏭  غير مثبّت (اختياري) — run-if-installed.py يتخطّاه بصمت")
+    check("موجود على PATH", True, info=exe)
 
 
 def test_latency():
@@ -275,10 +318,11 @@ def main():
     print("=" * 74)
     print("  تحقّق سلوكي من الـ hooks — تشغيل فعلي بمُدخلات حقيقية، لا قراءة ملفات")
     print("=" * 74)
-    test_enforce_sonnet()
     test_team_reminder()
     test_nextjs_hooks()
     test_registration()
+    test_sounds()
+    test_adapter()
     test_graph_cli()
     test_latency()
 

@@ -3,7 +3,7 @@
 themselves contain commit-shaped text that the hook would (correctly) flag."""
 import io, json, os, shutil, stat, subprocess, sys
 
-HOOK = r"C:\Users\PC\.claude\hooks\enforce-commit-style.py"
+HOOK = os.path.join(os.path.dirname(os.path.abspath(__file__)), "enforce-commit-style.py")
 TRAILER = "Co-Authored-By: " + "Claude Opus 5 <noreply@anthropic.com>"
 GENERATED = "\U0001F916 " + "Generated with Claude Code"
 ARABIC_SUBJECT = "F2: \u0645\u0643\u062a\u0628\u0629 \u0627\u0644\u0645\u0643\u0648\u0651\u0646\u0627\u062a"

@@ -96,7 +96,7 @@ Or install it from the GitHub repo inside Claude Code:
 
 ```text
 /plugin marketplace add Khaymah/sabry-claude-kit
-/plugin install sabry-claude-kit@<marketplace-name>
+/plugin install sabry-kit@sabry-kit
 ```
 
 Run `/plugin` to see the exact marketplace name and to enable, disable, or update it.
@@ -138,7 +138,7 @@ New-Item -ItemType SymbolicLink -Force -Path "$HOME\.claude\hooks"         -Targ
 New-Item -ItemType SymbolicLink -Force -Path "$HOME\.claude\rules"         -Target "$Kit\rules"
 ```
 
-Hook scripts may use absolute paths. If a hook fails on a new machine, check the paths in `settings.json` and `hooks/`.
+> ⚠️ Symlinks do not activate hooks. Every hook is registered in `hooks/hooks.json` and comes from the plugin (method 1) via `${CLAUDE_PLUGIN_ROOT}` paths, so it works on any machine unchanged. Details and verification: [hooks/README.md](hooks/README.md).
 
 Then start Claude Code in any project:
 
@@ -161,7 +161,7 @@ Project files take effect for everyone who clones that project, so only copy wha
 
 ### 4. Other tools
 
-The kit is built around Claude Code. Other agents can still use the written parts: instructions, rules, patterns, and decisions. Claude-specific parts (`agents/`, `hooks/`, `settings.json`, `.claude.json`, `.claude-plugin/`) will not carry over.
+The kit is built around Claude Code. Other agents can still use the written parts: instructions, rules, patterns, and decisions. Claude-specific parts (`agents/`, `settings.json`, `.claude.json`, `.claude-plugin/`) will not carry over. Hooks do: `hooks/adapt.py` runs them under Codex, Gemini CLI and Cursor; per-tool setup is in [hooks/README.md](hooks/README.md).
 
 **Codex CLI**
 

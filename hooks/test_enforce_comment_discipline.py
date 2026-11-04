@@ -2,10 +2,11 @@
 """Test suite for enforce-comment-discipline.py. Each case is a tool_input payload and
 the decision expected (None = allowed, "deny" = blocked)."""
 import json
+import os
 import subprocess
 import sys
 
-HOOK = r"C:\Users\PC\.claude\hooks\enforce-comment-discipline.py"
+HOOK = os.path.join(os.path.dirname(os.path.abspath(__file__)), "enforce-comment-discipline.py")
 
 
 def w(content, path="x.ts"):
