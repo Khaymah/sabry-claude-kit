@@ -23,6 +23,7 @@
 
 > ⚠️ **الـ symlinks لوحدها (طريقة 2 في الـ README) مش بتشغّل hooks.** Claude Code مش بيقرأ `~/.claude/hooks/hooks.json`؛ بيقرأ hooks من `settings.json` أو من plugin بس.
 > الـ symlinks مفيدة لـ `CLAUDE.md` و`settings.json` و`rules/`، والـ hooks لازم تيجي من الـ plugin.
+> لو عامل symlink لـ `settings.json` بتاع الكيت، فهو أصلاً بيعرّف الـ marketplace (`Khaymah/sabry-claude-kit`) وبيفعّل `sabry-kit@sabry-kit`، فالـ plugin بيتسطّب لوحده.
 
 ### متطلبات
 

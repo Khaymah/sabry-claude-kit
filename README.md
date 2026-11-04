@@ -120,9 +120,6 @@ KIT=~/sabry-claude-kit
 
 ln -sfn "$KIT/CLAUDE.md"     ~/.claude/CLAUDE.md
 ln -sfn "$KIT/settings.json" ~/.claude/settings.json
-ln -sfn "$KIT/agents"        ~/.claude/agents
-ln -sfn "$KIT/skills"        ~/.claude/skills
-ln -sfn "$KIT/hooks"         ~/.claude/hooks
 ln -sfn "$KIT/rules"         ~/.claude/rules
 ```
 
@@ -134,12 +131,11 @@ New-Item -ItemType Directory -Force "$HOME\.claude" | Out-Null
 
 New-Item -ItemType SymbolicLink -Force -Path "$HOME\.claude\CLAUDE.md"     -Target "$Kit\CLAUDE.md"
 New-Item -ItemType SymbolicLink -Force -Path "$HOME\.claude\settings.json" -Target "$Kit\settings.json"
-New-Item -ItemType SymbolicLink -Force -Path "$HOME\.claude\agents"        -Target "$Kit\agents"
-New-Item -ItemType SymbolicLink -Force -Path "$HOME\.claude\skills"        -Target "$Kit\skills"
-New-Item -ItemType SymbolicLink -Force -Path "$HOME\.claude\hooks"         -Target "$Kit\hooks"
 New-Item -ItemType SymbolicLink -Force -Path "$HOME\.claude\rules"         -Target "$Kit\rules"
 ```
 
+> الـ `settings.json` بيفعّل الـ plugin (`sabry-kit@sabry-kit`)، والـ plugin بيجيب `agents/` و `skills/` و `hooks/`. عشان كده مش بنعمل لهم symlink، وإلا كل agent هيظهر مرتين.
+>
 > ⚠️ الـ symlinks مش بتشغّل الـ hooks. الـ hooks كلها متسجلة في `hooks/hooks.json` وبتيجي من الـ plugin (الطريقة 1) بمسارات `${CLAUDE_PLUGIN_ROOT}`، فشغّالة على أي جهاز من غير تعديل. التفاصيل والتحقق في [hooks/README.md](hooks/README.md).
 
 بعد كده شغّل Claude Code في أي مشروع:

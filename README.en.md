@@ -118,9 +118,6 @@ KIT=~/sabry-claude-kit
 
 ln -sfn "$KIT/CLAUDE.md"     ~/.claude/CLAUDE.md
 ln -sfn "$KIT/settings.json" ~/.claude/settings.json
-ln -sfn "$KIT/agents"        ~/.claude/agents
-ln -sfn "$KIT/skills"        ~/.claude/skills
-ln -sfn "$KIT/hooks"         ~/.claude/hooks
 ln -sfn "$KIT/rules"         ~/.claude/rules
 ```
 
@@ -132,12 +129,11 @@ New-Item -ItemType Directory -Force "$HOME\.claude" | Out-Null
 
 New-Item -ItemType SymbolicLink -Force -Path "$HOME\.claude\CLAUDE.md"     -Target "$Kit\CLAUDE.md"
 New-Item -ItemType SymbolicLink -Force -Path "$HOME\.claude\settings.json" -Target "$Kit\settings.json"
-New-Item -ItemType SymbolicLink -Force -Path "$HOME\.claude\agents"        -Target "$Kit\agents"
-New-Item -ItemType SymbolicLink -Force -Path "$HOME\.claude\skills"        -Target "$Kit\skills"
-New-Item -ItemType SymbolicLink -Force -Path "$HOME\.claude\hooks"         -Target "$Kit\hooks"
 New-Item -ItemType SymbolicLink -Force -Path "$HOME\.claude\rules"         -Target "$Kit\rules"
 ```
 
+> `settings.json` enables the plugin (`sabry-kit@sabry-kit`), which brings `agents/`, `skills/` and `hooks/`. They are not symlinked, otherwise every agent would show up twice.
+>
 > ⚠️ Symlinks do not activate hooks. Every hook is registered in `hooks/hooks.json` and comes from the plugin (method 1) via `${CLAUDE_PLUGIN_ROOT}` paths, so it works on any machine unchanged. Details and verification: [hooks/README.md](hooks/README.md).
 
 Then start Claude Code in any project:

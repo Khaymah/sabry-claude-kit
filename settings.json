@@ -69,7 +69,8 @@
     "superpowers@claude-plugins-official": true,
     "remember@claude-plugins-official": true,
     "seatbelt@seatbelt-marketplace": true,
-    "10x-Team@synced": false
+    "10x-Team@synced": false,
+    "sabry-kit@sabry-kit": true
   },
   "extraKnownMarketplaces": {
     "chrome-devtools-plugins": {
@@ -86,8 +87,8 @@
     },
     "sabry-kit": {
       "source": {
-        "source": "git",
-        "url": "https://github.com/sabrydawood/sabry-claude-kit.git"
+        "source": "github",
+        "repo": "Khaymah/sabry-claude-kit"
       }
     }
   },
