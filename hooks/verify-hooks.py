@@ -192,8 +192,9 @@ def test_registration():
     print("\n  ازدواج محلي (يجب ألّا يظهر شيء):")
     dupes = []
     roots = [r for r in sys.argv[1:] if os.path.isdir(r)]
-    if not roots and os.path.isdir(r"D:\Work"):
-        for dirpath, dirnames, _ in os.walk(r"D:\Work"):
+    work = os.environ.get("SABRY_KIT_WORK_ROOT", "")
+    if not roots and work and os.path.isdir(work):
+        for dirpath, dirnames, _ in os.walk(work):
             if dirpath.count(os.sep) > 6:
                 dirnames[:] = []
                 continue
@@ -285,13 +286,9 @@ def test_latency():
     مقروءاً. أي أنه يقع على المسار الحرج في نهاية كل دور، في كل مستودع."""
     print("\n⏱  زمن الـ Stop hook (متزامن — على المسار الحرج)")
     import time
-    big = [p for p in (
-        r"D:\Work\1-Nodejs\CRM\Est8Core\New\Server",
-        r"D:\Work\1-Nodejs\CRM\Est8Core\New\est8core-frontend",
-        r"D:\Work\1-Nodejs\_RealEstate Ai\Server",
-    ) if os.path.isdir(p)]
+    big = [p for p in os.environ.get("SABRY_KIT_BIG_REPOS", "").split(os.pathsep) if p and os.path.isdir(p)]
     if not big:
-        return print("  ⏭  لا مستودع كبير متاح للقياس")
+        return print("  ⏭  لا مستودع كبير متاح للقياس (حدّد SABRY_KIT_BIG_REPOS)")
     for path in big:
         run_hook("team-review-reminder.py", {}, cwd=path)   # تسخين ذاكرة القرص
         runs = []
@@ -301,7 +298,7 @@ def test_latency():
             runs.append((time.perf_counter() - t) * 1000)
         ms = min(runs)
         # يشمل زمن إقلاع مفسّر Python (~60–90ms) — Claude Code يدفعه أيضاً.
-        label = os.path.relpath(path, r"D:\Work\1-Nodejs").replace("\\", "/")
+        label = os.path.basename(os.path.normpath(path))
         check(f"{label}", ms < 500,
               f"{ms:.0f}ms — بطيء على المسار الحرج",
               info=f"{ms:.0f}ms (أدنى 3، دافئ)")

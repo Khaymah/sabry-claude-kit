@@ -12,10 +12,4 @@
 `eslint-*` · `prettier-ignore` · `biome-ignore` · `c8/v8/istanbul ignore` · `@jsxImportSource` ·
 `@vite-ignore` · `webpackChunkName` · `__PURE__` · `@preserve` · `@license` · `/* global */`.
 
-> 🔒 **مُنفَّذ حتمياً بـ hook, لا اعتماداً على الذاكرة:** `PreToolUse` بـ matcher
-> `Write|Edit|MultiEdit` (`hooks/enforce-comment-discipline.py`) يرفض أي تعديل يضيف كومنتاً
-> لملف JS/TS إلا الـ directives و`IMPORTANT:`. لا يُفحص إلا النص المُضاف؛ كومنت موجود مسبقاً
-> في `old_string` ولم يُلمس لا يُرفض. ملفات غير-الكود (md · json · yaml · py · sh) غير متأثرة.
-> الاختبارات في `hooks/test_enforce_comment_discipline.py` (28 حالة) — شغّلها بعد أي تعديل.
-
-هذه تبطل القاعدة الأقدم "احذف غير-JSDoc وأبقِ JSDoc" — الآن **حتى JSDoc يُحذف**.
+> 🔒 `enforce-comment-discipline` بيرفض أي كومنت مضاف في JS/TS (الملفات غير الكود مش متأثرة).

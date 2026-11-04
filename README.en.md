@@ -204,6 +204,17 @@ Skills can be zipped and uploaded from the Skills section in Claude settings. Zi
 
 ---
 
+## 💸 Cost and performance
+
+| Change | Effect |
+|---|---|
+| The profile is injected as a ~1KB summary; personal context is read on demand | instead of 9KB every session |
+| Switched-off rules are not injected; path-scoped rules become a pointer; `code-tools` only when `code-review-graph` is installed | ~15% less context per session |
+| All agents follow the same compact shape (dropped the memory instructions Claude Code already injects) | 3 agents from 52KB to 8KB |
+| Defaults: `effortLevel: high` · `autoCompactWindow: 200000` · `CLAUDE_CODE_MAX_OUTPUT_TOKENS: 32000` · `BASH_MAX_OUTPUT_LENGTH: 20000` | smaller context per turn, shorter outputs |
+| Subagent briefing template (`rules/subagents.md`): goal, what is ruled out, report length cap | shorter reports entering the main context |
+| `cost_profile` in the profile, checked by `/sabry-kit:doctor` | alert when settings cost more than you chose |
+
 ## Updating
 
 ```bash

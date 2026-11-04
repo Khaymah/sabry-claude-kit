@@ -87,7 +87,7 @@ def own_code(path):
 
 
 def find_units(root, depth=6):
-    # depth=4 كان يقطع قبل D:\Work\1-Nodejs\CRM\Est8Core\New\Server — فتُنسب ملفات
+    # depth=4 كان يقطع قبل المستودعات العميقة (5+ مستويات) — فتُنسب ملفات
     # الوحدات المتداخلة إلى الأب، ويظهر مشروع سليم تماماً وكأن تغطيته 2%.
     """
     وحدة = حدّ مشروع حقيقي: مجلد فيه `.git` أو `.code-review-graph`.
@@ -108,7 +108,7 @@ def find_units(root, depth=6):
                 if count_code(p) >= MIN_FILES:
                     bounds.append(p)
                 # ننزل داخلها رغم ذلك: قد تحوي مستودعات متداخلة
-                # (Est8Core/New يحوي Server كمستودع مستقل)
+                # (مستودع جوه مستودع، زي monorepo فيه server مستقل)
             elif count_code(p) >= MIN_FILES:
                 plain.append(p)
 
@@ -146,7 +146,7 @@ def find_units(root, depth=6):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--root", default=r"D:\Work")
+    ap.add_argument("--root", default=os.environ.get("SABRY_KIT_WORK_ROOT") or os.getcwd())
     ap.add_argument("--build", action="store_true", help="ابنِ الناقص")
     a = ap.parse_args()
 

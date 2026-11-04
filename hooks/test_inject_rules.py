@@ -8,7 +8,7 @@ import unittest
 HOOK = os.path.join(os.path.dirname(os.path.abspath(__file__)), "inject-rules.py")
 
 
-RULE_SWITCHES = {"deal-economics.md"}
+RULE_SWITCHES = {"deal-economics.md", "code-tools.md", "framework-gotchas.md"}
 
 
 def run(config_dir, force=False, profile=None):
@@ -75,6 +75,16 @@ class InjectRulesTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as d:
             os.makedirs(os.path.join(d, "rules"))
             self.assertIn("انضباط الكومنتات", ctx_of(run(d)[1]))
+
+    def test_path_scoped_rule_is_a_pointer_not_the_body(self):
+        rules = os.path.join(os.path.dirname(os.path.dirname(HOOK)), "rules")
+        with open(os.path.join(rules, "framework-gotchas.md"), encoding="utf-8") as fh:
+            body = fh.read()
+        with tempfile.TemporaryDirectory() as d:
+            ctx = ctx_of(run(d)[1])
+        self.assertIn("framework-gotchas.md", ctx)
+        last_line = [l for l in body.strip().splitlines() if l.strip()][-1]
+        self.assertNotIn(last_line, ctx)
 
     def test_force_overrides_skip(self):
         with tempfile.TemporaryDirectory() as d:

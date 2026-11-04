@@ -21,6 +21,7 @@ Never breaks a session: any failure exits 0 with no output.
 """
 import json
 import os
+import shutil
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -63,6 +64,18 @@ def read_payload():
         return {}
 
 
+RULE_REQUIRES = {"code-tools.md": "code-review-graph"}
+
+
+def path_scope(text):
+    """The `paths:` globs of a path-scoped rule, or [] for an always-on rule."""
+    if not text.startswith("---"):
+        return []
+    head = text.split("\n---", 1)[0]
+    return [l.strip().lstrip("-").strip().strip("\"'") for l in head.splitlines()[1:]
+            if l.strip().startswith("-")] if "paths:" in head else []
+
+
 def rule_chunks(settings):
     plugin_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     rules_dir = os.path.join(plugin_root, "rules")
@@ -75,12 +88,22 @@ def rule_chunks(settings):
         key = RULE_SWITCHES.get(name)
         if key and not settings.get(key, kit_config.DEFAULTS.get(key, True)):
             continue
+        tool = RULE_REQUIRES.get(name)
+        if tool and not shutil.which(tool):
+            continue
+        path = os.path.join(rules_dir, name)
         try:
-            with open(os.path.join(rules_dir, name), "r", encoding="utf-8") as fh:
-                body = strip_frontmatter(fh.read()).strip()
+            with open(path, "r", encoding="utf-8") as fh:
+                raw = fh.read()
         except Exception:
             continue
-        if body:
+        scope = path_scope(raw)
+        body = strip_frontmatter(raw).strip()
+        if scope and body:
+            title = next((l[2:].strip() for l in body.splitlines() if l.startswith("# ")), name)
+            chunks.append(f"# {title}\n\nقاعدة خاصة بملفات `{' · '.join(scope)}`: اقرا `{path}` "
+                          "قبل ما تعدّل ملف من النوع ده (مش محقونة كاملة عشان توفّر توكنز).")
+        elif body:
             chunks.append(body)
     return chunks
 
