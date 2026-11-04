@@ -109,6 +109,33 @@ def _inherited_message(command: str, cwd: str) -> str:
         return ""
 
 
+HEREDOC = re.compile(r"<<-?\s*(['\"]?)(\w+)\1[^\n]*\n(.*?)\n\s*\2\b", re.DOTALL)
+SHELL_OPENER = re.compile(r"(?:^|[\s;&|(])(?:ba|z|da)?sh(?:\s+-s)?\s*$")
+
+
+def _opener(command: str, start: int) -> str:
+    return command[command.rfind("\n", 0, start) + 1:start]
+
+
+def visible_command(command: str) -> str:
+    """The command with the bodies of heredocs that are data for another program removed.
+
+    A heredoc fed to python/cat/tee is file content, not shell: a `git commit` line or
+    Arabic text inside it is not a commit. Heredocs that feed a shell (bash/sh) stay,
+    because their lines do run; so do heredocs opened on the commit line itself, which
+    are the message.
+    """
+    out, last = [], 0
+    for m in HEREDOC.finditer(command):
+        opener = _opener(command, m.start())
+        if WRITES_MESSAGE.search(opener) or SHELL_OPENER.search(opener.rstrip()):
+            continue
+        out.append(command[last:m.start(3)])
+        last = m.end(3)
+    out.append(command[last:])
+    return "".join(out)
+
+
 def message_text(command: str, cwd: str = "") -> str:
     """Best-effort extraction of author-written text: flag values, heredocs, and -F files."""
     parts = []
@@ -118,8 +145,9 @@ def message_text(command: str, cwd: str = "") -> str:
         parts.append(_unquote(m.group(1)))
 
     # heredoc bodies:  <<'EOF' ... EOF   /   <<EOF ... EOF
-    for m in re.finditer(r"<<-?\s*(['\"]?)(\w+)\1\s*\n(.*?)\n\s*\2\b", command, re.DOTALL):
-        parts.append(m.group(3))
+    for m in HEREDOC.finditer(command):
+        if WRITES_MESSAGE.search(_opener(command, m.start())):
+            parts.append(m.group(3))
 
     # -F/--file/--body-file: the message lives in a file, so the command text alone says
     # nothing about it. This is the exact shape a long message is normally written with.
@@ -163,7 +191,10 @@ def main() -> int:
         return 0
 
     command = tool_input.get("command") or ""
-    if not isinstance(command, str) or not WRITES_MESSAGE.search(command):
+    if not isinstance(command, str):
+        return 0
+    command = visible_command(command)
+    if not WRITES_MESSAGE.search(command):
         return 0
 
     cwd = payload.get("cwd") or os.getcwd()

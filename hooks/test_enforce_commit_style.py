@@ -46,6 +46,15 @@ def cases():
     f = lambda n: os.path.join(FIX, n).replace("\\", "/")
     return [
         # --- original 14 -------------------------------------------------------
+        ("python heredoc writing a fixture that commits, plus arabic",
+         "python3 - <<'PY'\nopen('f.sh','w').write(\"git add -A && git commit -q -m seed\")\nprint('%s')\nPY"
+         % ARABIC_SUBJECT,                                                                      None),
+        ("cat heredoc writing a script that commits arabic",
+         "cat > s.sh <<'EOF'\ngit commit -m \"%s\"\nEOF" % ARABIC_SUBJECT,                     None),
+        ("bash heredoc that really commits arabic",
+         "bash <<'EOF'\ngit commit -m \"%s\"\nEOF" % ARABIC_SUBJECT,                            "deny"),
+        ("commit -F - heredoc with trailer",
+         "git commit -F - <<'EOF'\nfeat: x\n\n%s\nEOF" % TRAILER,                              "deny"),
         ("clean english commit",       'git commit -m "feat(ui): add product rail"',           None),
         ("chained after &&",           'git add -A && git commit -m "fix: x"',                 None),
         ("multiline, second command",  'echo hi\ngit commit -m "feat: y"',                     None),
