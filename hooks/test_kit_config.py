@@ -64,8 +64,8 @@ class ProfileTest(unittest.TestCase):
              env=self.env, cwd=self.repo)
         out = call("kit_profile.py", ["render"], env=self.env, cwd=self.repo)[1]
         self.assertIn("Ali", out)
-        self.assertIn("تنفيذ مباشر", out)
-        self.assertIn("commits بالإنجليزي وبلا توقيع AI", out)
+        self.assertIn("direct: implement", out)
+        self.assertIn("English commits without AI attribution", out)
 
     def test_context_file_is_referenced_not_inlined(self):
         call("kit_profile.py", ["set", '{"name":"Ali"}'], env=self.env, cwd=self.repo)

@@ -1,23 +1,24 @@
 # 🧠 sabry-kit Agent
 
-> **إعدادات المالك الشخصية** (من `/sabry-kit:kit-setup`) بتتحقن فوق الملف ده وبتغلبه. هنا **قواعد الكيت بس**. كل ما هو سلوك افتراضي جيد في Claude Code — لا يُكتب هنا.
+> The owner's personal settings (from `/sabry-kit:kit-setup`) are injected above this file and override it. This file holds **kit rules only**. Default good Claude Code behavior is not written here.
 >
-> القواعد اتقسّمت لملفات موضوعية في [`.claude/rules/`](rules/) — كلها **بتتحمّل أوتوماتيك كل جلسة**
-> بنفس أولوية هذا الملف (مفيش داعي لأي `@import`). التقسيمة دي للتنظيم بس، مش بتغيّر أي قاعدة.
+> Rules are split into topic files in [`.claude/rules/`](rules/), all **auto-loaded every session**
+> with the same priority as this file (no `@import` needed). The split is organizational only; no rule changed.
 
-| الملف | الموضوع |
+| File | Topic |
 |---|---|
-| [rules/communication.md](rules/communication.md) | لغة المالك (من الـ profile) · `AskUserQuestion` حصراً · لا تخمّن · عند التوقف اسأل |
-| [rules/operating-mode.md](rules/operating-mode.md) | CTO + PM لا كود · الأدوار + شرط DevOps-SRE · Stack افتراضي · Session Startup |
-| [rules/output-language.md](rules/output-language.md) | لغة المخرجات · 🚫 لا نسبة لـ AI في الـ git |
-| [rules/comment-discipline.md](rules/comment-discipline.md) | الكود بلا كومنتات · JSDoc يُحذف · استثناء `IMPORTANT:` فقط · hook |
-| [rules/subagents.md](rules/subagents.md) | الموديل من frontmatter الـ agent · متى أفوّض · قالب التكليف |
-| [rules/code-tools.md](rules/code-tools.md) | أدوات فهم الكود (graph vs Grep) |
-| [rules/completion-discipline.md](rules/completion-discipline.md) | typecheck + الاختبارات المتعلقة + lint قبل الانتهاء · Scope 3+ ملفات |
-| [rules/framework-gotchas.md](rules/framework-gotchas.md) | Hono · Drizzle · TS · Fastify · Bun — *(path-scoped: ‎**/*.ts,tsx‎)* |
-| [rules/architecture-decisions.md](rules/architecture-decisions.md) | Quality-Gate · ADR · متى يستحق |
-| [rules/deal-economics.md](rules/deal-economics.md) | Freelancer-Trap |
-| [rules/knowledge-and-plans.md](rules/knowledge-and-plans.md) | المعرفة المتراكمة · `Plan/Progress/` اليومي (Handoff) · الخطط في ملفات |
-| [rules/project-storage.md](rules/project-storage.md) | ذاكرة المشروع والملفات المؤقتة جوه `.agents/` |
+| [rules/communication.md](rules/communication.md) | Owner's language (from profile) · `AskUserQuestion` only · don't guess · ask when stopping |
+| [rules/operating-mode.md](rules/operating-mode.md) | CTO + PM, no code · roles + DevOps-SRE condition · default stack · Session Startup |
+| [rules/output-language.md](rules/output-language.md) | Output language · 🚫 no AI attribution in git |
+| [rules/comment-discipline.md](rules/comment-discipline.md) | No code comments · JSDoc removed · only `IMPORTANT:` exception · hook |
+| [rules/subagents.md](rules/subagents.md) | Model from the agent's frontmatter · when to delegate · assignment template |
+| [rules/code-tools.md](rules/code-tools.md) | Code-understanding tools (graph vs Grep) — injected only when code-review-graph is installed |
+| [rules/completion-discipline.md](rules/completion-discipline.md) | typecheck + related tests + lint before finishing · Scope 3+ files |
+| [rules/framework-gotchas.md](rules/framework-gotchas.md) | Hono · Drizzle · TS · Fastify · Bun — *(path-scoped: `*.ts`/`*.tsx`)* |
+| [rules/deal-economics.md](rules/deal-economics.md) | Freelancer-Trap — opt-in |
+| [rules/knowledge-and-plans.md](rules/knowledge-and-plans.md) | Accumulated knowledge · daily `Plan/Progress/` (Handoff) · plans in files |
+| [rules/project-storage.md](rules/project-storage.md) | Project memory and temp files inside `.agents/` |
 
-قواعد المشروع في `<project-root>/CLAUDE.md` (→ `@AGENTS.md`) — لا تكرّرها هنا.
+Architecture decisions (Quality-Gate · ADR · when warranted): the `architecture-decision` skill, see `skills/architecture-decision/` (replaces the removed `rules/architecture-decisions.md`).
+
+Project rules live in `<project-root>/CLAUDE.md` (→ `@AGENTS.md`); don't repeat them here.

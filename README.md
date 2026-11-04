@@ -77,6 +77,7 @@
 | `/sabry-kit:kit-setup` | الإعداد لأول مرة أو تعديل إعداداتك |
 | `/sabry-kit:kit-doctor` | فحص التعارضات وإصلاحها بموافقتك |
 | `/sabry-kit:kit-stats` | فين التوكنز راحت: لكل جلسة، ولكل أداة، وأكبر النتايج، والملفات اللي اتقرت أكتر من مرة، ونصايح للتوفير بالأرقام |
+| `architecture-decision` | بيتحمّل لوحده عند قرار معماري (stack · schema · API · auth): Quality-Gate + ADR |
 | `/sabry-kit:team-review` | مراجعة متوازية للتعديلات (أمان · صحة · اختبارات · UX)، وكل نتيجة بتتراجع قبل ما تتعرض |
 | `/sabry-kit:project-audit` | تدقيق شامل لمشروع: أمان وجودة وأداء ومعمارية، وتقرير بالعربي |
 | `/sabry-kit:self-maintain` | صيانة الكيت نفسه: بيفتح PR بالتحسينات، ومن غير دمج تلقائي |
@@ -151,6 +152,7 @@ your-project/
 | الافتراضي: `effortLevel: high` · `autoCompactWindow: 200000` · `CLAUDE_CODE_MAX_OUTPUT_TOKENS: 32000` · `BASH_MAX_OUTPUT_LENGTH: 20000` | سياق أصغر في كل دور ومخرجات أقصر |
 | قالب تكليف للـ subagents (`rules/subagents.md`): هدف + اللي اتستبعد + حد لطول التقرير | تقارير أقصر بتدخل الـ context الرئيسي |
 | `cost_profile` في الـ profile + `/sabry-kit:kit-doctor` بيقارن الإعدادات بيه | تنبيه لو الإعدادات أغلى من اختيارك |
+| تعليمات الموديل كلها بالإنجليزي (القواعد · Roles · agents · skills)، والرد بلغتك | الزيادة الثابتة للكيت في أول كل جلسة من ~7.2k لـ ~5.6k توكن (−22%)، مقاسة بالـ evals |
 | عدّاد التوكنز (`usage.py`) + `/sabry-kit:kit-stats` | كل جلسة بتتقاس: فين الهدر بالظبط |
 | `read-budget`: مفيش قراءة كاملة لملف أكبر من 800 سطر من غير قصد | قراءة الجزء المطلوب بس، لأن النتيجة بتتبعت تاني في كل دور |
 | `verify-reminder`: تذكير بالتحقق قبل "خلصت" بأوامر المشروع نفسه | أخطاء أقل ورجوع أقل |
@@ -251,10 +253,11 @@ cd ~/sabry-claude-kit && git pull
 ## التخصيص
 
 - **إعداداتك:** `/sabry-kit:kit-setup` في أي وقت. ماتعدّلش ملفات الكيت عشان تغيّر تفضيل شخصي.
-- **agent جديد:** ملف تحت `agents/` + ملف دور تحت `Roles/` (الخطوات في [Roles/README.md](Roles/README.md#إضافة-دور-جديد)).
+- **agent جديد:** ملف تحت `agents/` + ملف دور تحت `Roles/` (الخطوات في [Roles/README.md](Roles/README.md#adding-a-new-role)).
 - **skill جديدة:** فولدر تحت `skills/` فيه `SKILL.md` باسم مايتصادمش مع أمر مدمج.
 - **hook جديد:** [hooks/README.md › إضافة hook](hooks/README.md#9-إضافة-hook-جديد).
 - **قرار تقني:** ADR في `Decisions/`. واللي بتتعلمه يروح `Patterns/` أو `Anti-patterns/`.
+- **قياس أي تعديل في الكيت:** [`evals/`](evals/README.md) بيشغّل مهام حقيقية مع الكيت ومن غيره، ويقارن النجاح والتوكنز والتكلفة.
 - **التحقق بعد أي تعديل:**
 
 ```bash

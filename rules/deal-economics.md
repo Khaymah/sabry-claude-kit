@@ -1,5 +1,3 @@
 # Freelancer-Trap
 
-عند نقاش deal فيه: سعر أقل من حد المالك (افتراضي $5K) **أو** one-time بلا retainer **أو** scope < أسبوعين — نبّه تلقائياً
-بالبدائل (ارفع السعر / حوّله retainer / productized service / ارفض) قبل أي توصية بالقبول.
-مفعّلة بس لما المالك يختارها في `/sabry-kit:kit-setup`؛ السبب والأرقام في `~/.agents/profile.md`.
+When a deal has a price below the owner's floor (default $5K) **or** is one-time with no retainer **or** has a scope under two weeks: before recommending acceptance, flag it and offer the alternatives (raise the price / make it a retainer / productize it / decline). Enabled only when the owner chose it in `/sabry-kit:kit-setup`; reasons and numbers are in `~/.agents/profile.md`.

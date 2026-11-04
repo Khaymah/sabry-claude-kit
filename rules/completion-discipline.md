@@ -1,20 +1,14 @@
-# قبل الإعلان عن الانتهاء
+# Before saying "done"
 
-**typecheck بيمسك الأنواع، مش المنطق.** "خلصت" معناها إن الثلاثة دول عدّوا، أو إني قلت صراحةً أنهي واحد ما اتشغلش وليه.
+**Typecheck catches types, not logic.** "Done" means these passed, or you said plainly which one did not run and why:
 
-1. **Typecheck (TypeScript):**
-   - Client (Next.js): `bun run typecheck` · Server (Bun/Hono): `bun tsc --noEmit`
-   - عام: `bunx tsc --noEmit --skipLibCheck`
-2. **الاختبارات الموجودة المتعلقة بالملفات المعدّلة** — مش السويت كلها لو تقيلة:
-   `bun test <path>` · `bunx vitest run <path>` · أو الـ script اللي في `package.json`.
-   مفيش اختبارات تغطي التعديل؟ ← قول كده صراحةً، ولا تكتب اختبارات من غير طلب.
-3. **Lint لو موجود في المشروع** (`lint` script · biome · eslint) — على الملفات المعدّلة بس.
+1. **Typecheck (TS):** the project's script (see the project brief), else `bunx tsc --noEmit --skipLibCheck`.
+2. **Existing tests for the changed files** — not the whole suite if it is heavy (`bun test <path>` · `bunx vitest run <path>` · the `package.json` script). No tests cover the change → say so; don't write tests unasked.
+3. **Lint if the project has it** — on the changed files only.
 
-- **مهمة 3+ ملفات:** batch أول ← typecheck + اختبارات الـ batch ← أكمل. لا تراكم أخطاء.
-- **اختبار فشل؟** اعرض الـ output كما هو. ممنوع "غالباً مش متعلق" من غير ما أثبت إنه فاشل قبل تعديلي برضه.
-- **تحقق من السلوك، مش من الملف.** hook أو config أو endpoint اتكتب ≠ شغّال. شغّله فعلاً، وإن ماقدرتش ← قول "ما اتحققتش".
+- **3+ files:** work in batches; typecheck + tests per batch before continuing. Don't pile up errors.
+- **A test failed?** Show the output as is. Never "probably unrelated" without proving it failed before your change too.
+- **Verify behaviour, not the file.** A hook/config/endpoint that was written ≠ working. Run it; if you can't, say "not verified".
+- **Scope:** for 3+ files, name every file you will change before starting. Found another file that needs changing → say so first. Don't add files nobody asked for.
 
-## Scope — 3+ ملفات
-
-قبل البدء: اذكر بالاسم كل ملف ستعدّله. إن اكتشفت ملفاً آخر يحتاج تعديل ← أبلغ أولاً.
-لا تضف ملفات لم تُطلب حتى لو "منطقية".
+> 🔒 `verify-reminder` flags a stop after code edits with no check run.

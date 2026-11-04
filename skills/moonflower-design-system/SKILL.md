@@ -1,6 +1,6 @@
 ---
 name: moonflower-design-system
-description: Design system for Moonflower Cosmetics (مون فلاور) - an Arabic-first, RTL beauty and skincare e-commerce style built on a single dusty violet (#7566A0), white sections bookended by purple header/hero/footer blocks, Tajawal typography, arched product tiles, violet-tinted card shadows, a wavy hero edge, and inverted before/after panels. Use this skill whenever the user asks to build, style, extend, or review any page or component for Moonflower, or mentions "moonflower", "مون فلاور", "the purple cosmetics design", or "the skincare landing page design"; also use it for any Arabic RTL beauty, cosmetics, or skincare storefront, landing page, product page, cart, checkout, or email template that should follow this look, and when writing Arabic product copy, prices in ج.م, or Tailwind/CSS theme files for it, even if the user doesn't name the design system explicitly.
+description: "Design system for Moonflower Cosmetics (مون فلاور): Arabic-first RTL beauty e-commerce on dusty violet #7566A0, Tajawal type, arched product tiles, wavy hero edge. Use for any Moonflower page, component, email or Arabic copy, or any Arabic RTL cosmetics/skincare storefront in this look, even when the name is not mentioned."
 ---
 
 # Moonflower Design System

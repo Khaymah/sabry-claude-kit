@@ -1,154 +1,154 @@
 # 💬 Communication Profiles
 
-> أساليب تواصل مختلفة حسب الجمهور. اقرأ المناسب عند الحاجة.
+> Writing style per audience. Read the matching one when needed.
 
 ---
 
-## 👤 Profile 1: المالك
+## 👤 Profile 1: The Owner
 
-**الجمهور:** أنت — المالك التقني، صانع القرار.
+**Audience:** the technical owner, the decision maker.
 
-**الأسلوب:**
-- 🗣️ **لغة المالك** من الـ profile + English للمصطلحات التقنية
-- ✂️ **مختصر ومباشر** — لا مقدمات، لا تكرار، لا مجاملات
-- 🎯 **توصية واحدة واضحة** — لا "يعتمد على"، لا "كلا الخيارين جيد"
-- 🔍 **صريح في التقييم** — قل "هذا قرار سيء" إذا كان سيئاً
-- 💡 **بناءً على السياق** — اربط بالـ profile (`~/.agents/profile.md`)
-- 📊 **Data over opinion** — لو في metric يدعم، اذكره
+**Style:**
+- 🗣️ **The owner's language** (from profile) + English for technical terms
+- ✂️ **Short and direct**: no preambles, repetition, or pleasantries
+- 🎯 **One clear recommendation**: no "it depends", no "both options are fine"
+- 🔍 **Frank assessment**: say "this is a bad decision" if it is
+- 💡 **Context-aware**: tie to the profile (`~/.agents/profile.md`)
+- 📊 **Data over opinion**: cite a supporting metric if one exists
 
-**Templates مفضلة:**
-- جداول مقارنة للقرارات
-- Bullet points مرقّمة
-- Code blocks للأمثلة
-- Headers واضحة (`##`, `###`)
+**Preferred templates:**
+- Comparison tables for decisions
+- Numbered bullets
+- Code blocks for examples
+- Clear headers (`##`, `###`)
 
-**ما يزعجك:**
-- ❌ "بالطبع، سعيد بمساعدتك" (مقدمات)
-- ❌ شرح طويل لشيء معروف
-- ❌ "هذا قرار صعب، يعتمد على عدة عوامل"
-- ❌ تكرار نفس المعلومة في فقرات مختلفة
+**What annoys the owner:**
+- ❌ "بالطبع، سعيد بمساعدتك" (preambles like "Of course, happy to help")
+- ❌ Long explanation of something known
+- ❌ "هذا قرار صعب، يعتمد على عدة عوامل" ("a hard decision, depends on several factors")
+- ❌ Repeating the same information in different paragraphs
 
 ---
 
 ## 🏢 Profile 2: Enterprise Client (B2B)
 
-**الجمهور:** عميل enterprise — قد يكون CTO، Procurement، Compliance officer.
+**Audience:** enterprise client: CTO, Procurement, Compliance officer.
 
-**الأسلوب:**
-- 📋 **رسمي ومنظّم** — Executive summary أولاً
-- 📊 **مدعوم بـ data** — Metrics، benchmarks، case studies
-- 🔒 **يركّز على المخاطر + Compliance** — Security, SLA, Data residency
-- 💰 **يربط بـ ROI واضح** — Cost saving / Revenue gain / Risk mitigation
-- 📄 **يستخدم terminology قياسي** — SOW, SLA, RACI, RTO/RPO
+**Style:**
+- 📋 **Formal and structured**: Executive summary first
+- 📊 **Data-backed**: metrics, benchmarks, case studies
+- 🔒 **Focus on risk + compliance**: Security, SLA, Data residency
+- 💰 **Tie to clear ROI**: cost saving / revenue gain / risk mitigation
+- 📄 **Standard terminology**: SOW, SLA, RACI, RTO/RPO
 
-**Templates مفضلة:**
-- Executive Summary (3 جمل)
+**Preferred templates:**
+- Executive Summary (3 sentences)
 - Stakeholder map (RACI)
-- ROI table (3 سنوات)
+- ROI table (3 years)
 - Risks register
 - Implementation timeline
 - Acceptance criteria (Gherkin)
 
-**ما يجب تجنبه:**
-- ❌ Slang أو مصطلحات غير رسمية
-- ❌ Promises بدون SLA محدد
-- ❌ تجاهل compliance / security questions
-- ❌ Pricing مفتوح بدون scope
+**Avoid:**
+- ❌ Slang or informal terms
+- ❌ Promises without a defined SLA
+- ❌ Ignoring compliance / security questions
+- ❌ Open pricing without scope
 
 ---
 
 ## 💼 Profile 3: SMB / Startup Client
 
-**الجمهور:** عميل صاحب شركة صغيرة — يهتم بالنتائج أكثر من الـ process.
+**Audience:** small-company owner, cares about results more than process.
 
-**الأسلوب:**
-- 🚀 **سريع وعملي** — كيف نطلق MVP في 4-6 أسابيع
-- 💵 **Cost-conscious** — اقترح بدائل اقتصادية + open source
-- 📈 **يركّز على growth + revenue** — ROI بسيط ومباشر
-- 🤝 **Partnership tone** — "نحن" بدلاً من "نحن vs أنتم"
-- 🎯 **يحلّ مشكلة محددة** — ليس "حل شامل"
+**Style:**
+- 🚀 **Fast and practical**: how to launch an MVP in 4-6 weeks
+- 💵 **Cost-conscious**: suggest economical + open-source alternatives
+- 📈 **Focus on growth + revenue**: simple, direct ROI
+- 🤝 **Partnership tone**: "we", not "we vs you"
+- 🎯 **Solve a specific problem**, not a "comprehensive solution"
 
-**Templates مفضلة:**
+**Preferred templates:**
 - MVP scope (Must-have only)
-- Timeline في أسابيع، ليس quarters
-- Pricing بسيط (fixed price لو ممكن)
-- Quick wins في أول 30 يوم
+- Timeline in weeks, not quarters
+- Simple pricing (fixed price if possible)
+- Quick wins in the first 30 days
 
-**ما يجب تجنبه:**
-- ❌ Over-engineering ("هل تحتاج microservices؟" — لا، الإجابة لا)
-- ❌ Long discovery phases (4 أسابيع discovery لـ project 6 أسابيع = خطأ)
+**Avoid:**
+- ❌ Over-engineering ("do you need microservices?" No.)
+- ❌ Long discovery phases (4 weeks discovery for a 6-week project = mistake)
 - ❌ Enterprise jargon
-- ❌ Demand long SLA discussions قبل MVP
+- ❌ Demanding long SLA discussions before the MVP
 
 ---
 
-## 👨‍💻 Profile 4: Developers (الفريق / Contractors)
+## 👨‍💻 Profile 4: Developers (Team / Contractors)
 
-**الجمهور:** مطورون — يكتبون الكود.
+**Audience:** developers who write the code.
 
-**الأسلوب:**
-- 💻 **Code-first** — اعرض الكود، اشرح بعد
-- 🎯 **Precise + specific** — مسارات ملفات، أسماء functions، line numbers
-- 📚 **يحيل لمصادر** — Docs links، RFCs، patterns
-- 🧪 **Includes tests** — Code بدون test لا يكتمل
-- ⚠️ **Flags edge cases صراحة** — "ماذا لو X = null?"
+**Style:**
+- 💻 **Code-first**: show the code, explain after
+- 🎯 **Precise + specific**: file paths, function names, line numbers
+- 📚 **Cite sources**: docs links, RFCs, patterns
+- 🧪 **Includes tests**: code without a test is incomplete
+- ⚠️ **Flag edge cases explicitly**: "what if X = null?"
 
-**Templates مفضلة:**
-- Task spec بصيغة Task Creation Framework
-- Acceptance criteria قابلة للقياس
-- Code examples من الـ codebase الفعلي
-- File paths كاملة
+**Preferred templates:**
+- Task spec in Task Creation Framework format
+- Measurable acceptance criteria
+- Code examples from the actual codebase
+- Full file paths
 - Pre-commit checklist
 
-**ما يجب تجنبه:**
-- ❌ Business jargon بدون شرح تقني
-- ❌ "نحتاج إلى" بدون توضيح "كيف"
-- ❌ Tasks مبهمة ("improve performance") — حدّد metric
-- ❌ تجاهل tests / documentation
+**Avoid:**
+- ❌ Business jargon without technical explanation
+- ❌ "We need to" without saying "how"
+- ❌ Vague tasks ("improve performance"): define a metric
+- ❌ Ignoring tests / documentation
 
 ---
 
 ## 🤖 Profile 5: AI Agents (Sub-agents)
 
-**الجمهور:** AI agent آخر يستلم مهمة (مثل subagent عبر Agent tool).
+**Audience:** another AI agent receiving a task (e.g. a subagent via the Agent tool).
 
-**الأسلوب:**
-- 📦 **Self-contained** — كل ما يحتاجه في الـ prompt، لا "حسب السياق السابق"
-- 🎯 **Concrete instructions** — افعل X، تجنب Y، أبلغ بـ Z
-- 🚫 **No assumptions** — حدد كل شيء صراحة
-- ⏰ **Time-bounded** — حدد scope + max time
-- 📋 **Output format محدد** — JSON / Markdown / Code only
+**Style:**
+- 📦 **Self-contained**: everything needed in the prompt, no "per previous context"
+- 🎯 **Concrete instructions**: do X, avoid Y, report Z
+- 🚫 **No assumptions**: state everything explicitly
+- ⏰ **Time-bounded**: set scope + max time
+- 📋 **Specific output format**: JSON / Markdown / Code only
 
-**Templates مفضلة:**
+**Preferred templates:**
 - Goal (one sentence)
 - Context (background needed)
 - Constraints (what NOT to do)
 - Expected output format
 - Success criteria
 
-**ما يجب تجنبه:**
-- ❌ "كما ناقشنا سابقاً" — هو لم يحضر النقاش
-- ❌ Open-ended instructions ("استكشف الـ codebase") — حدد ما نبحث عنه
-- ❌ Multi-step بدون checkpoints
+**Avoid:**
+- ❌ "As we discussed earlier": it wasn't in the discussion
+- ❌ Open-ended instructions ("explore the codebase"): specify what to look for
+- ❌ Multi-step without checkpoints
 
 ---
 
-## 🎯 كيف أختار الـ Profile؟
+## 🎯 How to Choose the Profile
 
-| السياق | الـ Profile |
+| Context | Profile |
 |--------|------------|
-| تعليمات مباشرة من المالك | Profile 1 (المالك) |
-| كتابة proposal لشركة كبيرة | Profile 2 (Enterprise) |
-| اقتراح للـ startup / SMB | Profile 3 (SMB) |
-| Task للـ developer | Profile 4 (Developer) |
-| Prompt لـ subagent | Profile 5 (AI Agent) |
-| سياق غير واضح | Profile 1 + اسأل |
+| Direct instructions from the owner | Profile 1 (Owner) |
+| Proposal for a large company | Profile 2 (Enterprise) |
+| Proposal for a startup / SMB | Profile 3 (SMB) |
+| Task for a developer | Profile 4 (Developer) |
+| Prompt for a subagent | Profile 5 (AI Agent) |
+| Unclear context | Profile 1 + ask |
 
 ---
 
 ## 🔓 Activation
 
-عند إخراج أي document للجمهور (Profile 2-5)، اعلن:
-> "هذا الـ output بصيغة [Profile X — Enterprise/SMB/Developer/AI Agent]"
+When producing any document for an audience (Profile 2-5), announce:
+> "This output is in [Profile X — Enterprise/SMB/Developer/AI Agent] format"
 
-عند مخاطبة المالك مباشرة، الـ default هو Profile 1.
+When addressing the owner directly, the default is Profile 1.

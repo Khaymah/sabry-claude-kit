@@ -1,76 +1,78 @@
 ---
 name: team-review
-description: Runs a parallel multi-agent review of code changes across security, correctness, tests, and UX — then adversarially verifies every finding before reporting. Use when the user runs /team-review, or says "راجعوا" / "مراجعة فريق" / "team review" / "راجع الـ PR" / asks for a thorough review before shipping.
+description: Runs a parallel multi-agent review of code changes across security, correctness, tests, and UX, then adversarially verifies every finding before reporting. Use on /team-review, or when the user says "راجعوا" / "مراجعة فريق" / "team review" / "راجع الـ PR" / asks for a thorough review before shipping.
 argument-hint: "[مسار | رقم PR | فارغ = آخر التغييرات]"
 model: sonnet
 ---
 
-# مراجعة الفريق
+# Team review
 
-مراجعة متوازية بعدة زوايا، ثم **تحقق عدائي** من كل نتيجة قبل عرضها.
+Reply in the owner's language (profile; default Egyptian Arabic).
 
-`$ARGUMENTS` = ما يُراجَع. فارغ ← آخر التغييرات.
+Parallel multi-angle review, then **adversarial verification** of every finding before showing it.
+
+`$ARGUMENTS` = what to review. Empty -> latest changes.
 
 ---
 
-## 1. حدّد النطاق أولاً
+## 1. Define scope first
 
 ```bash
-git diff --stat HEAD          # تغييرات غير مُودَعة
-git diff --stat main...HEAD   # فرع كامل
+git diff --stat HEAD          # uncommitted changes
+git diff --stat main...HEAD   # whole branch
 ```
 
-- **الـ diff فارغ ولا `$ARGUMENTS`؟** توقّف واسأل عبر `AskUserQuestion` ما المطلوب مراجعته.
-  لا تراجع المستودع كله.
-- **أقل من ~3 ملفات وتغيير بسيط؟** راجعه بنفسك مباشرة. **لا تطلق فريقاً** — تكلفة التنسيق
-  تتجاوز العائد. أبلغ المالك بسطر أنك اخترت المراجعة المباشرة ولماذا.
+- **Diff empty and no `$ARGUMENTS`?** Stop and ask via `AskUserQuestion` what to review. Never review the whole repo.
+- **Under ~3 files and a simple change?** Review it yourself directly. **Don't launch a team**: coordination cost exceeds the benefit. Tell the owner in one line that you chose direct review and why.
 
-## 2. اختر الزوايا — بما تغيّر فعلاً
+## 2. Pick angles by what actually changed
 
-لا تطلق الأربعة دائماً. كل زاوية لها شرط تفعيل:
+Don't always launch all four. Each angle has an activation condition:
 
-| الزاوية | agent | فعّلها حين |
+| Angle | agent | Activate when |
 |---|---|---|
-| صحة وسلامة | `code-reviewer` | **دائماً** |
-| أمن | `security-reviewer` | auth · أسرار · مدخلات مستخدم · مسارات ملفات · طلبات خارجية · مدفوعات · بيانات شخصية |
-| اختبارات | `qa-tester` | منطق جديد أو معدّل ذو فروع |
-| واجهة | `ux-reviewer` | ملفات `.tsx`/`.jsx`/`.vue`/CSS أو أي شيء يراه المستخدم |
-| بنية تحتية | `devops-sre` | Dockerfile · CI · k8s · إعدادات نشر |
+| Correctness and safety | `code-reviewer` | **always** |
+| Security | `security-reviewer` | auth · secrets · user input · file paths · external requests · payments · personal data |
+| Tests | `qa-tester` | new or modified logic with branches |
+| UI | `ux-reviewer` | `.tsx`/`.jsx`/`.vue`/CSS files or anything the user sees |
+| Infrastructure | `devops-sre` | Dockerfile · CI · k8s · deploy config |
 
-## 3. أطلقهم بالتوازي
+## 3. Launch in parallel
 
-كل الاستدعاءات في **رسالة واحدة** ليعملوا فعلاً بالتوازي.
+All calls in **one message** so they truly run in parallel.
 
 ```
 Agent(subagent_type: "<name>", model: "sonnet", run_in_background: true,
-      prompt: "راجع هذا الـ diff من زاويتك. النطاق: <files>.
-               أبلغ عن كل شيء تجده — بما فيه المنخفض الثقة والمنخفض الخطورة —
-               مع confidence و severity لكل نتيجة. لا تُصفِّ بنفسك.")
+      prompt: "Review this diff from your angle. Scope: <files>.
+               Report everything you find, including low-confidence and low-severity,
+               with confidence and severity for each finding. Do not filter yourself.")
 ```
 
-**قاعدة مطلقة:** `model: "sonnet"` صراحةً على كل استدعاء.
-(الـ `PreToolUse` hook يفرضها، لكن مرّرها صراحةً على أي حال.)
+**Absolute rule:** explicit `model: "sonnet"` on every call.
+(The `PreToolUse` hook enforces it, but pass it explicitly anyway.)
 
-استخدم `SendMessage` لطلب توضيح من زميل — يستأنف بسياقه كاملاً.
+Use `SendMessage` to ask a teammate for clarification; it resumes with full context.
 
-## 4. ⚠️ تحقّق عدائياً — الخطوة التي تصنع الفرق
+## 4. ⚠️ Verify adversarially: the step that makes the difference
 
-**لا تعرض نتائج المراجعين كما هي.** المراجع مُوجَّه للتغطية لا الدقة، فسينتج إيجابيات كاذبة
-عن قصد — هذا مقصود، والتصفية وظيفتك أنت.
+**Never show reviewers' findings as-is.** A reviewer is steered toward coverage, not precision, so it will produce false positives
+by design. Filtering is your job.
 
-لكل نتيجة ذات وزن، أطلق مُتحقِّقاً مهمته **الدحض**:
+For each significant finding, launch a verifier whose task is **refutation**:
 
 ```
 Agent(subagent_type: "Explore", model: "sonnet",
-      prompt: "حاول دحض هذا الادعاء: '<finding>'.
-               اقرأ الكود الفعلي. هل المسار المذكور قابل للوصول حقاً؟
-               هل يوجد حارس أغفله المراجع؟
-               الافتراضي: REFUTED إن لم تستطع إثبات المسار.")
+      prompt: "Try to refute this claim: '<finding>'.
+               Read the actual code. Is the stated path really reachable?
+               Is there a guard the reviewer missed?
+               Default: REFUTED if you cannot prove the path.")
 ```
 
-**اعرض فقط ما نجا.** واذكر كم نتيجة سقطت — رقم يخبر المالك بجودة المراجعة نفسها.
+**Show only what survived.** State how many findings fell: that number tells the owner the review's own quality.
 
-## 5. التقرير
+## 5. Report
+
+Owner-facing template (headings stay in Arabic):
 
 ```md
 ## 🔍 مراجعة الفريق — <النطاق>
@@ -87,14 +89,16 @@ Agent(subagent_type: "Explore", model: "sonnet",
 <حتى لا يُعاد فحصه>
 ```
 
-**صِف الإصلاح، لا تكتب الكود المُصحَّح** — إلا بإذن صريح (CLAUDE.md §2).
+(Template legend: scope · angles activated · confirmed of total (n dropped in verification) · blocks shipping: what breaks / happens when: specific input or state / fix: one sentence · should fix · worth considering · checked and found sound, so it isn't rechecked.)
 
-لا نتائج؟ قلها في سطر. **لا تصنع نتائج لتبدو مفيداً.**
+**Describe the fix, don't write the corrected code**, unless explicitly permitted (CLAUDE.md §2).
+
+No findings? Say so in one line. **Don't manufacture findings to look useful.**
 
 ---
 
-## متى لا تستخدم هذه الـ skill
+## When not to use this skill
 
-- تغيير سطر واحد أو إصلاح مطبعي
-- كود لم يُكتب بعد — راجع **بعد** التنفيذ
-- المالك يسأل سؤالاً عن الكود لا يطلب مراجعة
+- One-line change or typo fix
+- Code not yet written: review **after** implementation
+- The owner is asking a question about the code, not requesting a review

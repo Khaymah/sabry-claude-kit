@@ -39,7 +39,7 @@ class InjectRulesTest(unittest.TestCase):
             self.assertEqual(code, 0)
             ctx = ctx_of(out)
             self.assertIn("/sabry-kit:kit-setup", ctx)
-            self.assertNotIn("انضباط الكومنتات", ctx)
+            self.assertNotIn("Comment discipline", ctx)
 
     def test_no_profile_nudges_setup_first(self):
         with tempfile.TemporaryDirectory() as d:
@@ -51,14 +51,14 @@ class InjectRulesTest(unittest.TestCase):
             ctx = ctx_of(run(d, profile={"name": "Mona", "language": "en", "mode": "direct"})[1])
             self.assertTrue(ctx.startswith("# 👤"), ctx[:80])
             self.assertIn("Mona", ctx)
-            self.assertIn("أولوية قصوى", ctx)
-            self.assertLess(ctx.index("Mona"), ctx.index("# قواعد sabry-kit"))
+            self.assertIn("highest priority", ctx)
+            self.assertLess(ctx.index("Mona"), ctx.index("# sabry-kit rules"))
 
     def test_switched_off_rule_is_not_injected(self):
         with tempfile.TemporaryDirectory() as d:
             ctx = ctx_of(run(d, profile={"settings": {"comment_discipline": False}})[1])
-            self.assertNotIn("انضباط الكومنتات", ctx.split("# قواعد sabry-kit", 1)[1])
-            self.assertIn("كود بلا كومنتات", ctx)
+            self.assertNotIn("Comment discipline", ctx.split("# sabry-kit rules", 1)[1])
+            self.assertIn("code without comments", ctx)
 
     def test_deal_economics_only_when_enabled(self):
         with tempfile.TemporaryDirectory() as d:
@@ -69,12 +69,12 @@ class InjectRulesTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as d:
             code, out = run(d)
             self.assertEqual(code, 0)
-            self.assertIn("انضباط الكومنتات", ctx_of(out))
+            self.assertIn("Comment discipline", ctx_of(out))
 
     def test_injects_when_rules_dir_has_no_markdown(self):
         with tempfile.TemporaryDirectory() as d:
             os.makedirs(os.path.join(d, "rules"))
-            self.assertIn("انضباط الكومنتات", ctx_of(run(d)[1]))
+            self.assertIn("Comment discipline", ctx_of(run(d)[1]))
 
     def test_path_scoped_rule_is_a_pointer_not_the_body(self):
         rules = os.path.join(os.path.dirname(os.path.dirname(HOOK)), "rules")
@@ -90,7 +90,7 @@ class InjectRulesTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as d:
             os.makedirs(os.path.join(d, "rules"))
             open(os.path.join(d, "rules", "x.md"), "w").close()
-            self.assertIn("انضباط الكومنتات", ctx_of(run(d, force=True)[1]))
+            self.assertIn("Comment discipline", ctx_of(run(d, force=True)[1]))
 
     def test_injected_context_includes_every_rule_file(self):
         rules = os.path.join(os.path.dirname(os.path.dirname(HOOK)), "rules")

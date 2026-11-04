@@ -1,6 +1,6 @@
 ---
 name: aurora-dark-ui
-description: Design system for dark, AI-first dashboards in the "Aurora Dark" style (extracted from the Daily AI dashboard reference) - blue-tinted graphite surfaces lit from above, one blue-to-pink "aurora" gradient reserved for active and AI moments, 1px warm-to-cool edge-light borders, glowing data bars, and Poppins at light weights. Use this skill whenever the user asks to build, style, restyle, or extend any UI in this design system or refers to it by name (Aurora Dark, Daily AI style, "the dark AI dashboard design", "our design system"), including dashboards, admin panels, AI assistant/chat screens, SaaS app shells, widgets, landing sections, or individual components (cards, nav, composer, buttons, tables, modals). Also use it when generating React, Vue, HTML/CSS, or Tailwind code that must match this look, when writing design tokens or a theme file for it, or when reviewing a screen for consistency with it - even if the user just says "make it look like the dashboard" or "use our dark theme".
+description: "Design system for dark, AI-first dashboards (\"Aurora Dark\"): graphite surfaces, one blue-to-pink aurora gradient for active/AI moments, edge-light borders, glowing data bars, Poppins. Use for any UI built or reviewed in this style - dashboards, admin panels, AI chat screens, SaaS shells, components, Tailwind/CSS themes - or when the owner says \"Aurora Dark\", \"the dark AI dashboard\", \"our design system\"."
 ---
 
 # Aurora Dark UI

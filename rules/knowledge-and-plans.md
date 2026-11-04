@@ -1,29 +1,23 @@
-# المعرفة المتراكمة
+# Knowledge and plans
 
-| المجلد | متى |
+| Folder | When |
 |---|---|
-| [Patterns/](../Patterns/) | قبل اقتراح feature قد يكون لها pattern معروف |
-| [Anti-patterns/](../Anti-patterns/) | عند مراجعة كود أو debugging — وأضف entry عند تكرار خطأ |
-| [Decisions/](../Decisions/) | عند سؤال "لماذا اخترنا X؟" أو قرار له سابقة |
-| [CommunicationProfiles.md](../CommunicationProfiles.md) | عند صياغة مستند لجمهور غير المالك |
+| `Patterns/` | Before proposing a feature that may have a known pattern |
+| `Anti-patterns/` | Reviewing or debugging; add an entry when a mistake repeats |
+| `Decisions/` | "Why did we pick X?" or a decision with precedent |
+| `CommunicationProfiles.md` | Writing for an audience other than the owner |
 
-قواعد المشروع في `<project-root>/CLAUDE.md` — لا تكرّرها هنا.
+## `Plan/Progress/` — daily log and handoff between sessions
 
-## `Plan/Progress/` — سجل يومي + Handoff بين الجلسات
+One file per working day: `Plan/Progress/YYYY-MM-DD.md`, in the owner's language. An old single `Plan/Progress.md` is a pointer only; suggest splitting a huge one, don't split it yourself.
 
-**فولدر، ملف لكل يوم عمل:** `Plan/Progress/YYYY-MM-DD.md` (بالعربي). `Plan/Progress.md` القديم
-بقى **مؤشّر بس — متكتبش فيه.** مشروع لسه فيه ملف واحد ضخم ← اقترح التقسيم، ما تقسّمش من نفسك.
+- Each work session **appends** a numbered section `## N. <title>`; never edit old sections. New file → start with `# YYYY-MM-DD` and update `Plan/Progress/README.md` (one row per day, newest first).
+- A section holds: what was done + files · decisions the owner made (via `AskUserQuestion`) · verification result (tests/typecheck, or "not verified") · and at the end, exactly these two lines (the project brief reads them):
+  - `- **الجاي:** <the exact next step>`
+  - `- **مفتوح:** <decision waiting for the owner / blocker, or "لا شيء">`
 
-- **كل جلسة شغل تُلحَق** في ملف النهارده كقسم مرقّم `## N. [العنوان]` — ما تعدّلش أقسام قديمة.
-  الملف مش موجود؟ أنشئه بـ `# YYYY-MM-DD` وحدّث `Plan/Progress/README.md` (صف اليوم + عدد الأقسام، الأحدث أولاً).
-- **القسم فيه:** اللي اتعمل + الملفات · القرارات اللي المالك أخدها (وأُخذت بـ `AskUserQuestion`) ·
-  نتيجة التحقق (اختبارات/typecheck — أو "ما اتحققش") · وفي آخره:
-  - **الجاي:** الخطوة التالية بالظبط
-  - **مفتوح:** قرار مستني المالك / blocker — أو "لا شيء"
+Full decisions with reasons live in `Decisions/` or `Plan/ADR/`; plans in `Plan/`. Progress points to them, never copies them.
 
-القرارات بأسبابها الكاملة مكانها `Decisions/` أو `Plan/ADR/`، والخطط في `Plan/`. قسم الـ Progress بيشاور عليهم وما يكرّرهمش.
+## Plans in files
 
-## الخطط في ملفات
-
-أي خطة/تحليل/مجموعة مهام تُكتب في `.md`، لا تُعرض كنص فقط. كل مهمة self-contained
-(قابلة للتنفيذ من مطور أو agent بدون رجوع إليّ). ضع edge cases في الحسبان.
+Any plan, analysis or task set is written to a `.md` file, not only shown in chat. Each task is self-contained (doable by a developer or an agent without asking back), edge cases included.

@@ -277,6 +277,33 @@ def test_adapter():
         check(label, rc == 0 and ok(got), f"exit={rc} out={out[:70]}")
 
 
+def test_frontmatter():
+    """An unquoted `: ` inside a description is invalid YAML; Claude Code may then skip the
+    agent or skill entirely. The kit's tests cannot see that, so check it here."""
+    print("\n🧾 frontmatter الـ agents والـ skills")
+    import glob
+    bad = []
+    files = sorted(glob.glob(os.path.join(CLAUDE, "agents", "*.md")) +
+                   glob.glob(os.path.join(CLAUDE, "skills", "*", "SKILL.md")))
+    for f in files:
+        text = open(f, encoding="utf-8").read()
+        if not text.startswith("---\n"):
+            bad.append(os.path.relpath(f, CLAUDE) + " (no frontmatter)")
+            continue
+        head = text[4:].split("\n---", 1)[0]
+        keys = {}
+        for line in head.splitlines():
+            m = re.match(r"^([A-Za-z_-]+):\s*(.*)$", line)
+            if m:
+                keys[m.group(1)] = m.group(2)
+        desc = keys.get("description", "")
+        if not keys.get("name") or not desc:
+            bad.append(os.path.relpath(f, CLAUDE) + " (name/description)")
+        elif desc[:1] not in "\"'" and ": " in desc:
+            bad.append(os.path.relpath(f, CLAUDE) + " (unquoted ': ' in description)")
+    check(f"{len(files)} ملف frontmatter صالح", not bad, "؛ ".join(bad))
+
+
 def test_graph_cli():
     print("\n🕸  code-review-graph CLI")
     exe = shutil.which("code-review-graph")
@@ -349,6 +376,7 @@ def main():
     test_registration()
     test_sounds()
     test_adapter()
+    test_frontmatter()
     test_graph_cli()
     test_latency()
 

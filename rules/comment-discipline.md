@@ -1,15 +1,10 @@
-# انضباط الكومنتات — قاعدة حديدية
+# Comment discipline — iron rule
 
-**الكود لا يحمل أي كومنت.** لا سطري، لا كتلة، **ولا JSDoc.** الاستثناء الوحيد:
-كومنت يبدأ بـ `IMPORTANT:` يوسم شيئاً **فائق الأهمية فعلاً**.
+**Code carries no comments.** No line comments, no block comments, **no JSDoc.** Only exception: a comment starting with `IMPORTANT:` marking something truly critical.
 
-- الكود القابل للقراءة بسهولة **ممنوع مطلقاً** التعليق عليه.
-- المبرّرات (الـ why، قرارات التصميم) تُكتب في `Plan/ADR/` و`Plan/` — **لا داخل الكود**.
-- لا تكتب كومنت افتراضياً. عند لمس ملف قديم فيه كومنتات ← احذفها، لا تُبقِها.
+- Readable code is never commented. Rationale (the why, design decisions) goes in `Plan/ADR/` and `Plan/`, never in code.
+- Don't write comments by default. Touching an old file with comments → remove them.
 
-**مستثنى دائماً** (وظيفي لا توثيقي — حذفه يكسر الكومبايل):
-`ts-expect-error` · `ts-ignore` · `ts-nocheck` · `ts-check` · `triple-slash <reference>` ·
-`eslint-*` · `prettier-ignore` · `biome-ignore` · `c8/v8/istanbul ignore` · `@jsxImportSource` ·
-`@vite-ignore` · `webpackChunkName` · `__PURE__` · `@preserve` · `@license` · `/* global */`.
+**Always allowed** (functional, removing them breaks the build): `ts-expect-error` · `ts-ignore` · `ts-nocheck` · `ts-check` · triple-slash `<reference>` · `eslint-*` · `prettier-ignore` · `biome-ignore` · `c8/v8/istanbul ignore` · `@jsxImportSource` · `@vite-ignore` · `webpackChunkName` · `__PURE__` · `@preserve` · `@license` · `/* global */`.
 
-> 🔒 `enforce-comment-discipline` بيرفض أي كومنت مضاف في JS/TS (الملفات غير الكود مش متأثرة).
+> 🔒 `enforce-comment-discipline` rejects any added comment in JS/TS (non-code files are unaffected).

@@ -1,53 +1,46 @@
 ---
 name: self-maintain
-description: صيانة ذاتية مُراجَعة لعدّة sabry-kit — يطوّر الـ rules والـ agents والـ commands والـ hooks من دروس الشغل المتراكمة + أفضل الممارسات الرسمية، ويفحص التوافق مع Claude Code عبر فهرس llms.txt، ويفتح PR مبرّر بدون دمج تلقائي. استخدمه عند `/sabry-kit:self-maintain` أو من الـ Routine الأسبوعي.
+description: Reviewed self-maintenance of the sabry-kit rig - evolves rules, agents, commands and hooks from accumulated work lessons plus official best practices, checks Claude Code compatibility via the llms.txt index, and opens a justified PR with no auto-merge. Use on `/sabry-kit:self-maintain`, from the weekly Routine, or when the user says "صيانة الكيت" / "طوّر الكيت".
 ---
 
-# self-maintain — صيانة sabry-kit الذاتية (مُراجَعة، بلا دمج تلقائي)
+# self-maintain: sabry-kit self-maintenance (reviewed, no auto-merge)
 
-هدف المهارة: تخلّي عدّة `sabry-kit` (rules · agents · commands · hooks) **بتتحسّن مع تطوّر الشغل**
-وتفضل متوافقة مع Claude Code، **من غير ما تغيّر سلوكك من غير إذن**. المخرَج دايماً **PR للمراجعة** — القرار النهائي ليك.
+Reply in the owner's language (profile; default Egyptian Arabic).
 
-## القاعدة الحاكمة
+Purpose: make the `sabry-kit` rig (rules · agents · commands · hooks) **improve as the work evolves** and stay compatible with Claude Code, **without changing behavior without permission**. Output is always a **PR for review**; the owner decides.
 
-- **ممنوع الدمج التلقائي.** المهارة تفتح PR وتقف. أنت اللي تراجع وتدمج.
-- **ممنوع التخمين.** أي تغيير لازم يكون مبنيّ على **مصدر اتقرا فعلاً** في نفس التشغيلة، مش من الذاكرة. لو أي لينك رجّع 404 → اعتبره غير موجود وما تبنيش عليه.
-- **تغييرات مركّزة وصغيرة.** كل تغيير له سبب سطر واحد مربوط بمصدره. مفيش refactor واسع بلا داعٍ.
-- **احترم قواعد المالك:** رسائل الـ commit والـ PR **إنجليزي**، **بلا أي نسبة لـ AI**، وأي subagent `model: sonnet` صراحةً.
+## Governing rules
 
-## المصادر — بالترتيب (اقرأها، لا تفترضها)
+- **No auto-merge.** Open the PR and stop. The owner reviews and merges.
+- **No guessing.** Every change must rest on a **source actually read** in this run, not memory. A link returning 404 = nonexistent; don't build on it.
+- **Small, focused changes.** Each change has a one-line reason tied to its source. No broad refactors without need.
+- **Respect owner rules:** commit and PR messages **in English**, **no AI attribution**, any subagent explicitly `model: sonnet`.
 
-**الأهم أولاً — جوهر التطوير (ده اللي بيحسّن القواعد فعلاً):**
-1. **دروس العدّة المتراكمة (محليّاً في الريبو):** `AGENT_LEARNINGS.md` · `agent-memory/` · `Patterns/` ·
-   `Anti-patterns/` · `Decisions/`. دي أقوى مصدر: كل نجاح/غلط في الشغل = قاعدة تتحسّن.
-2. **أفضل الممارسات الرسمية:** `https://code.claude.com/docs/en/best-practices.md` — ممارسات Claude Code الموصى بيها.
+## Sources, in order (read them, don't assume)
 
-**ثانياً — التوافق التقني (إن العدّة ما تتكسرش لو Claude Code غيّر آلية):**
-3. **فهرس الـ docs المخصص للـ LLM:** `https://code.claude.com/docs/llms.txt` — ابدأ منه، **وهات اللينكات الدقيقة منه وقت التشغيل** (ماتحفظش URL ثابت قد يتنقل). الصفحات ذات الصلة بالعدّة:
-   `memory.md` · `claude-directory.md` · `hooks.md` · `hooks-guide.md` · `sub-agents.md` · `agents.md` ·
-   `settings.md` · `settings-reference.md` · `commands.md` · `skills.md` · `plugins/overview.md` ·
-   `plugins/manifest-reference.md` · `plugins/marketplace-reference.md`. (كل صفحة لها نسخة `.md` نصية.)
+**Most important first, the core of improvement (this is what actually improves the rules):**
+1. **Accumulated rig lessons (local in the repo):** `AGENT_LEARNINGS.md` · `agent-memory/` · `Patterns/` · `Anti-patterns/` · `Decisions/`. Strongest source: every success/mistake at work = a rule to improve.
+2. **Official best practices:** `https://code.claude.com/docs/en/best-practices.md`, recommended Claude Code practices.
 
-**ثالثاً — إشارة «إيه اتغيّر» (بتقولك ترجع لأنهي صفحة docs، مش محرك بذاته):**
-4. **CHANGELOG الرسمي:** `https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md`
-   (صفحة docs للـ release-notes بتعمل redirect عليه). اقرأ الإصدارات الأحدث من آخر صيانة بس — ولو في ميزة جديدة تخصّ العدّة، ارجع لصفحة الـ docs بتاعتها (٢،٣).
+**Second, technical compatibility (so the rig doesn't break if Claude Code changes a mechanism):**
+3. **LLM-oriented docs index:** `https://code.claude.com/docs/llms.txt`. Start there and **get the exact links from it at run time** (don't hardcode URLs that may move). Pages relevant to the rig: `memory.md` · `claude-directory.md` · `hooks.md` · `hooks-guide.md` · `sub-agents.md` · `agents.md` · `settings.md` · `settings-reference.md` · `commands.md` · `skills.md` · `plugins/overview.md` · `plugins/manifest-reference.md` · `plugins/marketplace-reference.md`. (Each page has a plain `.md` version.)
 
-> لو تعذّر الوصول للشبكة، اشتغل على المصدر (١) فقط، وقول ده صراحةً في الـ PR، وما تخترعش محتوى من مصادر ما قراتهاش.
+**Third, "what changed" signal (tells you which docs page to revisit; not an engine itself):**
+4. **Official CHANGELOG:** `https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md` (the docs release-notes page redirects to it). Read only releases newer than the last maintenance; if a new feature concerns the rig, go back to its docs page (2, 3).
 
-## الخطوات
+> If the network is unreachable, work on source (1) only, say so explicitly in the PR, and never invent content from sources you didn't read.
 
-1. **ابدأ بدروسك + أفضل الممارسات (المصدر ١،٢).** دوّر على قاعدة/agent ممكن تتحسّن بناءً على درس متكرر أو ممارسة موصى بيها.
-2. **حدّد نطاق «الجديد» للتوافق.** هات آخر تاريخ صيانة (من آخر PR `self-maintain:` أو ملف `.self-maintain-last`)،
-   ومن الـ CHANGELOG (٤) شوف إيه اتغيّر بعده ويخصّ آليات العدّة، وارجع لصفحة الـ docs المعنية (٣) للتفصيل الصح.
-3. **راجع كل أصل في العدّة:** `rules/*.md` · `agents/*` · `commands/*` · `hooks/*` — مقابل (١،٢) للجوهر و(٣،٤) للتوافق.
-4. **طبّق تغييرات مركّزة ومبرّرة فقط.** كل تغيير = سبب + المصدر (ملف درس أو لينك docs أو رقم إصدار).
-   التزم بقواعد المشروع. شغّل أي فحص متاح (مثلاً `python3 hooks/test_enforce_commit_style.py` لو لمست هوك الـ commit).
-5. **لو مفيش ما يستحق — ماتفتحش PR فاضي.** حدّث `.self-maintain-last` بتاريخ النهاردة وقول «مفيش جديد يستحق».
-6. **افتح PR** (لو في تغييرات): فرع `self-maintain/<YYYY-MM-DD>` · commit إنجليزي بلا نسبة AI · وصف إنجليزي Before/After + How +
-   قائمة لكل تغيير مع سببه ومصدره · العنوان `self-maintain: <YYYY-MM-DD>` · **بلاش دمج**، بلّغ المالك بسطر إن في PR جاهز.
-7. **لو فتحت PR**، تابعه للأخضر (CI) من غير دمج.
+## Steps
 
-## تشغيل
+1. **Start with your lessons + best practices (sources 1, 2).** Look for a rule/agent that can improve based on a recurring lesson or a recommended practice.
+2. **Scope "what's new" for compatibility.** Get the last maintenance date (from the last `self-maintain:` PR or the `.self-maintain-last` file); from the CHANGELOG (4) see what changed since that affects rig mechanisms, and go to the relevant docs page (3) for the right detail.
+3. **Review every asset in the rig:** `rules/*.md` · `agents/*` · `commands/*` · `hooks/*` against (1, 2) for substance and (3, 4) for compatibility.
+4. **Apply only focused, justified changes.** Each change = reason + source (lesson file, docs link, or release number). Follow project rules. Run any available check (e.g. `python3 hooks/test_enforce_commit_style.py` if you touched the commit hook).
+5. **Nothing worth it -> no empty PR.** Update `.self-maintain-last` with today's date and say "مفيش جديد يستحق".
+6. **Open a PR** (if there are changes): branch `self-maintain/<YYYY-MM-DD>` · English commit with no AI attribution · English description with Before/After + How + a list of each change with its reason and source · title `self-maintain: <YYYY-MM-DD>` · **do not merge**; tell the owner in one line that a PR is ready.
+7. **If you opened a PR**, follow it to green (CI) without merging.
 
-- يدوي: `/sabry-kit:self-maintain`
-- أسبوعي: Routine كلاود على ريبو `sabry-claude-kit` بيشغّل نفس الأمر ويفتح PR للمراجعة.
+## Running
+
+- Manual: `/sabry-kit:self-maintain`
+- Weekly: a cloud Routine on the `sabry-claude-kit` repo runs the same command and opens a PR for review.

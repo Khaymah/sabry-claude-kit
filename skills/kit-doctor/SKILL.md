@@ -1,69 +1,71 @@
 ---
 name: kit-doctor
-description: يفحص إعداد Claude Code عند المستخدم (الـ plugins والـ skills والـ agents والـ commands والـ hooks والـ settings والـ CLAUDE.md) ويلاقي أي حاجة بتتعارض مع sabry-kit أو مع الـ profile، ويصلّحها بموافقته بس، مع backup وإمكانية الرجوع. استخدمه عند `/sabry-kit:kit-doctor` أو `/kit-doctor`، أو بعد `/sabry-kit:kit-setup`، أو لما الجلسة تنبّه بتعارض، أو لما المستخدم يقول "فيه حاجة بتتعارض" / "نضّف الإعدادات" / "check conflicts".
+description: Scans the user's Claude Code setup (plugins, skills, agents, commands, hooks, settings, CLAUDE.md) for conflicts with sabry-kit or the profile; fixes only with consent, with backup and undo. Use on `/sabry-kit:kit-doctor` or `/kit-doctor`, after kit-setup, on a conflict warning, or when the user says "فيه حاجة بتتعارض" / "نضّف الإعدادات" / "check conflicts".
 ---
 
 # 🩺 sabry-kit doctor
 
-الهدف: الكيت يبقى العقل الوحيد، من غير تعليمات أو hooks تانية بتشدّه في اتجاه عكسي. **ما تصلّحش أي حاجة من غير موافقة صريحة.**
+Reply in the owner's language (profile; default Egyptian Arabic).
 
-مجلد الكيت = مجلدين فوق مجلد الـ skill ده (الـ base directory اللي ظاهر لما الـ skill اتحمّل).
+Goal: the kit is the only brain, with no other instructions or hooks pulling the other way. **Fix nothing without explicit consent.**
 
-## 1. افحص
+Kit dir = two levels above this skill's dir (the base directory shown when the skill loaded).
+
+## 1. Scan
 
 ```bash
 python3 "<kit>/hooks/doctor.py" scan --json
 ```
 
-كل finding فيه: `id` · `severity` (high / medium / low / info) · `title` · `evidence` · `why` · `fix.type`.
+Each finding has: `id` · `severity` (high / medium / low / info) · `title` · `evidence` · `why` · `fix.type`.
 
-## 2. اعرض
+## 2. Show
 
-جدول واحد مرتّب بالخطورة، كل صف سطر واحد:
+One table sorted by severity, one line per row:
 
-| | التعارض | فين | الإصلاح |
+| | Conflict | Where | Fix |
 |---|---|---|---|
-| 🔴 | … | المسار المختصر | تلقائي / يدوي |
+| 🔴 | … | short path | auto / manual |
 
-- **`manual`** = مفيش إصلاح تلقائي (سطر في CLAUDE.md، pre-commit خاص بالمشروع…). اكتب جنبه الخطوة بالظبط من `why`.
-- **مفيش findings** ← قول "✅ مفيش تعارضات" وخلّص.
+- **`manual`** = no automatic fix (a CLAUDE.md line, a project-specific pre-commit...). State the exact step from `why` beside it.
+- **No findings** -> say "✅ مفيش تعارضات" and finish.
 
-## 3. اسأل
+## 3. Ask
 
-`AskUserQuestion` واحد، **multiSelect**، بـ 4 خيارات بالكتير:
+One `AskUserQuestion`, **multiSelect**, at most 4 options:
 
-- لو الـ findings التلقائية ≤ 4: خيار لكل واحد (العنوان + الإصلاح بالظبط + الأثر الجانبي، مثلاً "تعطيل plugin productivity كله، مش الـ skill بس").
-- لو أكتر: جمّعهم: "كل الـ 🔴" · "كل الـ 🟠" · "كل الـ 🟡" · "اختار واحد واحد" (وبعدها اسأل جولة تانية).
+- If automatic findings <= 4: one option per finding (title + exact fix + side effect, e.g. "disable the whole productivity plugin, not just the skill").
+- If more: group them: "كل الـ 🔴" · "كل الـ 🟠" · "كل الـ 🟡" · "اختار واحد واحد" (then ask a second round).
 
-ما تختارش بالنيابة عنه. لو ما اختارش حاجة ← ما تعملش حاجة.
+Never choose for them. If they pick nothing -> do nothing.
 
-## 4. صلّح
+## 4. Fix
 
 ```bash
 python3 "<kit>/hooks/doctor.py" fix <id> <id> ...
 ```
 
-النتيجة فيها `fixed` و`skipped` وأمر `undo`. بعدها شغّل `scan` تاني واعرض اللي فاضل.
+The result has `fixed`, `skipped`, and an `undo` command. Then run `scan` again and show what remains.
 
-## 5. اقفل
+## 5. Close
 
-- **اللي اتصلّح:** سطر لكل واحد.
-- **اللي فاضل يدوي:** مع الخطوة.
-- **الرجوع:** `python3 "<kit>/hooks/doctor.py" undo` بيرجّع آخر تشغيل بالظبط، و`runs` بيعرض التشغيلات اللي ينفع ترجع فيها.
-- **plugin اتعطّل:** التعطيل بيتطبّق من الجلسة الجاية. لو الـ plugin متزامن من claude.ai، اتأكد بـ `/plugin` إنه اتقفل.
+- **Fixed:** one line each.
+- **Remaining manual:** with the step.
+- **Undo:** `python3 "<kit>/hooks/doctor.py" undo` restores exactly the last run; `runs` lists the runs that can be undone.
+- **Plugin disabled:** takes effect next session. If the plugin is synced from claude.ai, confirm with `/plugin` that it is off.
 
-## إيه اللي بيتفحص
+## What gets checked
 
-| الفئة | أمثلة |
+| Category | Examples |
 |---|---|
-| الموديل | hook بيكتب `model` على كل Agent · `CLAUDE_CODE_SUBAGENT_MODEL_FORCE` |
-| نسخ مكرّرة | نسخة تانية من sabry-kit · `~/.claude/agents|skills|hooks` symlink للكيت · agent أو skill بنفس اسم واحد في الكيت · hooks الكيت متسجلة في settings كمان |
-| الذاكرة | auto memory مقفولة · `autoMemoryDirectory` عام · plugins بتدير MEMORY.md/CLAUDE.md بطريقتها · خطط في مسار تاني |
-| الـ commits | `attribution` بيضيف توقيع AI · plugin أو CLAUDE.md بيطلب `Co-Authored-By` |
-| الـ workflow | plugin بيفرض brainstorm/plan/TDD على كل مهمة |
-| التكلفة | `effortLevel` · `autoCompactWindow` · `CLAUDE_CODE_MAX_OUTPUT_TOKENS` أعلى من `cost_profile` · plugins بتحقن context في كل جلسة |
-| الأمان | فحص الأسرار مش متركّب بسبب husky أو pre-commit خاص |
-| CLAUDE.md | سطور بتطلب كومنتات/JSDoc أو haiku أو توقيع AI |
-| أسامي الأوامر | أمر في الكيت بنفس اسم أمر مدمج في Claude Code (زي `/doctor`) أو skill/command في plugin تاني |
+| Model | a hook writing `model` on every Agent · `CLAUDE_CODE_SUBAGENT_MODEL_FORCE` |
+| Duplicates | another copy of sabry-kit · `~/.claude/agents|skills|hooks` symlinked to the kit · an agent or skill with the same name as one in the kit · kit hooks also registered in settings |
+| Memory | auto memory off · global `autoMemoryDirectory` · plugins managing MEMORY.md/CLAUDE.md their own way · plans in another path |
+| Commits | `attribution` adding an AI signature · a plugin or CLAUDE.md demanding `Co-Authored-By` |
+| Workflow | a plugin forcing brainstorm/plan/TDD on every task |
+| Cost | `effortLevel` · `autoCompactWindow` · `CLAUDE_CODE_MAX_OUTPUT_TOKENS` above `cost_profile` · plugins injecting context every session |
+| Security | secret scan not installed because of husky or a custom pre-commit |
+| CLAUDE.md | lines demanding comments/JSDoc, haiku, or an AI signature |
+| Command names | a kit command named like a built-in Claude Code command (e.g. `/doctor`) or a skill/command in another plugin |
 
-قاعدة مقفولة في الـ profile (مثلاً `commit_style: false`) ← التعارضات الخاصة بيها مش بتظهر.
+A rule turned off in the profile (e.g. `commit_style: false`) -> its conflicts are not reported.

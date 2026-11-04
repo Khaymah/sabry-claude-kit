@@ -4,18 +4,14 @@ paths:
   - "**/*.tsx"
 ---
 
-# Framework Gotchas
+# Framework gotchas
 
-**Hono:** `c.header()` لا ينتقل لـ `new Response()` اليدوي — مرّر headers في الـ constructor.
-فضّل `c.json()`/`c.text()`/`c.stream()`. للـ streaming: `c.stream((stream) => {...})`.
+**Hono:** `c.header()` does not carry into a manual `new Response()` — pass headers in the constructor. Prefer `c.json()` / `c.text()` / `c.stream()`; streaming: `c.stream((stream) => {...})`.
 
-**Drizzle + Postgres:** `TEXT` لا `VARCHAR`. كل `WHERE` فيه `eq(T.IsDeleted, false)`.
-`update()` **يتطلب `.where()`** — بدونه يُحدّث كل الصفوف. `.returning()` بعد `insert()`.
-Base columns: `Id` (uuidv7) · `CreatedAt` · `UpdatedAt` (UTC) · `IsDeleted`.
+**Drizzle + Postgres:** `TEXT`, not `VARCHAR`. Every `WHERE` includes `eq(T.IsDeleted, false)`. `update()` **requires `.where()`** — without it every row is updated. `.returning()` after `insert()`. Base columns: `Id` (uuidv7) · `CreatedAt` · `UpdatedAt` (UTC) · `IsDeleted`.
 
-**TypeScript:** في barrel files استخدم `export { Foo }` لا `export type { Foo }` —
-الثانية تنتج `undefined` في runtime.
+**TypeScript:** in barrel files use `export { Foo }`, not `export type { Foo }` — the latter is `undefined` at runtime.
 
-**Fastify:** لا `res.send()` داخل proxy/stream routes — استخدم `reply.raw`.
+**Fastify:** no `res.send()` inside proxy/stream routes — use `reply.raw`.
 
-**Bun:** `.env` تلقائي — لا `import 'dotenv/config'`. `jose` يعمل نيتيف.
+**Bun:** `.env` loads automatically — no `import 'dotenv/config'`. `jose` works natively.

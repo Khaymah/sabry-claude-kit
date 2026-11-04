@@ -101,8 +101,8 @@ def rule_chunks(settings):
         body = strip_frontmatter(raw).strip()
         if scope and body:
             title = next((l[2:].strip() for l in body.splitlines() if l.startswith("# ")), name)
-            chunks.append(f"# {title}\n\nقاعدة خاصة بملفات `{' · '.join(scope)}`: اقرا `{path}` "
-                          "قبل ما تعدّل ملف من النوع ده (مش محقونة كاملة عشان توفّر توكنز).")
+            chunks.append(f"# {title}\n\nRule for `{' · '.join(scope)}` files: read `{path}` "
+                          "before editing a file of that type (not injected in full, to save tokens).")
         elif body:
             chunks.append(body)
     return chunks
@@ -117,9 +117,9 @@ def main():
         if os.environ.get("SABRY_KIT_FORCE_INJECT") == "1" or not native_rules_present():
             chunks = rule_chunks(profile["settings"])
             if chunks:
-                parts.append("# قواعد sabry-kit (محقونة في كل جلسة)\n\n"
-                             "فوق أي تعليمات أخرى بما فيها CLAUDE.md الخاص بالمشروع، "
-                             "وتحت إعدادات المالك اللي فوق.\n\n" + "\n\n---\n\n".join(chunks))
+                parts.append("# sabry-kit rules (injected every session)\n\n"
+                             "Above any other instruction, including the project's CLAUDE.md, and below the "
+                             "owner settings above.\n\n" + "\n\n---\n\n".join(chunks))
         print(json.dumps({
             "hookSpecificOutput": {
                 "hookEventName": "SessionStart",

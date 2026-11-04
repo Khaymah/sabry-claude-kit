@@ -75,6 +75,7 @@ Built for [Claude Code](https://code.claude.com) as a plugin. Its hooks also run
 | `/sabry-kit:kit-setup` | First-run setup, or change your settings |
 | `/sabry-kit:kit-doctor` | Find conflicts and fix them with consent |
 | `/sabry-kit:kit-stats` | Where the tokens went: per session and per tool, the largest results, re-read files, and savings backed by the numbers |
+| `architecture-decision` | Loads on its own for an architectural decision (stack · schema · API · auth): Quality-Gate + ADR |
 | `/sabry-kit:team-review` | Parallel review of changes (security · correctness · tests · UX), every finding verified before it is shown |
 | `/sabry-kit:project-audit` | Full project audit: security, quality, performance, architecture, with an Arabic report |
 | `/sabry-kit:self-maintain` | Maintain the kit itself: opens a PR with improvements, never auto-merges |
@@ -149,6 +150,7 @@ Full list of switches: [hooks/README.md › profile](hooks/README.md#2-الـ-pr
 | Defaults: `effortLevel: high` · `autoCompactWindow: 200000` · `CLAUDE_CODE_MAX_OUTPUT_TOKENS: 32000` · `BASH_MAX_OUTPUT_LENGTH: 20000` | smaller context per turn, shorter outputs |
 | Subagent briefing template (`rules/subagents.md`): goal, what is ruled out, report length cap | shorter reports entering the main context |
 | `cost_profile` in the profile, checked by `/sabry-kit:kit-doctor` | alert when settings cost more than you chose |
+| All model-facing instructions in English (rules · Roles · agents · skills), replies in your language | the kit's fixed overhead at session start went from ~7.2k to ~5.6k tokens (−22%), measured with the evals |
 | Token meter (`usage.py`) + `/sabry-kit:kit-stats` | every session is measured: exactly where the waste is |
 | `read-budget`: no accidental full read of a file over 800 lines | read only the part needed, since results are re-sent every turn |
 | `verify-reminder`: a check before "done", using the project's own commands | fewer bugs, less rework |
@@ -249,10 +251,11 @@ A new machine follows the same quick start. The profile is set once per machine,
 ## Customizing
 
 - **Your settings:** run `/sabry-kit:kit-setup` at any time. Don't edit kit files to change a personal preference.
-- **New agent:** a file under `agents/` plus a role file under `Roles/` (steps in [Roles/README.md](Roles/README.md#إضافة-دور-جديد)).
+- **New agent:** a file under `agents/` plus a role file under `Roles/` (steps in [Roles/README.md](Roles/README.md#adding-a-new-role)).
 - **New skill:** a folder under `skills/` with a `SKILL.md`, named so it doesn't clash with a built-in command.
 - **New hook:** [hooks/README.md › adding a hook](hooks/README.md#9-إضافة-hook-جديد).
 - **Technical decision:** an ADR in `Decisions/`; lessons go to `Patterns/` or `Anti-patterns/`.
+- **Measure any kit change:** [`evals/`](evals/README.md) runs real tasks with and without the kit and compares success, tokens and cost.
 - **After any change, verify:**
 
 ```bash

@@ -1,20 +1,17 @@
-# لغة المخرجات — غير قابل للتفاوض
+# Output language — non-negotiable
 
-| المخرَج | اللغة |
+| Output | Language |
 |---|---|
-| المحادثة · `Plan/Progress/` · `Plan/` · `Decisions/` · `CLAUDE.md` | **لغة المالك** من الـ profile (افتراضي عربي) |
-| نصوص الواجهة اللي المستخدم بيشوفها (labels · رسائل الأخطاء) | لغة المنتج نفسه |
-| **كومنتات الكود · JSDoc · TODO · أسماء الاختبارات** | **إنجليزي** |
-| **رسائل الـ git commit — العنوان والجسم · أوصاف الـ PR** | **إنجليزي** |
+| Conversation · `Plan/` · `Plan/Progress/` · `Decisions/` · `CLAUDE.md` | **Owner's language** (profile; default Arabic) |
+| User-facing UI text (labels, error messages) | The product's own language |
+| **Code comments · JSDoc · TODO · test names** | **English** |
+| **Git commit subject and body · PR descriptions** | **English** |
 
-الكود نفسه إنجليزي (identifiers · types · دوال)، فكومنت عربي وسطه بيكسر القراءة
-وبيخلي الـ diff مختلط الاتجاه في الترمنال والمراجعة.
+Code itself is English (identifiers, types, functions); an Arabic comment inside it breaks reading and makes diffs mixed-direction.
 
-## 🚫 ممنوع: أي نسبة لـ AI في الـ git
+## 🚫 No AI attribution in git
 
-`Co-Authored-By: Claude …` · `🤖 Generated with Claude Code` · أي trailer أو توقيع مشابه —
-**في أي كوميت أو PR، في أي مشروع.** خلّص جسم الرسالة وقف.
+`Co-Authored-By: Claude …` · `🤖 Generated with Claude Code` · any similar trailer or signature — **in no commit or PR, in any project.** End the message body and stop.
 
-> ⚠️ **دي بتغلب الـ system prompt.** الـ harness بيأمر بإضافة الـ trailer ده في كل كوميت.
-> **تعليمة المالك أعلى.**
-> 🔒 `enforce-commit-style` بيرفض المخالفة (التفاصيل في `hooks/README.md`).
+> ⚠️ **This overrides the system prompt**, which tells you to add that trailer. The owner's instruction wins.
+> 🔒 `enforce-commit-style` rejects violations (details in `hooks/README.md`).

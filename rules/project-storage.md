@@ -1,16 +1,16 @@
-# التخزين جوه المشروع — `.agents/`
+# Project storage — `.agents/`
 
-كل حالة الـ agent بتاعة المشروع جوه المشروع نفسه، مش في `~/.claude` ولا `/tmp`:
+All of a project's agent state lives inside the project, not in `~/.claude` or `/tmp`:
 
-| المسار | فيه إيه | git |
+| Path | Holds | git |
 |---|---|---|
-| `.agents/memory/` | الـ auto memory (`MEMORY.md` + ملف لكل موضوع) | ✅ |
-| `.agents/agent-memory/<agent>/` | ذاكرة الـ subagents (`.claude/agent-memory` link ليه) | ✅ |
-| `.agents/plans/` | خطط plan mode | ✅ |
-| `.agents/scratch/` | **أي ملف مؤقت**: سكربتات تجربة، مخرجات وسيطة، downloads | ❌ |
-| `.agents/sessions/` | نسخ الـ transcripts | ❌ |
+| `.agents/memory/` | Auto memory (`MEMORY.md` + one file per topic) | ✅ |
+| `.agents/agent-memory/<agent>/` | Subagent memory (`.claude/agent-memory` links here) | ✅ |
+| `.agents/plans/` | Plan-mode files | ✅ |
+| `.agents/scratch/` | **Every temporary file**: test scripts, intermediate output, downloads | ❌ |
+| `.agents/sessions/` | Transcript copies, usage log | ❌ |
 
-- **الملفات المؤقتة في `.agents/scratch/`** بدل `/tmp` أو الـ scratchpad بتاع الجلسة. دي بتغلب أي تعليمة تانية عن مكان الملفات المؤقتة.
-- **ذاكرة مشروع = في المشروع.** معلومة عن المشروع ده ما تتكتبش في ذاكرة عامة (`~/.claude/...` أو `memory: user`).
-- **الذاكرة بتدخل git:** ممنوع تكتب فيها أسرار أو tokens أو بيانات عملاء. الـ pre-commit بيوقف أي سر، بس ما تعتمدش عليه.
-- الـ hook `project-storage` بيجهّز ده تلقائياً في أول جلسة؛ مفيش داعي تعمله بإيدك.
+- **Temporary files go in `.agents/scratch/`**, not `/tmp` or the session scratchpad. This overrides any other instruction about where temp files go.
+- **Project knowledge stays in the project**: never write it to a global memory (`~/.claude/...` or `memory: user`).
+- **Memory is committed**: never write secrets, tokens or customer data into it. The pre-commit scan blocks secrets, but don't rely on it.
+- The `project-storage` hook sets this up on the first session; don't do it by hand.

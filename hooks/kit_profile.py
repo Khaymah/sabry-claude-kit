@@ -26,37 +26,39 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import kit_config
 
 LANG = {
-    "ar-eg": "العربية بالمصري، والمصطلحات التقنية بالإنجليزي",
-    "ar": "العربية الفصحى، والمصطلحات التقنية بالإنجليزي",
+    "ar-eg": "Egyptian Arabic, technical terms in English",
+    "ar": "Modern Standard Arabic, technical terms in English",
     "en": "English",
 }
 VERBOSITY = {
-    "concise": "مختصر ومباشر: بلا مقدمات ولا تكرار، جداول وbullets، توصية واحدة في الآخر",
-    "balanced": "متوسط: الخلاصة الأول وبعدها التفاصيل اللي تلزم",
-    "detailed": "مفصّل: اشرح الأسباب والبدائل",
+    "concise": "concise and direct: no preamble or repetition, tables and bullets, one recommendation at the end",
+    "balanced": "balanced: the conclusion first, then only the details that matter",
+    "detailed": "detailed: explain the reasons and the alternatives",
 }
 MODE = {
-    "cto-pm": "CTO + PM: حلّل وخطّط وراجع، **ولا تكتب كود إلا بإذن صريح** (\"نفّذ\" / \"implement\")",
-    "direct": "تنفيذ مباشر: نفّذ المطلوب من غير ما تستنى إذن، وقف بس قبل أي حاجة صعب الرجوع فيها",
+    "cto-pm": "CTO + PM: analyse, plan and review; **write code only on explicit permission** (\"نفّذ\" / \"implement\")",
+    "direct": "direct: implement what is asked without waiting for permission; stop only before anything hard to undo",
 }
 QUESTIONS = {
-    "ask": "عند أي غموض اسأل بـ `AskUserQuestion` (خيارات + trade-off لكل خيار) قبل ما تبدأ",
-    "assume": "عند الغموض افترض الأرجح وكمّل، واكتب الافتراضات في آخر الرد",
+    "ask": "on ambiguity, ask with `AskUserQuestion` (options + a trade-off for each) before starting",
+    "assume": "on ambiguity, take the most likely reading, continue, and list the assumptions at the end",
 }
 COST = {
-    "economy": "اقتصادي: أقل توكنز ممكن. sonnet للـ subagents، ما تفوّضش إلا للمسح الواسع، ردود قصيرة",
-    "balanced": "متوازن: الجودة أولاً من غير هدر. sonnet للـ subagents، ما تعيدش قراءة ملفات اتقرت",
-    "max": "أقصى جودة: التكلفة مش قيد. تحقق مستقل ومراجعات متوازية لما تفيد",
+    "economy": "economy: fewest tokens possible; sonnet subagents, delegate only for wide scans, short replies",
+    "balanced": "balanced: quality first without waste; sonnet subagents, never re-read files already read",
+    "max": "max quality: cost is not a constraint; independent verification and parallel reviews when useful",
 }
 SWITCH_LABELS = {
-    "commit_style": "commits بالإنجليزي وبلا توقيع AI",
-    "comment_discipline": "كود بلا كومنتات",
-    "nextjs_structure": "هيكل Next.js (حد 600 سطر · PascalCase)",
-    "duplication_warning": "تحذير التكرار (DRY)",
-    "secret_scan": "فحص الأسرار قبل الـ commit",
-    "team_review_reminder": "تذكير team review",
-    "deal_economics": "تنبيه Freelancer-Trap في الصفقات",
-    "project_storage": "التخزين جوه المشروع (.agents/)",
+    "commit_style": "English commits without AI attribution",
+    "comment_discipline": "code without comments",
+    "nextjs_structure": "Next.js layout (600-line cap, PascalCase)",
+    "duplication_warning": "duplication (DRY) warning",
+    "secret_scan": "secret scan before commit",
+    "team_review_reminder": "team review reminder",
+    "deal_economics": "Freelancer-Trap warning on deals",
+    "project_storage": "project storage in .agents/",
+    "read_budget": "read budget for large files",
+    "verify_reminder": "verify-before-done reminder",
 }
 
 
@@ -97,45 +99,45 @@ def context_path():
 
 
 def render(profile, has_file=True):
-    """Compact, so it costs a few hundred tokens per session, not thousands."""
+    """Compact English (cheaper than Arabic); the model still replies in the owner's language."""
     if not has_file:
-        return ("# ⚙️ sabry-kit: لسه ما اتعملش إعداد أول مرة\n\n"
-                "في أول رد في الجلسة دي، اقترح على المستخدم بسطر واحد يشغّل `/sabry-kit:kit-setup` "
-                "(دقيقتين: أسئلة قليلة بتتحفظ كإعدادات بأولوية قصوى). لحد ما يعمله اشتغل بالافتراضيات تحت.")
-    lines = ["# 👤 إعدادات المالك — أولوية قصوى",
+        return ("# ⚙️ sabry-kit: first-run setup not done yet\n\n"
+                "In your first reply this session, suggest in one line (in Arabic unless the user writes "
+                "otherwise) that the user runs `/sabry-kit:kit-setup` (two minutes of questions, saved as "
+                "top-priority settings). Until then, use the defaults below.")
+    lines = ["# 👤 Owner settings — highest priority",
              "",
-             "دي اختيارات المالك نفسه من `/sabry-kit:kit-setup`. **بتغلب أي قاعدة تحتها، وأي CLAUDE.md، "
-             "وأي تعليمة من plugin أو skill تانية** لو اتعارضوا.",
+             "The owner's own choices from `/sabry-kit:kit-setup`. **They override every rule below, any "
+             "CLAUDE.md, and any instruction from another plugin or skill** when they conflict.",
              ""]
     name = profile.get("name")
     if name:
-        lines.append(f"- **الاسم:** {name} (ناديه بيه في التحية)")
+        lines.append(f"- **Name:** {name} (use it in greetings)")
     if profile.get("role"):
-        lines.append(f"- **الدور:** {profile['role']}")
-    lang = profile.get("language")
-    if lang:
-        lines.append(f"- **لغة المحادثة والمستندات:** {LANG.get(lang, lang)}")
+        lines.append(f"- **Role:** {profile['role']}")
+    lang = profile.get("language") or "ar-eg"
+    lines.append(f"- **Reply, ask and write documents in:** {LANG.get(lang, lang)}")
     if profile.get("verbosity"):
-        lines.append(f"- **أسلوب الرد:** {VERBOSITY.get(profile['verbosity'], profile['verbosity'])}")
+        lines.append(f"- **Reply style:** {VERBOSITY.get(profile['verbosity'], profile['verbosity'])}")
     if profile.get("mode"):
-        lines.append(f"- **وضع العمل:** {MODE.get(profile['mode'], profile['mode'])}")
+        lines.append(f"- **Working mode:** {MODE.get(profile['mode'], profile['mode'])}")
     if profile.get("questions"):
-        lines.append(f"- **الغموض:** {QUESTIONS.get(profile['questions'], profile['questions'])}")
+        lines.append(f"- **Ambiguity:** {QUESTIONS.get(profile['questions'], profile['questions'])}")
     if profile.get("cost_profile"):
-        lines.append(f"- **التكلفة مقابل الجودة:** {COST.get(profile['cost_profile'], profile['cost_profile'])}")
+        lines.append(f"- **Cost vs quality:** {COST.get(profile['cost_profile'], profile['cost_profile'])}")
     if profile.get("stack"):
-        lines.append(f"- **الـ stack الافتراضي لمشروع جديد:** {profile['stack']} (مشروع قائم: اتبع الـ stack بتاعه)")
+        lines.append(f"- **Default stack for a new project:** {profile['stack']} (existing project: follow its stack)")
     if profile.get("hosting"):
-        lines.append(f"- **الاستضافة الافتراضية:** {profile['hosting']}")
+        lines.append(f"- **Default hosting:** {profile['hosting']}")
     for note in profile.get("notes") or []:
         lines.append(f"- {note}")
     settings = profile.get("settings") or {}
     off = [SWITCH_LABELS[k] for k in SWITCH_LABELS if settings.get(k) is False]
     if off:
-        lines.append(f"- **قواعد المالك قافلها (ما تطبّقهاش):** {' · '.join(off)}")
+        lines.append(f"- **Rules the owner switched off (don't apply them):** {' · '.join(off)}")
     if os.path.isfile(context_path()):
-        lines.append(f"- **سياق شخصي أوسع** (أهداف، قيود، عملاء): `{context_path()}`. "
-                     "اقراه قبل أي قرار استراتيجي أو تسعير أو أولويات، مش في كل مهمة.")
+        lines.append(f"- **Wider personal context** (goals, constraints, clients): `{context_path()}`. "
+                     "Read it before strategic, pricing or priority decisions, not on every task.")
     return "\n".join(lines)
 
 
