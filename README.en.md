@@ -58,6 +58,7 @@ Built for [Claude Code](https://code.claude.com) as a plugin. Its hooks also run
 |---|---|
 | 👤 **Top-priority profile** | `/sabry-kit:kit-setup` asks for your name, language, reply style, working mode, stack, cost vs quality and which rules to enforce. The answers are injected **first** in every session and override any rule, CLAUDE.md or other plugin |
 | 🗂️ **Each project keeps its memory** | Auto memory, agent memory, plans, temp files and session copies live in `.agents/` inside the project, not in `~/.claude`. Remove the kit and nothing is lost |
+| 🧭 **Starts knowing the project** | Every session opens with the stack, the check commands, the folders, git state and the last "next" from `Plan/Progress`, as a small brief instead of exploration |
 | 🔐 **Secret scan before every commit** | API keys, tokens, private keys, `.env` files. Runs as a Claude Code hook and as a git pre-commit hook, so the project is protected from any tool or person |
 | 🩺 **Conflict doctor** | `/sabry-kit:kit-doctor` scans everything installed, ranks conflicts by severity, and fixes them with your consent, with a backup and one-command undo. Once a day it alerts you to a high-severity conflict |
 | 🎭 **Agent family** | 18 agents with clear roles (CTO · PM · BA · Market Research · Security · DevOps …), all in the same compact shape, each reading its role file from `Roles/` |
