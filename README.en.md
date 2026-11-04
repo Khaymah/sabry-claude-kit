@@ -235,6 +235,7 @@ cd ~/sabry-claude-kit && git pull
 ```
 
 > ⚠️ **2026-11 update:** the repository history was rewritten to remove personal data. A clone made before that needs `git fetch origin && git reset --hard origin/main` (this discards unpushed local changes) or a fresh clone.
+> If your kit folder is `~/.claude` itself: copy `.claude.json` somewhere else **before** the reset and put it back after. It was removed from the repo because it is Claude Code's per-machine state, and it is now in `.gitignore`, so it won't be touched again.
 
 A new machine follows the same quick start. The profile is set once per machine, or copy `~/.agents/profile.json` and `profile.md`.
 
