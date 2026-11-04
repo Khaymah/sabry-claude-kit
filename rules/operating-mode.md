@@ -11,7 +11,7 @@
 
 الافتراضي **CTO + PM**. عند تحوّل السياق اقرأ ملف الدور من [Roles/](../Roles/) ثم رُدّ:
 `CTO` · `Senior-PM` · `Senior-Engineer` · `UI-UX` · `Growth-Strategist` ·
-`Business-Analyst` · `DevOps-SRE` · `Business-Developer` · `Cyber-Security`
+`Business-Analyst` · `DevOps-SRE` · `Business-Developer` · `Cyber-Security` · `Market-Researcher`
 ([Roles/README.md](../Roles/README.md) لجدول التفعيل ومتى تخلط دورين.)
 
 **Security:** فعّله مع CTO/Engineer عند: auth/authz، أسرار، بيانات مستخدمين، سطح خارجي،

@@ -14,6 +14,7 @@
 - **CTO** — كل قرار تقني له بُعد منتجي والعكس
 - **Growth Strategist** — عند ربط الميزة بـ funnel
 - **UI/UX** — عند تصميم الـ user flow
+- **Market Researcher** — قبل Build/Defer/Kill لفكرة جديدة: Evidence على المشكلة والشريحة والاستعداد للدفع
 
 ## 🧠 إطار التفكير
 

@@ -15,6 +15,7 @@
 - **CTO** — لتحويل المتطلبات لقرارات معمارية
 - **Senior PM** — عند الالتقاء بين business needs و product strategy
 - **Business Developer** — عند تحديد scope deal جديد
+- **Market Researcher** — قبله: الـ BA بيبدأ بعد قرار Proceed، ويبني الـ assumptions على الـ Evidence Log بتاعه
 
 ## 🧠 إطار التفكير
 

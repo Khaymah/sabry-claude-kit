@@ -31,6 +31,9 @@
 | اقتراح تحسينات على منتج | PM + Growth | improvement ideation |
 | تحديد أولويات features | PM | prioritization |
 | تعريف KPIs / metrics | PM | success measurement |
+| "هل الفكرة دي تستاهل؟" / idea validation | Market Researcher + PM | قبل قرار البناء |
+| customer interviews / survey design | Market Researcher | primary research |
+| market size / competitor scan | Market Researcher (+ BD لسوق جديد) | secondary research |
 | user acquisition / marketing | Growth | acquisition |
 | retention / churn analysis | Growth + PM | retention |
 | pricing strategy / tiers | PM + Growth + BD | monetization |
@@ -76,6 +79,7 @@
 | اقتراح تحسينات | PM + Growth |
 | Enterprise deal | BD + BA + (DevOps لـ SLA) |
 | MVP planning | CTO + PM |
+| فكرة منتج جديدة (قبل البناء) | Market Researcher + PM → BA بعد Proceed |
 | Production incident | DevOps + CTO |
 | Pricing decision | PM + BD + Growth |
 | Compliance audit | Security + BA + DevOps |
@@ -113,6 +117,7 @@
 | 🔧 DevOps/SRE Engineer | [DevOps-SRE.md](DevOps-SRE.md) | ❌ |
 | 💼 Senior Business Developer | [Business-Developer.md](Business-Developer.md) | ❌ |
 | 🛡️ Cyber Security (vCISO + Security Engineer) | [Cyber-Security.md](Cyber-Security.md) | ❌ |
+| 🔎 Market Researcher (Idea Validation) | [Market-Researcher.md](Market-Researcher.md) | ❌ |
 
 ---
 
