@@ -1,0 +1,5 @@
+schema_version: "1.1"
+name: read-budget-uses-range
+tags: [smoke, cost]
+context:
+  scaffold_script: fixture.sh
