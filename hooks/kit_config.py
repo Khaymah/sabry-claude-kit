@@ -4,7 +4,11 @@ Shared configuration for every sabry-kit hook.
 One source of truth for what the owner turned on or off, so the hooks, the setup
 skill and the doctor never disagree. Resolution, lowest to highest:
 
-    DEFAULTS  <  ~/.agents/profile.json  <  <project>/.agents/profile.json  <  env
+    DEFAULTS  <  owner profile  <  <project>/.agents/profile.json  <  SABRY_KIT_<KEY> env
+
+The owner profile is the newer of ~/.agents/profile.json and the `sabry-profile` skill
+synced from claude.ai (uploaded once, it reaches every cloud environment and machine),
+falling back to the SABRY_KIT_PROFILE_JSON environment variable.
 
 `settings` holds the switches the hooks read. Everything else in a profile (name,
 language, goals...) is free-form and only rendered into context by inject-rules.
@@ -100,10 +104,39 @@ def _env_profile():
         return {}
 
 
+PROFILE_SKILL = "sabry-profile"
+
+
+def profile_skill_dir():
+    """The owner's profile uploaded once to claude.ai as a skill: Claude Code syncs it into
+    every cloud session and every machine signed in with that account, so it needs no
+    per-environment or per-machine setup. A hand-installed copy in ~/.claude/skills works too."""
+    config = os.environ.get("CLAUDE_CONFIG_DIR") or os.path.join(home(), ".claude")
+    import glob
+    hits = glob.glob(os.path.join(config, "skills", "synced", "*", PROFILE_SKILL, "profile.json"))
+    hits += glob.glob(os.path.join(config, "skills", PROFILE_SKILL, "profile.json"))
+    hits = [h for h in hits if os.sep + ".trash" + os.sep not in h]
+    return os.path.dirname(max(hits, key=os.path.getmtime)) if hits else None
+
+
+def _skill_profile():
+    d = profile_skill_dir()
+    return _load(os.path.join(d, "profile.json")) if d else {}
+
+
+def user_level_profile():
+    """The owner's own profile: the newer (by its `updated` stamp) of the local file and
+    the synced profile skill, else the SABRY_KIT_PROFILE_JSON fallback."""
+    local, skill = _load(user_profile_path()), _skill_profile()
+    if local and skill:
+        return skill if str(skill.get("updated", "")) > str(local.get("updated", "")) else local
+    return local or skill or _env_profile()
+
+
 def load_profile(root=None):
-    """Merged profile: user file (or the env profile when there is no file), then the
-    project file on top. `settings` merges by key."""
-    user = _load(user_profile_path()) or _env_profile()
+    """Merged profile: the owner's user-level profile, then the project file on top.
+    `settings` merges by key."""
+    user = user_level_profile()
     proj = _load(project_profile_path(root))
     merged = dict(user)
     merged.update({k: v for k, v in proj.items() if k != "settings"})
@@ -115,8 +148,7 @@ def load_profile(root=None):
 
 
 def has_profile(root=None):
-    return (os.path.isfile(user_profile_path()) or bool(_env_profile())
-            or bool(_load(project_profile_path(root))))
+    return bool(user_level_profile()) or bool(_load(project_profile_path(root)))
 
 
 def gate(key, payload):

@@ -100,6 +100,44 @@ def context_path():
     return os.path.join(user_dir(), "profile.md")
 
 
+def existing_context_path():
+    """Local profile.md, else the one inside the synced sabry-profile skill."""
+    if os.path.isfile(context_path()):
+        return context_path()
+    d = kit_config.profile_skill_dir()
+    p = os.path.join(d, "profile.md") if d else None
+    return p if p and os.path.isfile(p) else None
+
+
+SKILL_MD = """---
+name: sabry-profile
+description: Owner profile data read by the sabry-kit hooks at session start. Not a task skill; never invoke it.
+---
+
+# sabry-profile
+
+Data only: `profile.json` (settings from /sabry-kit:kit-setup) and optional `profile.md` (personal context).
+Rebuild with `kit_profile.py bundle` and re-upload on claude.ai (Settings → Skills) to change it.
+"""
+
+
+def bundle(out=None):
+    """Zip the owner profile as a claude.ai skill, uploaded once to reach every session."""
+    import zipfile
+    data = kit_config.user_level_profile()
+    if not data:
+        return None
+    out = out or os.path.join(user_dir(), "sabry-profile.zip")
+    os.makedirs(os.path.dirname(out), exist_ok=True)
+    with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
+        z.writestr("sabry-profile/SKILL.md", SKILL_MD)
+        z.writestr("sabry-profile/profile.json", json.dumps(data, indent=2, ensure_ascii=False) + "\n")
+        ctx = existing_context_path()
+        if ctx:
+            z.write(ctx, "sabry-profile/profile.md")
+    return out
+
+
 def render(profile, has_file=True):
     """Compact English (cheaper than Arabic); the model still replies in the owner's language."""
     if not has_file:
@@ -137,8 +175,9 @@ def render(profile, has_file=True):
     off = [SWITCH_LABELS[k] for k in SWITCH_LABELS if settings.get(k) is False]
     if off:
         lines.append(f"- **Rules the owner switched off (don't apply them):** {' · '.join(off)}")
-    if os.path.isfile(context_path()):
-        lines.append(f"- **Wider personal context** (goals, constraints, clients): `{context_path()}`. "
+    ctx = existing_context_path()
+    if ctx:
+        lines.append(f"- **Wider personal context** (goals, constraints, clients): `{ctx}`. "
                      "Read it before strategic, pricing or priority decisions, not on every task.")
     return "\n".join(lines)
 
@@ -156,8 +195,16 @@ def main():
                           "project_file": kit_config.project_profile_path(root)},
                          indent=2, ensure_ascii=False))
         return 0
+    if cmd == "bundle":
+        out = args[args.index("--out") + 1] if "--out" in args and len(args) > args.index("--out") + 1 else None
+        path = bundle(out)
+        if not path:
+            print("no user profile yet: run /sabry-kit:kit-setup first", file=sys.stderr)
+            return 1
+        print(path)
+        return 0
     if cmd == "env":
-        data = read_json(kit_config.user_profile_path()) or kit_config._env_profile()
+        data = kit_config.user_level_profile()
         if not data:
             print("no user profile yet", file=sys.stderr)
             return 1
@@ -184,7 +231,7 @@ def main():
             return 2
         data = merge(read_json(path), patch)
         data["version"] = 1
-        data["updated"] = datetime.date.today().isoformat()
+        data["updated"] = datetime.datetime.now().replace(microsecond=0).isoformat()
         write_json(path, data)
         print(path)
         return 0

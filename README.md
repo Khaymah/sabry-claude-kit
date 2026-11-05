@@ -133,6 +133,7 @@ your-project/
 |---|---|
 | `~/.agents/profile.json` | إجابات `kit-setup` ومفاتيح تشغيل القواعد (`settings`) |
 | `~/.agents/profile.md` | سياق شخصي حر (أهداف، قيود، استضافة مفضّلة). بيتقري عند القرارات الاستراتيجية بس |
+| skill `sabry-profile` على claude.ai | نفس الاتنين في zip واحد بترفعه مرة: بيوصل لكل جهاز وكل جلسة سحابية. الأحدث بينه وبين الملف المحلي هو اللي بيتاخد |
 | `<project>/.agents/profile.json` | override لمشروع واحد |
 
 - **الترتيب:** افتراضيات الكيت < `~/.agents/profile.json` < profile المشروع < متغيرات `SABRY_KIT_<KEY>` (مثلاً `SABRY_KIT_SOUNDS=0`).
@@ -150,14 +151,14 @@ your-project/
 | الحاجة | في السحابة |
 |---|---|
 | الـ plugin | بيوصل بالمزامنة مع claude.ai، من غير أي خطوة |
-| الـ profile | `~/.agents/` بيضيع مع الـ container، فالكيت بيقرا متغيّر البيئة `SABRY_KIT_PROFILE_JSON` لو مفيش ملف، و`.agents/profile.json` في المشروع بيغلبه. `/sabry-kit:kit-setup` بيعرض يحفظه في الاتنين |
+| الـ profile | **مرة واحدة للحساب كله:** `kit-setup` بيبني `sabry-profile.zip`، وإنت ترفعه على claude.ai ← Settings ← Skills، فيتزامن لكل البيئات السحابية وكل أجهزتك. احتياطي: متغيّر `SABRY_KIT_PROFILE_JSON` على البيئة، و`.agents/profile.json` في المشروع بيغلب الكل |
 | الـ auto memory | `autoMemoryDirectory` بيتجاهل هناك، فالكيت بينسخ `.agents/memory` للمكان اللي Claude Code بيقرا منه في أول الجلسة، ويرجّع أي ذاكرة جديدة لـ `.agents/memory` في آخر كل دور |
 | الخطط | الخطط الجديدة من `~/.claude/plans` بتتنقل لـ `.agents/plans` |
 | ذاكرة الـ agents · فحص الأسرار | شغالين زي ما هما: الـ link والـ pre-commit بيتعملوا من جديد كل جلسة |
 | `/sabry-kit:kit-stats` | ملخص أرقام بس (من غير أسماء ملفات أو أوامر) في `.agents/usage.jsonl` بيدخل git، فإحصائيات السحابة مش بتضيع |
 | **الحفظ** | أي حاجة في `.agents/` لازم يتعمل لها commit و push قبل ما الـ container يتمسح. الكيت بيفكّر الـ agent مرة لكل مجموعة تغييرات |
 
-**إعداد مرة واحدة لكل بيئة سحابية:** شغّل `/sabry-kit:kit-setup` في جلسة سحابية ووافق على حفظ `SABRY_KIT_PROFILE_JSON` في البيئة، أو أضفه بإيدك من إعدادات البيئة على claude.ai (القيمة من `python3 hooks/kit_profile.py env` على جهازك).
+**ليه مش أوتوماتيك 100%؟** Claude Code بيـ**نزّل** الـ skills والـ plugins من حسابك بس، وعمره ما بيرفع. فرفع الـ zip مرة واحدة هو الخطوة الوحيدة اليدوية، وبعدها مفيش أي إعداد لكل بيئة أو جهاز. الكيت نفسه متزامن لكل مكان أصلاً لأنه plugin على حسابك.
 
 ## التكلفة والأداء
 

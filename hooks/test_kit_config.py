@@ -70,6 +70,50 @@ class ProfileTest(unittest.TestCase):
         self.assertEqual(json.loads(out)["name"], "Mona")
         self.assertNotIn("\n", out)
 
+    def synced_skill(self, profile, context=None):
+        d = os.path.join(self.home, ".claude", "skills", "synced", "bucket-1", "sabry-profile")
+        os.makedirs(d, exist_ok=True)
+        with open(os.path.join(d, "profile.json"), "w", encoding="utf-8") as fh:
+            json.dump(profile, fh)
+        if context:
+            with open(os.path.join(d, "profile.md"), "w", encoding="utf-8") as fh:
+                fh.write(context)
+        return d
+
+    def test_synced_profile_skill_used_everywhere_without_setup(self):
+        self.synced_skill({"name": "FromSkill", "updated": "2026-11-05T10:00:00"}, "# goals\n")
+        env = dict(self.env, SABRY_KIT_PROFILE_JSON='{"name":"FromEnv"}')
+        data = json.loads(call("kit_profile.py", ["show"], env=env, cwd=self.repo)[1])
+        self.assertTrue(data["exists"])
+        self.assertEqual(data["profile"]["name"], "FromSkill", "skill beats the env fallback")
+        out = call("kit_profile.py", ["render"], env=env, cwd=self.repo)[1]
+        self.assertIn(os.path.join("sabry-profile", "profile.md"), out, "context from the skill")
+
+    def test_newer_of_local_file_and_skill_wins(self):
+        self.synced_skill({"name": "FromSkill", "updated": "2020-01-01T00:00:00"})
+        call("kit_profile.py", ["set", '{"name":"Local"}'], env=self.env, cwd=self.repo)
+        name = json.loads(call("kit_profile.py", ["show"], env=self.env, cwd=self.repo)[1])["profile"]["name"]
+        self.assertEqual(name, "Local", "a profile edited just now is newer than the old skill")
+        self.synced_skill({"name": "FromSkill", "updated": "2999-01-01T00:00:00"})
+        name = json.loads(call("kit_profile.py", ["show"], env=self.env, cwd=self.repo)[1])["profile"]["name"]
+        self.assertEqual(name, "FromSkill")
+
+    def test_bundle_is_an_uploadable_skill(self):
+        import zipfile
+        call("kit_profile.py", ["set", '{"name":"Mona"}'], env=self.env, cwd=self.repo)
+        call("kit_profile.py", ["context", "# goals\nship"], env=self.env, cwd=self.repo)
+        rc, out, err = call("kit_profile.py", ["bundle"], env=self.env, cwd=self.repo)
+        self.assertEqual(rc, 0, err)
+        with zipfile.ZipFile(out) as z:
+            names = set(z.namelist())
+            self.assertEqual(names, {"sabry-profile/SKILL.md", "sabry-profile/profile.json", "sabry-profile/profile.md"})
+            skill = z.read("sabry-profile/SKILL.md").decode()
+            self.assertEqual(json.loads(z.read("sabry-profile/profile.json"))["name"], "Mona")
+        head = skill.split("---")[1]
+        keys = [l.split(":", 1)[0] for l in head.strip().splitlines()]
+        self.assertEqual(keys, ["name", "description"], "only keys claude.ai accepts")
+        self.assertNotIn(": ", head.split("description:", 1)[1].strip()[:-1].replace("sabry-kit hooks", ""))
+
     def test_invalid_json_rejected_without_writing(self):
         rc, _, err = call("kit_profile.py", ["set", "{nope"], env=self.env, cwd=self.repo)
         self.assertEqual(rc, 2)

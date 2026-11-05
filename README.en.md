@@ -131,6 +131,7 @@ Details and switches: [hooks/README.md › storage](hooks/README.md#5-التخز
 |---|---|
 | `~/.agents/profile.json` | `kit-setup` answers and rule switches (`settings`) |
 | `~/.agents/profile.md` | Free-form personal context (goals, constraints, preferred hosting); read only for strategic decisions |
+| `sabry-profile` skill on claude.ai | Both of the above in one zip uploaded once: reaches every machine and cloud session. The newer of it and the local file wins |
 | `<project>/.agents/profile.json` | Override for one project |
 
 - **Order:** kit defaults < `~/.agents/profile.json` < project profile < `SABRY_KIT_<KEY>` env vars (for example `SABRY_KIT_SOUNDS=0`).
@@ -148,14 +149,14 @@ Each cloud session starts in a fresh container that is deleted afterwards, and i
 | Item | In the cloud |
 |---|---|
 | The plugin | Arrives through claude.ai sync, no step needed |
-| The profile | `~/.agents/` is lost with the container, so the kit reads the `SABRY_KIT_PROFILE_JSON` environment variable when there is no file, and a project's `.agents/profile.json` overrides it. `/sabry-kit:kit-setup` offers to save both |
+| The profile | **Once for the whole account:** `kit-setup` builds `sabry-profile.zip`; upload it on claude.ai → Settings → Skills and it syncs to every cloud environment and every machine. Fallback: the `SABRY_KIT_PROFILE_JSON` environment variable; a project's `.agents/profile.json` overrides everything |
 | Auto memory | `autoMemoryDirectory` is ignored there, so the kit copies `.agents/memory` to where Claude Code reads it at session start and copies new memory back to `.agents/memory` at the end of every turn |
 | Plans | New plans in `~/.claude/plans` move into `.agents/plans` |
 | Agent memory · secret scan | Work as usual: the link and the pre-commit hook are recreated every session |
 | `/sabry-kit:kit-stats` | A numbers-only summary (no file names or commands) in `.agents/usage.jsonl` is committed, so cloud stats are kept |
 | **Persistence** | Everything in `.agents/` must be committed and pushed before the container is deleted. The kit reminds the agent once per set of changes |
 
-**Once per cloud environment:** run `/sabry-kit:kit-setup` in a cloud session and approve saving `SABRY_KIT_PROFILE_JSON` on the environment, or add it by hand in the environment's settings on claude.ai (value from `python3 hooks/kit_profile.py env` on your machine).
+**Why not fully automatic?** Claude Code only **downloads** the skills and plugins on your account; it never uploads. Uploading the zip once is the only manual step; after that there is no per-environment or per-machine setup. The kit itself already syncs everywhere because it is a plugin on your account.
 
 ## Cost and performance
 

@@ -49,7 +49,8 @@
 | `~/.agents/profile.md` | سياق شخصي حر (أهداف، قيود، عملاء) | ❌ مسار بس؛ الـ agents بتقراه عند القرارات الاستراتيجية |
 | `<project>/.agents/profile.json` | override لمشروع واحد بنفس الشكل | بيتدمج فوق العام |
 
-- **الترتيب:** `DEFAULTS` < `~/.agents/profile.json` < `<project>/.agents/profile.json` < متغيرات `SABRY_KIT_<KEY>`.
+- **الترتيب:** `DEFAULTS` < profile المالك < `<project>/.agents/profile.json` < متغيرات `SABRY_KIT_<KEY>`.
+- **profile المالك:** الأحدث (بحقل `updated`) بين `~/.agents/profile.json` والـ skill `sabry-profile` المتزامنة من claude.ai (`kit_profile.py bundle` بيبنيها zip للرفع)، وإلا `SABRY_KIT_PROFILE_JSON` كاحتياطي.
 - **لسه ما اتعملش؟** `inject-rules` بيحط سطر بيقترح `/sabry-kit:kit-setup` مكان الـ profile.
 - **قاعدة مقفولة = مش بتتحقن أصلاً** (توفير توكنز)، والـ hook بتاعها بيسكت.
 - **من الـ CLI:** `python3 hooks/kit_profile.py show | set '<json>' | set --project '<json>' | context '<md>' | render`.

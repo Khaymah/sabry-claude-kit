@@ -62,14 +62,14 @@ python3 "<kit>/hooks/kit_profile.py" set '{"name":"…","language":"ar-eg","verb
 - **Single-project setting** (if requested): same command with `set --project`; written to `<project>/.agents/profile.json`, overrides the global one in that project only.
 - **Hosting** if mentioned: `"hosting": "…"`. Important extra **notes**: `"notes": ["…"]`.
 
-## 4b. Cloud sessions (`CLAUDE_CODE_REMOTE` is set)
+## 4b. Make it account-wide (every machine and cloud environment, once)
 
-A cloud container starts with a fresh HOME every session, so `~/.agents/profile.json` is lost when it ends. After saving, keep the profile in **both** places below (project file wins over the environment variable when both exist):
+`~/.agents/` exists only on this machine, and a cloud container starts with a fresh HOME every session. Claude Code syncs the skills on the owner's claude.ai account into every cloud session and every machine signed in with it, but it never uploads, so one manual upload is needed:
 
-1. **Environment variable on the cloud environment:** get the value with `python3 "<kit>/hooks/kit_profile.py" env`, then, if the `update_environment` tool is available, propose setting `SABRY_KIT_PROFILE_JSON` to that exact value on the current environment (the owner approves the exact value in the prompt; it is stored as plain text, so never put secrets in the profile). Without the tool, tell the owner to add it under the environment's variables in claude.ai settings. Every future cloud session on that environment then has the profile.
-2. **This project:** `python3 "<kit>/hooks/kit_profile.py" set --project '<the same JSON>'` writes `.agents/profile.json`, which is committed with the project. Skip it if the repo is public and the owner prefers the preferences not to be visible.
-
-Personal context (`profile.md`) is not copied to either place; it stays on the owner's machines.
+1. `python3 "<kit>/hooks/kit_profile.py" bundle` builds `~/.agents/sabry-profile.zip` (the profile + `profile.md` if any). Give the owner the file (or its path) and one line: **claude.ai → Settings → Skills → Upload**, choose the zip. Replacing it later with a rebuilt zip updates every session.
+2. The kit reads the synced `sabry-profile` skill automatically; the newer of it and the local file wins, so edits made here are not lost before the upload.
+3. **Cloud fallback** (only in a cloud session, `CLAUDE_CODE_REMOTE` set): the first session after an upload may start before the sync finishes. If the `update_environment` tool is available, also propose setting `SABRY_KIT_PROFILE_JSON` to the output of `python3 "<kit>/hooks/kit_profile.py" env` on the current environment (plain text, so no secrets in the profile).
+4. **Per project** (optional): `set --project '<same JSON>'` writes `.agents/profile.json`, committed with the project and winning over everything. Skip it for public repos unless the owner wants the preferences visible.
 
 ## 5. Close
 
