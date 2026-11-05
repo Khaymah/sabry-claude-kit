@@ -113,7 +113,7 @@ def main():
         payload = read_payload()
         root = kit_config.project_root(payload.get("cwd"))
         profile = kit_config.load_profile(root)
-        parts = [kit_profile.render(profile, kit_config.has_profile())]
+        parts = [kit_profile.render(profile, kit_config.has_profile(root))]
         if os.environ.get("SABRY_KIT_FORCE_INJECT") == "1" or not native_rules_present():
             chunks = rule_chunks(profile["settings"])
             if chunks:

@@ -125,6 +125,11 @@
         "hooks": [
           {
             "type": "command",
+            "command": "\"$(command -v python3 || command -v python)\" \"${CLAUDE_PLUGIN_ROOT}/hooks/project-storage.py\" --collect",
+            "timeout": 15
+          },
+          {
+            "type": "command",
             "command": "\"$(command -v python3 || command -v python)\" \"${CLAUDE_PLUGIN_ROOT}/hooks/verify-reminder.py\"",
             "timeout": 15
           },
@@ -166,6 +171,11 @@
     "SessionEnd": [
       {
         "hooks": [
+          {
+            "type": "command",
+            "command": "\"$(command -v python3 || command -v python)\" \"${CLAUDE_PLUGIN_ROOT}/hooks/project-storage.py\" --collect",
+            "timeout": 15
+          },
           {
             "type": "command",
             "command": "\"$(command -v python3 || command -v python)\" \"${CLAUDE_PLUGIN_ROOT}/hooks/project-storage.py\" --save-transcript",

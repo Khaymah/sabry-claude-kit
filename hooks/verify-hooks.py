@@ -164,6 +164,7 @@ def test_registration():
     check("warn-duplication مسجَّل (PostToolUse)", "warn-duplication" in blob)
     check("project-storage مسجَّل (SessionStart + SessionEnd)",
           "project-storage.py" in blob and "--save-transcript" in blob)
+    check("project-storage --collect مسجَّل (Stop + SessionEnd)", blob.count("--collect") >= 2)
     check("scan-secrets مسجَّل (PreToolUse · Bash)", "scan-secrets.py" in blob)
     check("usage record مسجَّل (SessionEnd)", "usage.py" in blob and " record" in blob)
     check("project-brief مسجَّل (SessionStart)", "project-brief.py" in blob)

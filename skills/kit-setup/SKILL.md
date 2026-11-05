@@ -62,6 +62,15 @@ python3 "<kit>/hooks/kit_profile.py" set '{"name":"…","language":"ar-eg","verb
 - **Single-project setting** (if requested): same command with `set --project`; written to `<project>/.agents/profile.json`, overrides the global one in that project only.
 - **Hosting** if mentioned: `"hosting": "…"`. Important extra **notes**: `"notes": ["…"]`.
 
+## 4b. Cloud sessions (`CLAUDE_CODE_REMOTE` is set)
+
+A cloud container starts with a fresh HOME every session, so `~/.agents/profile.json` is lost when it ends. After saving, keep the profile in **both** places below (project file wins over the environment variable when both exist):
+
+1. **Environment variable on the cloud environment:** get the value with `python3 "<kit>/hooks/kit_profile.py" env`, then, if the `update_environment` tool is available, propose setting `SABRY_KIT_PROFILE_JSON` to that exact value on the current environment (the owner approves the exact value in the prompt; it is stored as plain text, so never put secrets in the profile). Without the tool, tell the owner to add it under the environment's variables in claude.ai settings. Every future cloud session on that environment then has the profile.
+2. **This project:** `python3 "<kit>/hooks/kit_profile.py" set --project '<the same JSON>'` writes `.agents/profile.json`, which is committed with the project. Skip it if the repo is public and the owner prefers the preferences not to be visible.
+
+Personal context (`profile.md`) is not copied to either place; it stays on the owner's machines.
+
 ## 5. Close
 
 1. Show what was saved with `python3 "<kit>/hooks/kit_profile.py" render` (exactly what will be injected).

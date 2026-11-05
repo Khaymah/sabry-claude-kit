@@ -54,6 +54,22 @@ class ProfileTest(unittest.TestCase):
         self.assertFalse(p["settings"]["comment_discipline"])
         self.assertTrue(os.path.isfile(os.path.join(self.repo, ".agents", "profile.json")))
 
+    def test_env_profile_used_when_no_file(self):
+        env = dict(self.env, SABRY_KIT_PROFILE_JSON='{"name":"Cloudy","settings":{"sounds":false}}')
+        data = json.loads(call("kit_profile.py", ["show"], env=env, cwd=self.repo)[1])
+        self.assertTrue(data["exists"])
+        self.assertEqual(data["profile"]["name"], "Cloudy")
+        self.assertFalse(data["profile"]["settings"]["sounds"])
+        call("kit_profile.py", ["set", "--project", '{"name":"Proj"}'], env=env, cwd=self.repo)
+        data = json.loads(call("kit_profile.py", ["show"], env=env, cwd=self.repo)[1])
+        self.assertEqual(data["profile"]["name"], "Proj", "project file wins over the env profile")
+
+    def test_env_export_round_trips(self):
+        call("kit_profile.py", ["set", '{"name":"Mona","language":"en"}'], env=self.env, cwd=self.repo)
+        rc, out, _ = call("kit_profile.py", ["env"], env=self.env, cwd=self.repo)
+        self.assertEqual(json.loads(out)["name"], "Mona")
+        self.assertNotIn("\n", out)
+
     def test_invalid_json_rejected_without_writing(self):
         rc, _, err = call("kit_profile.py", ["set", "{nope"], env=self.env, cwd=self.repo)
         self.assertEqual(rc, 2)

@@ -76,6 +76,7 @@
 | Hook | الحدث · الـ matcher | بيعمل إيه | بيمنع؟ |
 |---|---|---|---|
 | `project-storage.py` | SessionStart | يجهّز `.agents/` جوه المشروع ويحوّل الـ memory والخطط والـ agent-memory ليه ويركّب الـ pre-commit (قسم 5) | لا |
+| `project-storage.py --collect` | Stop · SessionEnd | يرجّع الذاكرة والخطط الجديدة لـ `.agents/`، وفي السحابة يفكّر بـ commit و push | feedback |
 | `project-storage.py --save-transcript` | SessionEnd | ينسخ الـ transcript لـ `.agents/sessions/` | لا |
 | `doctor.py brief` | SessionStart | مرة في اليوم: لو فيه تعارض خطير مع الكيت بيظهر للمستخدم سطر يقترح `/sabry-kit:kit-doctor` | لا |
 | `project-brief.py` | SessionStart | ملخص صغير (≤1.5KB) من غير موديل: الـ stack من الـ manifests، وأوامر test/typecheck/lint/build، والفولدرات، وحالة git، و"الجاي/مفتوح" من آخر `Plan/Progress` | لا |
@@ -169,6 +170,18 @@
 **تقفله:** `"project_storage": false` في الـ profile، أو `SABRY_KIT_PROJECT_STORAGE=0`. ولو عايز تقفل نسخ الـ transcripts بس: `"keep_transcripts": false`.
 
 > الـ scratchpad بتاع الجلسة مكانه بيحدده Claude Code، و`CLAUDE_CODE_TMPDIR` بيتجاهله من إعدادات المشروع. عشان كده [`rules/project-storage.md`](../rules/project-storage.md) بيوجّه الملفات المؤقتة لـ `.agents/scratch/`.
+
+### في السحابة
+
+جلسات Claude Code السحابية بتتجاهل `settings.local.json` وبتبدأ بـ HOME جديد، فـ `autoMemoryDirectory` و`plansDirectory` مش بيتطبّقوا هناك. عشان كده:
+
+| الخطوة | متى |
+|---|---|
+| نسخ `.agents/memory` لمكان الذاكرة الافتراضي | SessionStart، في السحابة (ومحلياً في أول جلسة بس قبل ما الإعداد يشتغل) |
+| `project-storage.py --collect`: رجوع الذاكرة الجديدة لـ `.agents/memory`، والخطط الجديدة من `~/.claude/plans` لـ `.agents/plans` | Stop و SessionEnd |
+| تذكير بـ commit و push لـ `.agents/` | Stop في السحابة، مرة لكل مجموعة تغييرات |
+
+محلياً بعد ما الإعداد يشتغل مفيش مزامنة، عشان ذاكرة اتمسحت عن قصد ماترجعش من النسخة القديمة. الـ profile في السحابة: متغيّر `SABRY_KIT_PROFILE_JSON` (JSON) بيتقري لو مفيش `~/.agents/profile.json`.
 
 ---
 

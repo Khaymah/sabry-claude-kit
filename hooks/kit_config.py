@@ -84,9 +84,26 @@ def _load(path):
         return {}
 
 
+PROFILE_ENV = "SABRY_KIT_PROFILE_JSON"
+
+
+def _env_profile():
+    """The profile as JSON in an environment variable, for cloud sessions whose HOME is
+    fresh every time (set it once on the cloud environment)."""
+    raw = os.environ.get(PROFILE_ENV, "").strip()
+    if not raw:
+        return {}
+    try:
+        data = json.loads(raw)
+        return data if isinstance(data, dict) else {}
+    except Exception:
+        return {}
+
+
 def load_profile(root=None):
-    """Merged profile: user file, then project file on top. `settings` merges by key."""
-    user = _load(user_profile_path())
+    """Merged profile: user file (or the env profile when there is no file), then the
+    project file on top. `settings` merges by key."""
+    user = _load(user_profile_path()) or _env_profile()
     proj = _load(project_profile_path(root))
     merged = dict(user)
     merged.update({k: v for k, v in proj.items() if k != "settings"})
@@ -97,8 +114,9 @@ def load_profile(root=None):
     return merged
 
 
-def has_profile():
-    return os.path.isfile(user_profile_path())
+def has_profile(root=None):
+    return (os.path.isfile(user_profile_path()) or bool(_env_profile())
+            or bool(_load(project_profile_path(root))))
 
 
 def gate(key, payload):

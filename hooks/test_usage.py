@@ -96,6 +96,23 @@ class UsageTest(unittest.TestCase):
         self.assertIn("| s1 |", out)
         self.assertIn("big.ts", out)
 
+    def test_committed_summary_has_numbers_only(self):
+        self.record()
+        path = os.path.join(self.repo, ".agents", "usage.jsonl")
+        with open(path) as fh:
+            text = fh.read()
+        self.assertIn('"calls": 4', text)
+        for private in ("/p/big.ts", "npm test", "scan"):
+            self.assertNotIn(private, text)
+
+    def test_report_works_from_summary_alone(self):
+        self.record()
+        os.remove(os.path.join(self.repo, ".agents", "sessions", "usage.jsonl"))
+        sessions = self.sessions()
+        self.assertEqual(len(sessions), 1)
+        self.assertEqual(sessions[0]["rereads"], 1)
+        self.assertIn("| s1 |", self.run_usage("report").stdout)
+
     def test_switch_off_records_nothing(self):
         self.env["SABRY_KIT_USAGE_METER"] = "0"
         self.record()

@@ -29,6 +29,14 @@ What it does, idempotently, every session start:
 With `SessionEnd` and `--save-transcript` it copies the transcript into
 .agents/sessions/ instead.
 
+Cloud sessions (CLAUDE_CODE_REMOTE) ignore `.claude/settings.local.json` and start from
+a fresh container, so the settings above do not apply there. Two more steps keep memory
+in the project anyway: SessionStart copies .agents/memory to where Claude Code reads
+memory by default, and `--collect` (Stop, SessionEnd) copies anything new back into
+.agents/memory and, in the cloud, plans from ~/.claude/plans into .agents/plans. In a
+cloud Stop it also reminds, once per change-set, that .agents/ must be committed and
+pushed before the container is deleted.
+
 Off switch: `"project_storage": false` in a profile, or SABRY_KIT_PROJECT_STORAGE=0.
 Silent and exit-0 on any failure.
 """
@@ -208,6 +216,15 @@ def import_legacy_memory(root, store):
     return "copied existing auto memory into .agents/memory (original kept)"
 
 
+
+def seed_memory(root, store):
+    """Copy committed project memory to where Claude Code reads it when the
+    autoMemoryDirectory setting is not honoured (cloud sessions ignore local settings;
+    locally the first session after setup still uses the old location)."""
+    n = mirror(os.path.join(store, "memory"), legacy_memory_dir(root))
+    return f"loaded {n} project memory file(s) from .agents/memory" if n and is_cloud() else None
+
+
 def git_dir(root):
     try:
         p = subprocess.run(["git", "-C", root, "rev-parse", "--absolute-git-dir"],
@@ -267,6 +284,114 @@ def save_transcript(payload, store):
     shutil.copy2(src, os.path.join(dst_dir, sid + os.path.splitext(src)[1]))
 
 
+
+def is_cloud():
+    return bool(os.environ.get("CLAUDE_CODE_REMOTE"))
+
+
+def mirror(src, dst):
+    """Copy files from src into dst when missing there or newer in src. Returns the count."""
+    if not os.path.isdir(src):
+        return 0
+    n = 0
+    for dirpath, _, files in os.walk(src):
+        rel = os.path.relpath(dirpath, src)
+        for fn in files:
+            if fn == ".gitkeep":
+                continue
+            s_path = os.path.join(dirpath, fn)
+            d_path = os.path.normpath(os.path.join(dst, rel, fn))
+            if os.path.isfile(d_path) and os.path.getmtime(d_path) >= os.path.getmtime(s_path) - 1:
+                continue
+            os.makedirs(os.path.dirname(d_path), exist_ok=True)
+            shutil.copy2(s_path, d_path)
+            n += 1
+    return n
+
+
+def marker_path(store):
+    return os.path.join(store, "scratch", "session-start.json")
+
+
+def write_marker(store, mirroring):
+    """When this session started, and whether memory must be mirrored: only when the
+    autoMemoryDirectory setting is not in effect (cloud, or the first local session),
+    so a memory deleted on purpose is never copied back from the old location."""
+    import time
+    try:
+        with open(marker_path(store), "w") as fh:
+            json.dump({"t": time.time(), "mirror": bool(mirroring)}, fh)
+    except OSError:
+        pass
+
+
+def read_marker(store):
+    try:
+        with open(marker_path(store)) as fh:
+            data = json.load(fh)
+        return float(data.get("t", 0)), bool(data.get("mirror"))
+    except Exception:
+        return 0.0, is_cloud()
+
+
+def collect_plans(store):
+    """Cloud only: plan-mode files written to ~/.claude/plans this session (plansDirectory in
+    local settings is ignored there) move into .agents/plans."""
+    config = os.environ.get("CLAUDE_CONFIG_DIR") or os.path.join(kit_config.home(), ".claude")
+    src = os.path.join(config, "plans")
+    since, _ = read_marker(store)
+    if not since:
+        return 0
+    n = 0
+    for f in os.listdir(src) if os.path.isdir(src) else []:
+        path = os.path.join(src, f)
+        if os.path.isfile(path) and os.path.getmtime(path) >= since:
+            dst = os.path.join(store, "plans", f)
+            if not os.path.isfile(dst) or os.path.getmtime(dst) < os.path.getmtime(path):
+                shutil.copy2(path, dst)
+                n += 1
+    return n
+
+
+def uncommitted(root):
+    try:
+        p = subprocess.run(["git", "-C", root, "status", "--porcelain", "--", kit_config.STORAGE_DIR],
+                           capture_output=True, text=True, timeout=10)
+        return [l for l in p.stdout.splitlines() if l.strip()] if p.returncode == 0 else []
+    except Exception:
+        return []
+
+
+def collect(payload, root, store):
+    """Stop / SessionEnd: bring memory and plans back into .agents/, and in a cloud session
+    remind once per change-set that .agents/ must be committed and pushed before the
+    container is deleted."""
+    _, mirroring = read_marker(store)
+    if mirroring:
+        mirror(legacy_memory_dir(root), os.path.join(store, "memory"))
+    if is_cloud():
+        collect_plans(store)
+    if payload.get("hook_event_name") != "Stop" or not is_cloud() or payload.get("stop_hook_active"):
+        return None
+    changes = uncommitted(root)
+    if not changes:
+        return None
+    key = hashlib.sha1("\n".join(changes).encode()).hexdigest()
+    state = os.path.join(store, "scratch", "commit-reminder")
+    try:
+        if open(state).read().strip() == key:
+            return None
+    except OSError:
+        pass
+    with open(state, "w") as fh:
+        fh.write(key)
+    files = ", ".join(l[3:] for l in changes[:6]) + (" …" if len(changes) > 6 else "")
+    return ("[project-storage] Cloud session: project memory in .agents/ has uncommitted changes "
+            f"({len(changes)}: {files}). This container is deleted when the session ends, so commit "
+            "them with your work (`git add .agents`, an English message) and push. Do it only if the "
+            "owner's work in this session is being committed anyway; never push to a branch the owner did not ask for.")
+
+
 def main():
     args = sys.argv[1:]
     try:
@@ -286,11 +411,22 @@ def main():
             save_transcript(payload, store)
         return 0
 
+    if "--collect" in args:
+        msg = collect(payload, root, store)
+        if msg:
+            print(json.dumps({"hookSpecificOutput": {"hookEventName": "Stop", "additionalContext": msg}}))
+        return 0
+
     notes = []
     ensure_dirs(store)
-    if update_local_settings(root, store):
+    just_set = update_local_settings(root, store)
+    if just_set and not is_cloud():
         notes.append("pointed auto memory and plans at .agents/ (takes effect next session)")
-    for step in (link_agent_memory, import_legacy_memory):
+    write_marker(store, mirroring=is_cloud() or just_set)
+    steps = [link_agent_memory, import_legacy_memory]
+    if is_cloud() or just_set:
+        steps.append(seed_memory)
+    for step in steps:
         try:
             n = step(root, store)
             if n:

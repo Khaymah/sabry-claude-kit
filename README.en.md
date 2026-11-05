@@ -16,7 +16,8 @@ Built for [Claude Code](https://code.claude.com) as a plugin. Its hooks also run
 4. [The agent family](#the-agent-family)
 5. [Inside every project: `.agents/`](#inside-every-project-agents)
 6. [Your settings (the profile)](#your-settings-the-profile)
-7. [Cost and performance](#cost-and-performance)
+7. [Cloud sessions](#cloud-sessions-claude-code-on-the-web)
+8. [Cost and performance](#cost-and-performance)
 8. [Repository layout](#repository-layout)
 9. [Other ways to install](#other-ways-to-install)
 10. [Updating](#updating)
@@ -139,6 +140,22 @@ Details and switches: [hooks/README.md › storage](hooks/README.md#5-التخز
 Full list of switches: [hooks/README.md › profile](hooks/README.md#2-الـ-profile-إعداد-أول-مرة).
 
 ---
+
+## Cloud sessions (Claude Code on the web)
+
+Each cloud session starts in a fresh container that is deleted afterwards, and ignores `~/.claude/settings.json` and `.claude/settings.local.json`. The kit handles that:
+
+| Item | In the cloud |
+|---|---|
+| The plugin | Arrives through claude.ai sync, no step needed |
+| The profile | `~/.agents/` is lost with the container, so the kit reads the `SABRY_KIT_PROFILE_JSON` environment variable when there is no file, and a project's `.agents/profile.json` overrides it. `/sabry-kit:kit-setup` offers to save both |
+| Auto memory | `autoMemoryDirectory` is ignored there, so the kit copies `.agents/memory` to where Claude Code reads it at session start and copies new memory back to `.agents/memory` at the end of every turn |
+| Plans | New plans in `~/.claude/plans` move into `.agents/plans` |
+| Agent memory · secret scan | Work as usual: the link and the pre-commit hook are recreated every session |
+| `/sabry-kit:kit-stats` | A numbers-only summary (no file names or commands) in `.agents/usage.jsonl` is committed, so cloud stats are kept |
+| **Persistence** | Everything in `.agents/` must be committed and pushed before the container is deleted. The kit reminds the agent once per set of changes |
+
+**Once per cloud environment:** run `/sabry-kit:kit-setup` in a cloud session and approve saving `SABRY_KIT_PROFILE_JSON` on the environment, or add it by hand in the environment's settings on claude.ai (value from `python3 hooks/kit_profile.py env` on your machine).
 
 ## Cost and performance
 

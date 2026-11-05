@@ -4,6 +4,8 @@ The owner's profile: the answers from /sabry-kit:kit-setup, injected first in ev
 session as the highest-priority instructions.
 
     ~/.agents/profile.json          answers + switches (every project on this machine)
+    $SABRY_KIT_PROFILE_JSON         same, as JSON in an env var: used when the file is missing,
+                                    e.g. cloud sessions whose HOME is fresh every time
     ~/.agents/profile.md            optional free-form personal context (goals,
                                     constraints, hosting...), read on demand
     <project>/.agents/profile.json  optional per-project override, same shape
@@ -149,13 +151,21 @@ def main():
         print(kit_config.user_profile_path())
         return 0
     if cmd == "show":
-        print(json.dumps({"exists": kit_config.has_profile(), "profile": kit_config.load_profile(root),
+        print(json.dumps({"exists": kit_config.has_profile(root), "profile": kit_config.load_profile(root),
                           "user_file": kit_config.user_profile_path(),
                           "project_file": kit_config.project_profile_path(root)},
                          indent=2, ensure_ascii=False))
         return 0
+    if cmd == "env":
+        data = read_json(kit_config.user_profile_path()) or kit_config._env_profile()
+        if not data:
+            print("no user profile yet", file=sys.stderr)
+            return 1
+        data = {k: v for k, v in data.items() if k not in ("updated",)}
+        print(json.dumps(data, ensure_ascii=False, separators=(",", ":")))
+        return 0
     if cmd == "render":
-        print(render(kit_config.load_profile(root), kit_config.has_profile()))
+        print(render(kit_config.load_profile(root), kit_config.has_profile(root)))
         return 0
     if cmd == "set":
         project = "--project" in args

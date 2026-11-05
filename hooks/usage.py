@@ -2,8 +2,10 @@
 """
 Token meter: where a session's tokens actually went, measured from the transcript.
 
-    usage.py record              SessionEnd hook: append this session's summary to
-                                 <project>/.agents/sessions/usage.jsonl
+    usage.py record              SessionEnd hook: append this session's detailed record to
+                                 <project>/.agents/sessions/usage.jsonl (local, ignored) and a
+                                 numbers-only line to <project>/.agents/usage.jsonl (committed,
+                                 so cloud sessions are not lost with their container)
     usage.py report [--last N]   table over the recorded sessions of this project
     usage.py report --current    the session that is running now (newest transcript)
     usage.py report --json       same data as JSON (for the kit-stats skill)
@@ -151,6 +153,58 @@ def log_path(root):
     return os.path.join(root, kit_config.STORAGE_DIR, "sessions", "usage.jsonl")
 
 
+def summary_path(root):
+    """Committed, numbers only: survives cloud containers and travels with the project."""
+    return os.path.join(root, kit_config.STORAGE_DIR, "usage.jsonl")
+
+
+def numbers_only(s):
+    """No file paths, commands or URLs: those can carry private details and this line is
+    committed. Tool names, counts and sizes only."""
+    import datetime
+    return {
+        "session": s["session"],
+        "date": datetime.date.today().isoformat(),
+        "cloud": bool(os.environ.get("CLAUDE_CODE_REMOTE")),
+        "calls": s["calls"],
+        "tokens": s["tokens"],
+        "cache_hit": s["cache_hit"],
+        "cost_index": s["cost_index"],
+        "tools": s["tools"],
+        "rereads": len(s["rereads"]),
+        "full_big_reads": len(s["full_big_reads"]),
+        "subagents": s["subagents"],
+        "biggest": [],
+    }
+
+
+def read_lines(path):
+    out = []
+    try:
+        with open(path, encoding="utf-8") as fh:
+            for line in fh:
+                try:
+                    out.append(json.loads(line))
+                except Exception:
+                    pass
+    except OSError:
+        pass
+    return out
+
+
+def load_sessions(root):
+    """Committed summaries for every session (local and cloud), upgraded with the local
+    detailed record where this machine has one."""
+    detailed = {s.get("session"): s for s in read_lines(log_path(root))}
+    seen, out = set(), []
+    for s in read_lines(summary_path(root)):
+        sid = s.get("session")
+        seen.add(sid)
+        out.append(detailed.get(sid, s))
+    out += [s for sid, s in detailed.items() if sid not in seen]
+    return out
+
+
 def config_dir():
     return os.environ.get("CLAUDE_CONFIG_DIR") or os.path.join(kit_config.home(), ".claude")
 
@@ -167,9 +221,13 @@ def advice(s):
     tools = s["tools"]
     total = sum(v["chars"] for v in tools.values()) or 1
     top = next(iter(tools.items()), None)
-    if s["full_big_reads"]:
-        tips.append(f"{len(s['full_big_reads'])} قراءة كاملة لملف ≥{BIG_READ_LINES} سطر: استخدم Grep أو offset/limit (`read_budget` بيمنعها)")
-    if s["rereads"]:
+    big = s["full_big_reads"] if isinstance(s["full_big_reads"], int) else len(s["full_big_reads"])
+    if big:
+        tips.append(f"{big} قراءة كاملة لملف ≥{BIG_READ_LINES} سطر: استخدم Grep أو offset/limit (`read_budget` بيمنعها)")
+    if isinstance(s["rereads"], int):
+        if s["rereads"]:
+            tips.append(f"{s['rereads']} ملف اتقرا أكتر من مرة")
+    elif s["rereads"]:
         f, n = next(iter(s["rereads"].items()))
         tips.append(f"ملفات اتقرت أكتر من مرة ({len(s['rereads'])}): أكترها `{os.path.basename(f)}` ×{n}")
     if top and top[1]["chars"] / total > 0.5:
@@ -244,6 +302,8 @@ def main():
         os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, "a", encoding="utf-8") as fh:
             fh.write(json.dumps(s, ensure_ascii=False) + "\n")
+        with open(summary_path(root), "a", encoding="utf-8") as fh:
+            fh.write(json.dumps(numbers_only(s), ensure_ascii=False) + "\n")
         return 0
     if cmd == "report":
         root = kit_config.project_root()
@@ -252,20 +312,14 @@ def main():
             tp = current_transcript(root) if root else None
             s = summarize(tp) if tp else None
             sessions = [s] if s else []
-        elif root and os.path.isfile(log_path(root)):
+        elif root:
             n = 10
             if "--last" in args:
                 try:
                     n = int(args[args.index("--last") + 1])
                 except (IndexError, ValueError):
                     pass
-            with open(log_path(root), encoding="utf-8") as fh:
-                for line in fh:
-                    try:
-                        sessions.append(json.loads(line))
-                    except Exception:
-                        pass
-            sessions = sessions[-n:]
+            sessions = load_sessions(root)[-n:]
         if "--json" in args:
             print(json.dumps({"sessions": sessions, "advice": advice(sessions[-1]) if sessions else []},
                              ensure_ascii=False, indent=1))

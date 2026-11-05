@@ -34,8 +34,61 @@ def sandbox():
     env = dict(os.environ, HOME=home, USERPROFILE=home)
     for k in ("CLAUDE_CONFIG_DIR", "CLAUDE_PROJECT_DIR", "SABRY_KIT_PROFILE"):
         env.pop(k, None)
-    env = {k: v for k, v in env.items() if not k.startswith("SABRY_KIT_")}
+    env = {k: v for k, v in env.items() if not k.startswith("SABRY_KIT_") and k != "CLAUDE_CODE_REMOTE"}
     return base, home, repo, env
+
+
+def cloud_tests():
+    print("cloud session (fresh HOME, local settings ignored)")
+    base, home, repo, env = sandbox()
+    env = dict(env, CLAUDE_CODE_REMOTE="true")
+    try:
+        store = os.path.join(repo, ".agents")
+        os.makedirs(os.path.join(store, "memory"))
+        with open(os.path.join(store, "memory", "MEMORY.md"), "w") as fh:
+            fh.write("- committed project memory\n")
+        slug = re.sub(r"[^A-Za-z0-9]", "-", os.path.realpath(repo))
+        default = os.path.join(home, ".claude", "projects", slug, "memory")
+        rc, out = run(env, {"cwd": repo, "hook_event_name": "SessionStart"})
+        check("seeds committed memory where Claude Code reads it",
+              os.path.isfile(os.path.join(default, "MEMORY.md")), out)
+
+        with open(os.path.join(default, "new-topic.md"), "w") as fh:
+            fh.write("- learned in the cloud\n")
+        plans = os.path.join(home, ".claude", "plans")
+        os.makedirs(plans)
+        with open(os.path.join(plans, "plan-a.md"), "w") as fh:
+            fh.write("# plan\n")
+        stop = {"cwd": repo, "hook_event_name": "Stop"}
+        rc, out = run(env, stop, args=("--collect",))
+        check("new memory copied back into .agents/memory", os.path.isfile(os.path.join(store, "memory", "new-topic.md")))
+        check("plan copied into .agents/plans", os.path.isfile(os.path.join(store, "plans", "plan-a.md")))
+        ctx = json.loads(out)["hookSpecificOutput"]["additionalContext"] if out else ""
+        check("reminds to commit and push .agents/", "commit" in ctx and "push" in ctx, out)
+        rc, out = run(env, stop, args=("--collect",))
+        check("same change-set: no second reminder", out == "", out)
+        rc, out = run(env, dict(stop, stop_hook_active=True), args=("--collect",))
+        check("loop guard", out == "", out)
+    finally:
+        shutil.rmtree(base, ignore_errors=True)
+
+    print("local, after setup: no mirroring")
+    base, home, repo, env = sandbox()
+    try:
+        run(env, {"cwd": repo})
+        run(env, {"cwd": repo})
+        store = os.path.join(repo, ".agents")
+        slug = re.sub(r"[^A-Za-z0-9]", "-", os.path.realpath(repo))
+        default = os.path.join(home, ".claude", "projects", slug, "memory")
+        os.makedirs(default, exist_ok=True)
+        with open(os.path.join(default, "deleted-on-purpose.md"), "w") as fh:
+            fh.write("old\n")
+        rc, out = run(env, {"cwd": repo, "hook_event_name": "Stop"}, args=("--collect",))
+        check("a stale copy in the old location is not resurrected",
+              not os.path.exists(os.path.join(store, "memory", "deleted-on-purpose.md")))
+        check("no cloud reminder locally", out == "", out)
+    finally:
+        shutil.rmtree(base, ignore_errors=True)
 
 
 def run(env, payload, args=()):
@@ -155,6 +208,7 @@ def main():
     finally:
         shutil.rmtree(base, ignore_errors=True)
 
+    cloud_tests()
     print(f"\n{len(FAILED)} FAILED" + (": " + "; ".join(FAILED) if FAILED else ""))
     return 1 if FAILED else 0
 
