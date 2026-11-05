@@ -29,6 +29,7 @@ DEFAULTS = {
     "install_git_hook": True,
     "sounds": True,
     "commit_style": True,
+    "git_identity": True,
     "comment_discipline": True,
     "nextjs_structure": True,
     "duplication_warning": True,
