@@ -5,6 +5,13 @@ PreToolUse hook — enforces the owner's absolute commit rules:
   1. No AI attribution anywhere in a commit or PR body
      (Co-Authored-By: Claude, "Generated with Claude Code", robot emoji, Anthropic).
   2. Commit messages are written in English, not Arabic.
+  3. Commits are authored and committed by the owner, never by an AI identity.
+     Cloud sessions ship a global `Claude <noreply@anthropic.com>` identity, so without
+     this check every commit carries Claude's name even with a clean message. The identity
+     is resolved the way git resolves it: --author, GIT_AUTHOR_*/GIT_COMMITTER_* (in the
+     command or the environment), `git -c user.*`, then `git config`. An --amend without
+     --reset-author keeps HEAD's author, so HEAD is checked instead. The fix names the
+     owner's identity from the profile (git_name / git_email) when it is there.
 
 Why a hook and not CLAUDE.md: rule 1 contradicts a standing instruction in the model's
 own system prompt ("End commit messages with: Co-Authored-By: Claude ..."), and rule 2
@@ -51,17 +58,31 @@ BANNED = (
 # pattern, a heredoc explaining this very rule) trips the hook.
 _CMD_START = r"(?:^|[\n;&|(]|&&|\|\||\bthen\b|\bdo\b|\belse\b)\s*"
 
+_QUOTED = r"(\"(?:[^\"\\]|\\.)*\"|'[^']*'|\S+)"
+
+# One shell word, with quoted runs inside it: x, "a b", user.name="Jane Doe".
+_WORD = r"(?:[^\s\"']|\"(?:[^\"\\]|\\.)*\"|'[^']*')+"
+
+# VAR=value prefixes, quoted values included (GIT_AUTHOR_NAME="Jane Doe" git commit).
+_ENV_PREFIX = r"(?:\w+=" + _WORD + r"\s+)*"
+
+# git's own global options that may sit before the subcommand: -C <dir>, -c <key=value>.
+_GIT_OPTS = r"(?:-[Cc]\s+" + _WORD + r"\s+)*"
+
 WRITES_MESSAGE = re.compile(
-    _CMD_START + r"(?:\w+=\S+\s+)*"          # optional VAR=value prefixes
-    r"(?:git\s+(?:-C\s+\S+\s+)?(?:commit|tag\b[^\n]*-[am])|"
+    _CMD_START + _ENV_PREFIX +
+    r"(?:git\s+" + _GIT_OPTS + r"(?:commit|tag\b[^\n]*-[am])|"
     r"gh\s+(?:pr|issue|release)\s+(?:create|edit|comment))",
     re.IGNORECASE,
 )
 
 IS_GIT_COMMIT = re.compile(
-    _CMD_START + r"(?:\w+=\S+\s+)*git\s+(?:-C\s+\S+\s+)?commit\b", re.IGNORECASE)
+    _CMD_START + _ENV_PREFIX + r"git\s+" + _GIT_OPTS + r"commit\b", re.IGNORECASE)
 
-_QUOTED = r"(\"(?:[^\"\\]|\\.)*\"|'[^']*'|\S+)"
+# An AI identity: "Claude" as a word (not Claudette), or anything Anthropic.
+AI_IDENTITY = re.compile(r"\bclaude\b|anthropic", re.IGNORECASE)
+
+KIT_HOOKS = os.path.dirname(os.path.abspath(__file__))
 
 
 def _unquote(s: str) -> str:
@@ -107,6 +128,80 @@ def _inherited_message(command: str, cwd: str) -> str:
         return out.stdout if out.returncode == 0 else ""
     except Exception:
         return ""
+
+
+def _git_value(workdir: str, *args: str) -> str:
+    """One read-only git lookup. Any failure is an empty answer, never a block."""
+    try:
+        out = subprocess.run(
+            ["git", "-C", workdir, *args],
+            capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=5,
+        )
+        return out.stdout.strip() if out.returncode == 0 else ""
+    except Exception:
+        return ""
+
+
+def commit_identities(command: str, cwd: str) -> list:
+    """[(role, "Name <email>")] for the author and committer this commit would record."""
+    m = IS_GIT_COMMIT.search(command)
+    if not m:
+        return []
+    end = command.find("\n", m.end())
+    segment = command[m.start():end if end != -1 else len(command)]
+    workdir = _workdir(command, cwd)
+
+    inline_env = {key: _unquote(value) for key, value in re.findall(
+        r"\b(GIT_(?:AUTHOR|COMMITTER)_(?:NAME|EMAIL))=" + _QUOTED, segment)}
+    overrides = {key.lower(): _unquote(value) for key, value in re.findall(
+        r"\s-c\s+(user\.(?:name|email))=" + _QUOTED, segment, re.IGNORECASE)}
+
+    def pick(role: str, field: str) -> str:
+        key = f"GIT_{role}_{field}"
+        return (inline_env.get(key) or os.environ.get(key)
+                or overrides.get(f"user.{field.lower()}")
+                or _git_value(workdir, "config", f"user.{field.lower()}"))
+
+    committer = f"{pick('COMMITTER', 'NAME')} <{pick('COMMITTER', 'EMAIL')}>"
+    flag = re.search(r"--author[= ]+" + _QUOTED, segment)
+    if flag:
+        author = _unquote(flag.group(1))
+    elif re.search(r"--amend\b", segment) and not re.search(r"--reset-author\b", segment):
+        author = (_git_value(workdir, "log", "-1", "--format=%an <%ae>", "HEAD")
+                  or f"{pick('AUTHOR', 'NAME')} <{pick('AUTHOR', 'EMAIL')}>")
+    else:
+        author = f"{pick('AUTHOR', 'NAME')} <{pick('AUTHOR', 'EMAIL')}>"
+    return [("author", author), ("committer", committer)]
+
+
+def owner_identity(cwd: str) -> tuple:
+    """(name, email) the owner saved with kit-setup, or empty strings."""
+    if not kit_config:
+        return "", ""
+    try:
+        profile = kit_config.load_profile(kit_config.project_root(cwd))
+    except Exception:
+        return "", ""
+    name = str(profile.get("git_name") or "").strip()
+    email = str(profile.get("git_email") or "").strip()
+    if AI_IDENTITY.search(f"{name} {email}"):
+        return "", ""
+    return name, email
+
+
+def identity_fix(cwd: str, amend_keeps_author: bool) -> str:
+    name, email = owner_identity(cwd)
+    reset = " Add --reset-author so the amended commit takes the new identity." if amend_keeps_author else ""
+    if name and email:
+        return (f'Fix: git config user.name "{name}" && git config user.email "{email}", '
+                f"then re-run.{reset}")
+    return (
+        "Fix: ask the owner for their git name and email (AskUserQuestion), run "
+        'git config user.name "<name>" && git config user.email "<email>" in this repo, '
+        "and save them once so every future session applies them automatically:\n"
+        f"python3 \"{os.path.join(KIT_HOOKS, 'kit_profile.py')}\" set "
+        "'{\"git_name\":\"<name>\",\"git_email\":\"<email>\"}'" + reset
+    )
 
 
 HEREDOC = re.compile(r"<<-?\s*(['\"]?)(\w+)\1[^\n]*\n(.*?)\n\s*\2\b", re.DOTALL)
@@ -232,6 +327,22 @@ def main() -> int:
             "Arabic belongs in PROGRESS.md, Plan/, Decisions/ and the conversation — not git history.\n"
             "Fix: rewrite the message in English and re-run."
         )
+
+    # Rule 3: who the commit is recorded as, independent of what the message says.
+    for role, identity in commit_identities(command, cwd):
+        if AI_IDENTITY.search(identity):
+            amend_keeps_author = (
+                role == "author"
+                and re.search(r"--amend\b", command) is not None
+                and re.search(r"--reset-author\b|--author\b", command) is None
+            )
+            return deny(
+                f"[enforce-commit-style] Blocked: this commit's {role} would be {identity!r}, "
+                "an AI identity.\n"
+                "The owner's rule, all projects: commits carry the owner's name, never Claude's "
+                "or Anthropic's, as author or committer.\n"
+                + identity_fix(cwd, amend_keeps_author)
+            )
 
     return 0
 

@@ -36,6 +36,7 @@ cache/model-catalog/*
 
 __pycache__/
 hooks/hookfix/
+hooks/identityfix/
 skills/.trash/
 _Archive/old-config/*
 !_Archive/old-config/CLAUDE.old.md

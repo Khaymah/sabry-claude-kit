@@ -11,6 +11,33 @@ ARABIC_SUBJECT = "F2: \u0645\u0643\u062a\u0628\u0629 \u0627\u0644\u0645\u0643\u0
 HERE = os.path.dirname(os.path.abspath(__file__))
 FIX = os.path.join(HERE, "hookfix")
 REPO = os.path.join(FIX, "repo")
+AI_REPO = os.path.join(FIX, "ai-repo")
+AI_HEAD_REPO = os.path.join(FIX, "ai-head-repo")
+GLOBAL_CONFIG = os.path.join(FIX, "global.gitconfig")
+EMPTY_PROFILE = os.path.join(FIX, "profile.json")
+AI_NAME, AI_EMAIL = "Claude", "bot@example.dev"
+
+
+def hermetic_env():
+    """Run git and the hook against fixture config only: a cloud session's global
+    `Claude <noreply@anthropic.com>` identity must not decide the result of a case."""
+    env = {k: v for k, v in os.environ.items()
+           if not k.startswith(("GIT_AUTHOR_", "GIT_COMMITTER_", "SABRY_KIT_"))}
+    env.update(GIT_CONFIG_GLOBAL=GLOBAL_CONFIG, GIT_CONFIG_NOSYSTEM="1",
+               SABRY_KIT_PROFILE=EMPTY_PROFILE, CLAUDE_CONFIG_DIR=FIX)
+    return env
+
+
+def _repo(path, name, email):
+    g = lambda *a: subprocess.run(("git", "-C", path) + a, capture_output=True, text=True,
+                                  env=hermetic_env())
+    os.makedirs(path)
+    g("init", "-q", "-b", "main")
+    g("config", "user.email", email)
+    g("config", "user.name", name)
+    io.open(os.path.join(path, "a.txt"), "w").write("x")
+    g("add", "-A")
+    return g
 
 
 def _force_writable(func, path, _):
@@ -25,21 +52,21 @@ def teardown():
 
 
 def setup():
-    """Message files for -F, plus a real repo whose HEAD carries a banned trailer."""
+    """Message files for -F, a repo whose HEAD carries a banned trailer, a repo configured
+    as Claude, and a human repo whose HEAD was authored by Claude."""
     teardown()
-    os.makedirs(REPO)
+    os.makedirs(FIX)
     write = lambda n, t: io.open(os.path.join(FIX, n), "w", encoding="utf-8").write(t)
     write("clean.txt", "feat: add product rail\n\nEnglish body, nothing banned.\n")
     write("trailer.txt", "feat: add product rail\n\n%s\n" % TRAILER)
     write("arabic.txt", ARABIC_SUBJECT + "\n")
+    write("global.gitconfig", "[user]\n\tname = Jane Doe\n\temail = jane@example.dev\n")
+    write("profile.json", "{}\n")
 
-    g = lambda *a: subprocess.run(("git", "-C", REPO) + a, capture_output=True, text=True)
-    g("init", "-q", "-b", "main")
-    g("config", "user.email", "t@t.t")
-    g("config", "user.name", "t")
-    io.open(os.path.join(REPO, "a.txt"), "w").write("x")
-    g("add", "-A")
-    g("commit", "-q", "-m", "feat: seed\n\n%s" % TRAILER)
+    _repo(REPO, "t", "t@t.t")("commit", "-q", "-m", "feat: seed\n\n%s" % TRAILER)
+    _repo(AI_REPO, AI_NAME, AI_EMAIL)("commit", "-q", "-m", "feat: seed")
+    _repo(AI_HEAD_REPO, "Jane Doe", "jane@example.dev")(
+        "commit", "-q", "--author=%s <%s>" % (AI_NAME, AI_EMAIL), "-m", "feat: seed")
 
 
 def cases():
@@ -93,6 +120,38 @@ def cases():
          'git -C "%s" commit --amend -m "feat: seed"' % REPO.replace("\\", "/"),               None),
         ("amend outside any repo fails open",
          'git -C "%s" commit --amend --no-edit' % f("nope"),                                   None),
+
+        # --- rule 3: the recorded author/committer must not be an AI ------------
+        ("repo configured as Claude",
+         'git -C "%s" commit -m "feat: x"' % AI_REPO.replace("\\", "/"),                       "deny"),
+        ("cd into repo configured as Claude",
+         'cd "%s" && git commit -m "feat: x"' % AI_REPO.replace("\\", "/"),                    "deny"),
+        ("--author is Claude",
+         'git commit --author="%s <%s>" -m "feat: x"' % (AI_NAME, AI_EMAIL),                  "deny"),
+        ("GIT_AUTHOR_NAME=Claude prefix",
+         'GIT_AUTHOR_NAME=%s git commit -m "feat: x"' % AI_NAME,                               "deny"),
+        ("quoted GIT_COMMITTER_NAME prefix",
+         'GIT_COMMITTER_NAME="%s Bot" git commit -m "feat: x"' % AI_NAME,                     "deny"),
+        ("git -c user.name=Claude",
+         'git -c user.name=%s commit -m "feat: x"' % AI_NAME,                                  "deny"),
+        ("git -c with a quoted human name",
+         'git -c user.name="Jane Doe" commit -m "feat: x"',                                    None),
+        ("anthropic email in the config identity",
+         'git -c user.email=ai@anthropic.dev commit -m "feat: x"',                             "deny"),
+        ("human --author override",
+         'git commit --author="Jane Doe <jane@example.dev>" -m "feat: x"',                     None),
+        ("human --author but the committer config is AI",
+         'git -C "%s" commit --author="Jane Doe <jane@example.dev>" -m "feat: x"'
+         % AI_REPO.replace("\\", "/"),                                                         "deny"),
+        ("a name that merely contains claude",
+         'git commit --author="Claudette Roy <c@example.dev>" -m "feat: x"',                   None),
+        ("amend keeps an AI HEAD author",
+         'git -C "%s" commit --amend -m "feat: seed"' % AI_HEAD_REPO.replace("\\", "/"),       "deny"),
+        ("amend with --reset-author takes the human config",
+         'git -C "%s" commit --amend --reset-author -m "feat: seed"'
+         % AI_HEAD_REPO.replace("\\", "/"),                                                    None),
+        ("non-commit git in an AI repo is untouched",
+         'git -C "%s" status' % AI_REPO.replace("\\", "/"),                                    None),
     ]
 
 
@@ -108,8 +167,8 @@ def run_cases() -> int:
     fails = 0
     for name, cmd, expect in cases():
         p = subprocess.run([sys.executable, HOOK],
-                           input=json.dumps({"tool_input": {"command": cmd}, "cwd": HERE}),
-                           capture_output=True, text=True, encoding="utf-8")
+                           input=json.dumps({"tool_input": {"command": cmd}, "cwd": FIX}),
+                           capture_output=True, text=True, encoding="utf-8", env=hermetic_env())
         out = (p.stdout or "").strip()
         got = json.loads(out)["hookSpecificOutput"]["permissionDecision"] if out else None
         ok = got == expect

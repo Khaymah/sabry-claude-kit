@@ -58,6 +58,7 @@
 | المفتاح (`settings`) | الافتراضي | بيتحكم في |
 |---|---|---|
 | `commit_style` | ✅ | `enforce-commit-style` |
+| `git_identity` | ✅ | `git-identity`: يحط اسم المالك وإيميله (`git_name` · `git_email` في الـ profile) على git أول الجلسة |
 | `comment_discipline` | ✅ | `enforce-comment-discipline` + قاعدتها |
 | `nextjs_structure` · `duplication_warning` | ✅ | hooks الـ Next.js |
 | `secret_scan` · `install_git_hook` | ✅ | `scan-secrets` + الـ git pre-commit |
@@ -81,11 +82,12 @@
 | `project-storage.py --save-transcript` | SessionEnd | ينسخ الـ transcript لـ `.agents/sessions/` | لا |
 | `doctor.py brief` | SessionStart | مرة في اليوم: لو فيه تعارض خطير مع الكيت بيظهر للمستخدم سطر يقترح `/sabry-kit:kit-doctor` | لا |
 | `project-brief.py` | SessionStart | ملخص صغير (≤1.5KB) من غير موديل: الـ stack من الـ manifests، وأوامر test/typecheck/lint/build، والفولدرات، وحالة git، و"الجاي/مفتوح" من آخر `Plan/Progress` | لا |
+| `git-identity.py` | SessionStart | لو هوية git فاضية أو AI (زي `Claude <noreply@anthropic.com>` في جلسات الكلاود): يحط `git_name`/`git_email` من الـ profile، ومابيلمسش هوية شخص حقيقي أبداً. ولو الـ profile مفيهوش هوية، بيطلب من الـ agent يسأل المالك | لا |
 | `inject-rules.py` | SessionStart | يحقن `rules/*.md` في السياق (لو مش محمّلة أصلاً من `~/.claude/rules`) | لا |
 | `maintain-note.py` | SessionStart | تذكير مرة في اليوم بالصيانة الأسبوعية | لا |
 | `team-review-reminder.py --baseline` | SessionStart | يصوّر حالة الشجرة عشان يفرّق بين شغل الجلسة والتعديلات القديمة | لا |
 | `team-review-reminder.py` | Stop | لو كود اتغيّر في الجلسة: يقترح `/team-review` بالـ reviewers المناسبين، مرة واحدة لكل change-set | لا |
-| `enforce-commit-style.py` | PreToolUse · `Bash` | يرفض commit أو PR فيه نسبة لـ AI أو رسالة بالعربي (`-m` · heredoc · `-F` · `--amend` · `gh --body-file`) | ✅ |
+| `enforce-commit-style.py` | PreToolUse · `Bash` | يرفض commit أو PR فيه نسبة لـ AI أو رسالة بالعربي (`-m` · heredoc · `-F` · `--amend` · `gh --body-file`)، **أو commit صاحبه أو الـ committer بتاعه Claude/Anthropic** (`--author` · `GIT_AUTHOR_*` · `git -c user.*` · `git config` · `--amend` من غير `--reset-author`) | ✅ |
 | `scan-secrets.py` | PreToolUse · `Bash` + git pre-commit | يمنع commit فيه مفتاح أو token أو private key أو `.env` (قسم 6) | ✅ |
 | `enforce-comment-discipline.py` | PreToolUse · `Write\|Edit\|MultiEdit` | يرفض إضافة كومنت لملف كود (الاستثناءات: build directives و`IMPORTANT:`) | ✅ |
 | `enforce-nextjs-structure.py` | PreToolUse · `Write\|Edit\|MultiEdit` | مشاريع Next.js بس: حد 600 سطر (و300 لـ PageContent)، PascalCase للجديد تحت `src/`، وحالة الحروف متطابقة مع الموجود على القرص | ✅ |

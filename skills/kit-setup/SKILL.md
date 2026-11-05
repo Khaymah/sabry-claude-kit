@@ -20,6 +20,7 @@ python3 "<kit>/hooks/kit_profile.py" show
 - `exists: true` -> this is an edit, not a fresh setup: show current settings in a small table and ask only about what they want to change.
 - An old `PersonalContext.md` (in `~/.claude/` or the kit dir) holding real personal context, not a template? Offer importing it as the first option in round 3.
 - Suggest the name from `git config user.name` if present.
+- Suggest the git identity from `gh api user --jq '.name + " <" + .email + ">"'` (or a non-AI `git config user.name/user.email`). Never suggest `Claude` or an `@anthropic.com` address: cloud sessions are pre-configured with that identity.
 
 ## 1. Round 1: communication
 
@@ -31,6 +32,7 @@ python3 "<kit>/hooks/kit_profile.py" show
 | لغة المحادثة والمستندات؟ | العربية بالمصري · العربية الفصحى · English | `language`: `ar-eg` · `ar` · `en` |
 | أسلوب الرد؟ | مختصر ومباشر · متوسط · مفصّل | `verbosity`: `concise` · `balanced` · `detailed` |
 | دورك؟ | Solo / freelancer · مطوّر في فريق · Tech lead / CTO · مش تقني | `role` (text) |
+| الـ commits تتسجّل باسم مين؟ | `<name> <email>` من GitHub · اكتب اسم وإيميل تاني | `git_name` · `git_email` (الإيميل المربوط بحساب GitHub عشان الـ commits تتنسب ليك) |
 
 ## 2. Round 2: way of working
 
@@ -55,7 +57,7 @@ python3 "<kit>/hooks/kit_profile.py" show
 Combine answers into one JSON and save it. Never edit the file by hand:
 
 ```bash
-python3 "<kit>/hooks/kit_profile.py" set '{"name":"…","language":"ar-eg","verbosity":"concise","role":"…","mode":"cto-pm","questions":"ask","cost_profile":"balanced","stack":"…","settings":{"commit_style":true,"secret_scan":true,"comment_discipline":true,"nextjs_structure":true,"duplication_warning":true,"project_storage":true,"sounds":true,"keep_transcripts":true,"team_review_reminder":true,"deal_economics":false}}'
+python3 "<kit>/hooks/kit_profile.py" set '{"name":"…","git_name":"…","git_email":"…","language":"ar-eg","verbosity":"concise","role":"…","mode":"cto-pm","questions":"ask","cost_profile":"balanced","stack":"…","settings":{"commit_style":true,"git_identity":true,"secret_scan":true,"comment_discipline":true,"nextjs_structure":true,"duplication_warning":true,"project_storage":true,"sounds":true,"keep_transcripts":true,"team_review_reminder":true,"deal_economics":false}}'
 ```
 
 - Personal context: `python3 "<kit>/hooks/kit_profile.py" context "<markdown>"`. Keep it short, with headings; it is read only for strategic decisions.
