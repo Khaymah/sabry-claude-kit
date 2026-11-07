@@ -30,6 +30,7 @@ DEFAULTS = {
     "sounds": True,
     "commit_style": True,
     "git_identity": True,
+    "git_signing": True,
     "comment_discipline": True,
     "nextjs_structure": True,
     "duplication_warning": True,

@@ -59,6 +59,7 @@
 |---|---|---|
 | `commit_style` | ✅ | `enforce-commit-style` |
 | `git_identity` | ✅ | `git-identity`: يحط اسم المالك وإيميله (`git_name` · `git_email` في الـ profile) على git أول الجلسة |
+| `git_signing` | ✅ | `git-signing`: يوقّع الـ commits بمفتاح المالك من `SABRY_SIGNING_KEY` في كل جلسة |
 | `comment_discipline` | ✅ | `enforce-comment-discipline` + قاعدتها |
 | `nextjs_structure` · `duplication_warning` | ✅ | hooks الـ Next.js |
 | `secret_scan` · `install_git_hook` | ✅ | `scan-secrets` + الـ git pre-commit |
@@ -83,6 +84,7 @@
 | `doctor.py brief` | SessionStart | مرة في اليوم: لو فيه تعارض خطير مع الكيت بيظهر للمستخدم سطر يقترح `/sabry-kit:kit-doctor` | لا |
 | `project-brief.py` | SessionStart | ملخص صغير (≤1.5KB) من غير موديل: الـ stack من الـ manifests، وأوامر test/typecheck/lint/build، والفولدرات، وحالة git، و"الجاي/مفتوح" من آخر `Plan/Progress` | لا |
 | `git-identity.py` | SessionStart | لو هوية git فاضية أو AI (زي `Claude <noreply@anthropic.com>` في جلسات الكلاود): يحط `git_name`/`git_email` من الـ profile، ومابيلمسش هوية شخص حقيقي أبداً. ولو الـ profile مفيهوش هوية، بيطلب من الـ agent يسأل المالك | لا |
+| `git-signing.py` | SessionStart | لو `SABRY_SIGNING_KEY` موجود (المفتاح الخاص OpenSSH بـ base64 في سطر واحد): بيكتبه في `~/.ssh/sabry_signing` (0600) ويطلّع النص العام ويظبط git على `gpg.format ssh` و`commit.gpgsign` و`tag.gpgsign` و`allowed_signers` للإيميل. المفتاح عمره ما بيتطبع، الـ fingerprint بس. لو المتغير مش موجود بيسكت، ولو مش مفتاح صالح أو عليه passphrase بيقول كده ومابيلمسش git. المفتاح العام بيتضاف في GitHub مرة واحدة كـ Signing Key | لا |
 | `inject-rules.py` | SessionStart | يحقن `rules/*.md` في السياق (لو مش محمّلة أصلاً من `~/.claude/rules`) | لا |
 | `maintain-note.py` | SessionStart | تذكير مرة في اليوم بالصيانة الأسبوعية | لا |
 | `team-review-reminder.py --baseline` | SessionStart | يصوّر حالة الشجرة عشان يفرّق بين شغل الجلسة والتعديلات القديمة | لا |

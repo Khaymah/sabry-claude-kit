@@ -15,6 +15,11 @@
           },
           {
             "type": "command",
+            "command": "\"$(command -v python3 || command -v python)\" \"${CLAUDE_PLUGIN_ROOT}/hooks/git-signing.py\"",
+            "timeout": 15
+          },
+          {
+            "type": "command",
             "command": "\"$(command -v python3 || command -v python)\" \"${CLAUDE_PLUGIN_ROOT}/hooks/project-brief.py\"",
             "timeout": 15
           },
