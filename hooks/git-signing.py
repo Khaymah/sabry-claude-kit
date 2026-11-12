@@ -12,6 +12,8 @@ It also points gpg.ssh.program at ssh-keygen: cloud sessions ship one that signs
 platform's own key, which GitHub only accepts for its noreply address, not the owner's key.
 
   - variable missing                 -> nothing, silently
+  - ssh-keygen not installed         -> one line saying so (cloud images may lack it)
+  - variable holds the PUBLIC key    -> one line explaining which half goes where
   - variable not a valid private key -> one line saying so; git is not touched
   - same key already in place        -> config refreshed, key file left as is
 
@@ -127,9 +129,19 @@ def main():
     raw = os.environ.get(VARIABLE, "").strip()
     if not raw:
         return 0
-    if shutil.which("git") is None or shutil.which("ssh-keygen") is None:
+    if shutil.which("git") is None:
         return 0
     if kit_config and not kit_config.gate("git_signing", payload):
+        return 0
+    if shutil.which("ssh-keygen") is None:
+        print(f"[git-signing] ssh-keygen is not installed here, so {VARIABLE} cannot be used and commits "
+              "are not signed with the owner's key. Install openssh-client (in a cloud environment, add "
+              "`apt-get install -y openssh-client` to its setup script).")
+        return 0
+    if raw.startswith(("ssh-", "ecdsa-", "sk-ssh-", "sk-ecdsa-")):
+        print(f"[git-signing] {VARIABLE} holds a PUBLIC key; it needs the PRIVATE key, base64 on one line "
+              "(`base64 -w0 ~/.ssh/<key>`, on macOS `base64 -i ~/.ssh/<key>`). The public half goes to "
+              "GitHub → Settings → SSH and GPG keys → New SSH key → type Signing Key. Commits are not signed.")
         return 0
 
     key = decode(raw)

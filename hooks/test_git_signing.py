@@ -137,6 +137,21 @@ def case_passphrase(case_dir):
             and not leaks(out, pem))
 
 
+def case_public_key(case_dir):
+    pem, pub = make_key(case_dir)
+    code, out = run_hook(case_dir, {"SABRY_SIGNING_KEY": "ssh-ed25519 " + pub + " owner@laptop"})
+    return code == 0 and "PUBLIC key" in out and untouched(case_dir)
+
+
+def case_no_ssh_keygen(case_dir):
+    pem, _ = make_key(case_dir)
+    bin_dir = os.path.join(case_dir, "bin-git-only")
+    os.makedirs(bin_dir, exist_ok=True)
+    os.symlink(shutil.which("git"), os.path.join(bin_dir, "git"))
+    code, out = run_hook(case_dir, {"SABRY_SIGNING_KEY": base64.b64encode(pem).decode(), "PATH": bin_dir})
+    return code == 0 and "ssh-keygen is not installed" in out and not leaks(out, pem)
+
+
 def case_switch_off(case_dir):
     pem, _ = make_key(case_dir)
     code, out = run_hook(case_dir, {"SABRY_SIGNING_KEY": base64.b64encode(pem).decode(),
@@ -152,6 +167,8 @@ CASES = [
     ("not-a-key-refused", case_garbage),
     ("passphrase-key-not-used", case_passphrase),
     ("switch-off", case_switch_off),
+    ("public-key-explained", case_public_key),
+    ("missing-ssh-keygen-explained", case_no_ssh_keygen),
 ]
 
 
