@@ -152,6 +152,16 @@ def case_no_ssh_keygen(case_dir):
     return code == 0 and "ssh-keygen is not installed" in out and not leaks(out, pem)
 
 
+def case_profile_key_beats_env(case_dir):
+    pem, pub = make_key(case_dir)
+    agents = os.path.join(case_dir, "home", ".agents")
+    os.makedirs(agents, exist_ok=True)
+    with open(os.path.join(agents, "signing_key"), "w") as fh:
+        fh.write(base64.b64encode(pem).decode())
+    code, out = run_hook(case_dir, {"SABRY_SIGNING_KEY": "ssh-ed25519 AAAA public-only"})
+    return code == 0 and installed(case_dir, pub) and not leaks(out, pem)
+
+
 def case_switch_off(case_dir):
     pem, _ = make_key(case_dir)
     code, out = run_hook(case_dir, {"SABRY_SIGNING_KEY": base64.b64encode(pem).decode(),
@@ -168,6 +178,7 @@ CASES = [
     ("passphrase-key-not-used", case_passphrase),
     ("switch-off", case_switch_off),
     ("public-key-explained", case_public_key),
+    ("profile-key-beats-env", case_profile_key_beats_env),
     ("missing-ssh-keygen-explained", case_no_ssh_keygen),
 ]
 

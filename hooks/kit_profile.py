@@ -135,6 +135,9 @@ def bundle(out=None):
         ctx = existing_context_path()
         if ctx:
             z.write(ctx, "sabry-profile/profile.md")
+        key = os.path.join(user_dir(), "signing_key")
+        if os.path.isfile(key):
+            z.write(key, "sabry-profile/signing_key")
     return out
 
 
@@ -194,6 +197,22 @@ def main():
                           "user_file": kit_config.user_profile_path(),
                           "project_file": kit_config.project_profile_path(root)},
                          indent=2, ensure_ascii=False))
+        return 0
+    if cmd == "signing-key":
+        import base64
+        if len(args) < 2 or not os.path.isfile(args[1]):
+            print("usage: kit_profile.py signing-key <path to the PRIVATE key file>", file=sys.stderr)
+            return 2
+        raw = open(args[1], "rb").read()
+        if b"PRIVATE KEY" not in raw:
+            print("that file is not a private key (use the file without .pub)", file=sys.stderr)
+            return 2
+        dst = os.path.join(user_dir(), "signing_key")
+        os.makedirs(user_dir(), exist_ok=True)
+        with open(dst, "w") as fh:
+            fh.write(base64.b64encode(raw).decode())
+        os.chmod(dst, 0o600)
+        print(dst)
         return 0
     if cmd == "bundle":
         out = args[args.index("--out") + 1] if "--out" in args and len(args) > args.index("--out") + 1 else None

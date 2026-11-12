@@ -19,6 +19,9 @@ platform's own key, which GitHub only accepts for its noreply address, not the o
 
 The key is never printed; only its SHA256 fingerprint is.
 
+Key sources, first found wins: the profile (`~/.agents/signing_key`, or `signing_key` in
+the sabry-profile skill synced from claude.ai, added with `kit_profile.py signing-key`),
+then SABRY_SIGNING_KEY. In a cloud session without ssh-keygen it installs openssh-client.
 Switch: settings.git_signing (default on). Wired to: SessionStart, after git-identity.
 """
 import base64
@@ -118,6 +121,47 @@ def install(key, email):
     return fingerprint(pub_path) or "unknown"
 
 
+PROFILE_KEY_FILE = "signing_key"
+
+
+def profile_key():
+    """The signing key carried by the owner's profile, so it follows the owner to every
+    machine and cloud environment with no per-environment variable: ~/.agents/signing_key
+    locally, or `signing_key` inside the sabry-profile skill synced from claude.ai."""
+    candidates = [os.path.join(os.path.expanduser("~"), ".agents", PROFILE_KEY_FILE)]
+    if kit_config:
+        d = kit_config.profile_skill_dir()
+        if d:
+            candidates.append(os.path.join(d, PROFILE_KEY_FILE))
+    for path in candidates:
+        try:
+            with open(path, encoding="utf-8") as fh:
+                value = fh.read().strip()
+            if value:
+                return value, "the profile's signing_key"
+        except OSError:
+            continue
+    return "", ""
+
+
+def install_ssh_keygen():
+    """Cloud images may lack openssh-client; as root with apt-get, install it once instead
+    of asking for a setup script in every environment."""
+    if not os.environ.get("CLAUDE_CODE_REMOTE") or shutil.which("apt-get") is None:
+        return False
+    if hasattr(os, "geteuid") and os.geteuid() != 0:
+        return False
+    for cmd in (["apt-get", "install", "-y", "-q", "openssh-client"],
+                ["sh", "-c", "apt-get update -q && apt-get install -y -q openssh-client"]):
+        try:
+            subprocess.run(cmd, capture_output=True, timeout=150)
+        except Exception:
+            pass
+        if shutil.which("ssh-keygen"):
+            return True
+    return False
+
+
 def main():
     try:
         payload = json.load(sys.stdin)
@@ -126,28 +170,29 @@ def main():
     if not isinstance(payload, dict):
         payload = {}
 
-    raw = os.environ.get(VARIABLE, "").strip()
+    raw, source = profile_key()
+    if not raw:
+        raw, source = os.environ.get(VARIABLE, "").strip(), VARIABLE
     if not raw:
         return 0
     if shutil.which("git") is None:
         return 0
     if kit_config and not kit_config.gate("git_signing", payload):
         return 0
-    if shutil.which("ssh-keygen") is None:
-        print(f"[git-signing] ssh-keygen is not installed here, so {VARIABLE} cannot be used and commits "
-              "are not signed with the owner's key. Install openssh-client (in a cloud environment, add "
-              "`apt-get install -y openssh-client` to its setup script).")
+    if shutil.which("ssh-keygen") is None and not install_ssh_keygen():
+        print(f"[git-signing] ssh-keygen is not installed here and could not be installed, so the signing "
+              "key cannot be used and commits are not signed with the owner's key. Install openssh-client.")
         return 0
     if raw.startswith(("ssh-", "ecdsa-", "sk-ssh-", "sk-ecdsa-")):
-        print(f"[git-signing] {VARIABLE} holds a PUBLIC key; it needs the PRIVATE key, base64 on one line "
+        print(f"[git-signing] {source} holds a PUBLIC key; it needs the PRIVATE key, base64 on one line "
               "(`base64 -w0 ~/.ssh/<key>`, on macOS `base64 -i ~/.ssh/<key>`). The public half goes to "
               "GitHub → Settings → SSH and GPG keys → New SSH key → type Signing Key. Commits are not signed.")
         return 0
 
     key = decode(raw)
     if key is None:
-        print(f"[git-signing] {VARIABLE} is not an OpenSSH private key (base64 or PEM); "
-              "commits are not signed. Fix the variable in the environment settings.")
+        print(f"[git-signing] {source} is not an OpenSSH private key (base64 or PEM); "
+              "commits are not signed.")
         return 0
     email = git("config", "--global", "user.email")
     try:

@@ -84,7 +84,7 @@
 | `doctor.py brief` | SessionStart | مرة في اليوم: لو فيه تعارض خطير مع الكيت بيظهر للمستخدم سطر يقترح `/sabry-kit:kit-doctor` | لا |
 | `project-brief.py` | SessionStart | ملخص صغير (≤1.5KB) من غير موديل: الـ stack من الـ manifests، وأوامر test/typecheck/lint/build، والفولدرات، وحالة git، و"الجاي/مفتوح" من آخر `Plan/Progress` | لا |
 | `git-identity.py` | SessionStart | لو هوية git فاضية أو AI (زي `Claude <noreply@anthropic.com>` في جلسات الكلاود): يحط `git_name`/`git_email` من الـ profile، ومابيلمسش هوية شخص حقيقي أبداً. ولو الـ profile مفيهوش هوية، بيطلب من الـ agent يسأل المالك | لا |
-| `git-signing.py` | SessionStart | لو `SABRY_SIGNING_KEY` موجود (المفتاح الخاص OpenSSH بـ base64 في سطر واحد): بيكتبه في `~/.ssh/sabry_signing` (0600) ويطلّع النص العام ويظبط git على `gpg.format ssh` و`commit.gpgsign` و`tag.gpgsign` و`allowed_signers` للإيميل. المفتاح عمره ما بيتطبع، الـ fingerprint بس. لو المتغير مش موجود بيسكت، ولو مش مفتاح صالح أو عليه passphrase بيقول كده ومابيلمسش git. المفتاح العام بيتضاف في GitHub مرة واحدة كـ Signing Key | لا |
+| `git-signing.py` | SessionStart | بيوقّع الـ commits بمفتاحك. المفتاح بيتقري من **الـ profile** (`~/.agents/signing_key`، أو `signing_key` جوه skill `sabry-profile` المتزامنة من claude.ai) فبيوصل لكل جهاز وكل بيئة من غير إعداد، وإلا من `SABRY_SIGNING_KEY`. لو `ssh-keygen` مش موجود في جلسة سحابية بيسطّبه لوحده. المفتاح عمره ما بيتطبع، الـ fingerprint بس | لا |
 | `inject-rules.py --late` | UserPromptSubmit | لو الجلسة بدأت قبل ما الـ profile يتزامن من claude.ai: يحقنه مع أول رسالة، مرة واحدة | لا |
 | `inject-rules.py` | SessionStart | يحقن `rules/*.md` في السياق (لو مش محمّلة أصلاً من `~/.claude/rules`) | لا |
 | `maintain-note.py` | SessionStart | تذكير مرة في اليوم بالصيانة الأسبوعية | لا |
