@@ -204,7 +204,7 @@ def main():
         print(f"[git-signing] {VARIABLE} could not be read by ssh-keygen (a passphrase?); "
               "commits are not signed.")
         return 0
-    print(f"[git-signing] Commits are signed with the key from {VARIABLE} ({found}).")
+    print(f"[git-signing] Commits are signed with the key from {source} ({found}).")
     return 0
 
 
