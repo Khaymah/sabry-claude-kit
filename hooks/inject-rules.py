@@ -108,12 +108,50 @@ def rule_chunks(settings):
     return chunks
 
 
+def pending_marker(session_id):
+    safe = "".join(c for c in str(session_id or "") if c.isalnum() or c in "-_")[:64]
+    return os.path.join(kit_config.home(), kit_config.STORAGE_DIR, "state", f"profile-pending-{safe}") if safe else None
+
+
+def late(payload):
+    """UserPromptSubmit: the profile skill can finish syncing from claude.ai after
+    SessionStart ran. If this session started without a profile and one exists now,
+    inject it once and drop the marker."""
+    marker = pending_marker(payload.get("session_id"))
+    if not marker or not os.path.isfile(marker):
+        return 0
+    root = kit_config.project_root(payload.get("cwd"))
+    if not kit_config.has_profile(root):
+        return 0
+    try:
+        os.remove(marker)
+    except OSError:
+        pass
+    text = kit_profile.render(kit_config.load_profile(root), True)
+    note = ("The owner's profile finished syncing after this session started. It replaces the earlier "
+            "'first-run setup not done' note: do not suggest kit-setup.\n\n")
+    print(json.dumps({"hookSpecificOutput": {"hookEventName": "UserPromptSubmit",
+                                             "additionalContext": note + text}}))
+    return 0
+
+
 def main():
     try:
         payload = read_payload()
+        if "--late" in sys.argv[1:]:
+            return late(payload)
         root = kit_config.project_root(payload.get("cwd"))
         profile = kit_config.load_profile(root)
-        parts = [kit_profile.render(profile, kit_config.has_profile(root))]
+        found = kit_config.has_profile(root)
+        if not found:
+            marker = pending_marker(payload.get("session_id"))
+            if marker:
+                try:
+                    os.makedirs(os.path.dirname(marker), exist_ok=True)
+                    open(marker, "w").close()
+                except OSError:
+                    pass
+        parts = [kit_profile.render(profile, found)]
         if os.environ.get("SABRY_KIT_FORCE_INJECT") == "1" or not native_rules_present():
             chunks = rule_chunks(profile["settings"])
             if chunks:

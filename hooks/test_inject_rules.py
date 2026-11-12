@@ -76,6 +76,26 @@ class InjectRulesTest(unittest.TestCase):
             os.makedirs(os.path.join(d, "rules"))
             self.assertIn("Comment discipline", ctx_of(run(d)[1]))
 
+    def test_profile_that_syncs_late_is_injected_on_first_prompt(self):
+        with tempfile.TemporaryDirectory() as d:
+            env = {k: v for k, v in os.environ.items() if not k.startswith("SABRY_KIT_")}
+            env.update(CLAUDE_CONFIG_DIR=d, HOME=d, USERPROFILE=d)
+            start = json.dumps({"session_id": "s-late", "cwd": d})
+            p = subprocess.run([sys.executable, HOOK], env=env, input=start, capture_output=True,
+                               text=True, encoding="utf-8", timeout=60)
+            self.assertIn("first-run setup not done", ctx_of(p.stdout))
+            late = lambda: subprocess.run([sys.executable, HOOK, "--late"], env=env, input=start,
+                                          capture_output=True, text=True, encoding="utf-8", timeout=60).stdout.strip()
+            self.assertEqual(late(), "", "still no profile: nothing to add")
+            skill = os.path.join(d, "skills", "synced", "b", "sabry-profile")
+            os.makedirs(skill)
+            with open(os.path.join(skill, "profile.json"), "w") as fh:
+                json.dump({"name": "Synced"}, fh)
+            out = json.loads(late())["hookSpecificOutput"]
+            self.assertEqual(out["hookEventName"], "UserPromptSubmit")
+            self.assertIn("Synced", out["additionalContext"])
+            self.assertEqual(late(), "", "injected once")
+
     def test_path_scoped_rule_is_a_pointer_not_the_body(self):
         rules = os.path.join(os.path.dirname(os.path.dirname(HOOK)), "rules")
         with open(os.path.join(rules, "framework-gotchas.md"), encoding="utf-8") as fh:

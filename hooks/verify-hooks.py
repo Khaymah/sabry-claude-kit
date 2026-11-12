@@ -156,6 +156,8 @@ def test_registration():
     check("hooks.json يُحلَّل", True)
     check("enforce-commit-style مسجَّل (PreToolUse)", "enforce-commit-style" in blob)
     check("enforce-comment-discipline مسجَّل (PreToolUse)", "enforce-comment-discipline" in blob)
+    check("enforce-commit-style على أدوات GitHub/GitLab في الـ MCP", "mcp__.*(github" in blob)
+    check("inject-rules --late مسجَّل (UserPromptSubmit)", " --late" in blob)
     check("code-review-graph update مسجَّل (PostToolUse)", "code-review-graph update" in blob)
     check("team-review-reminder مسجَّل (Stop)", "team-review-reminder" in blob)
     check("لقطة الأساس مسجَّلة (SessionStart --baseline)", "--baseline" in blob,
