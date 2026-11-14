@@ -373,6 +373,7 @@ def main():
     test_suite("👤 الـ profile والحقن", "test_kit_config.py")
     test_suite("💉 inject-rules", "test_inject_rules.py")
     test_suite("🩺 doctor", "test_doctor.py")
+    test_suite("🧩 التثبيت في Codex و Kimi", "test_kit_install.py")
     test_suite("📊 عدّاد التوكنز", "test_usage.py")
     test_suite("📏 حد القراءة + تذكير التحقق", "test_budget_and_verify.py")
     test_suite("🧭 ملخص المشروع", "test_project_brief.py")

@@ -3,6 +3,7 @@ name: ui-ux
 description: UI and UX design and review - component, page or flow, accessibility (WCAG AA), RTL, the four states (Empty/Loading/Error/Success), design tokens. Outputs a Design Proposal or UX Review, no code. Keywords - UI design, UX review, user flow, wireframe, accessibility, a11y, RTL, design system, component spec, onboarding, تصميم, واجهة
 tools: Read, Grep, Glob, Write, Edit, WebSearch
 model: sonnet
+tier: balanced
 memory: project
 ---
 # 🎨 Senior UI/UX — sabry-kit Agent

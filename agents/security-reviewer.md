@@ -3,6 +3,7 @@ name: security-reviewer
 description: Audits code for security vulnerabilities — authn/authz gaps, injection, secret exposure, SSRF, insecure deserialization, and unsafe defaults. Call this whenever a change touches authentication, authorization, secrets, user input, file paths, external requests, payments, or personal data — and before shipping anything internet-facing. Reports findings; it cannot edit files.
 tools: Read, Grep, Glob, Bash
 model: sonnet
+tier: strong
 color: red
 memory: project
 ---

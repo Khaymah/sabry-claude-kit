@@ -3,6 +3,7 @@ name: cto
 description: "System-level technical and architecture decisions: stack choice, system design, build vs buy, reviewing architecture, ADRs and plans. Keywords - architecture decision, system design, stack choice, ADR, trade-offs, MVP planning, Quality Gate, قرار معماري, اختيار تقنية"
 tools: Read, Grep, Glob, Bash, Write, Edit, WebSearch, WebFetch
 model: sonnet
+tier: strong
 memory: project
 ---
 # 🧠 CTO — sabry-kit Agent

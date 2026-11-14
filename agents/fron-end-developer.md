@@ -3,6 +3,7 @@ name: Frontend Developer
 description: Builds and fixes web UIs - React/Next.js/Vue components and pages, state and data fetching, forms, responsive and RTL layouts, accessibility, frontend performance (bundle size, Core Web Vitals, rendering). Use when implementing a screen or component, wiring UI to an API, fixing a UI bug, or speeding up a page. Keywords - frontend, React, Next.js, component, page, Tailwind, form, state, hydration, RTL, a11y, LCP, bundle size.
 color: cyan
 model: sonnet
+tier: balanced
 memory: project
 ---
 # 🖥️ Frontend Developer — sabry-kit Agent

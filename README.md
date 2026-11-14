@@ -236,11 +236,35 @@ New-Item -ItemType SymbolicLink -Force -Path "$HOME\.claude\rules"         -Targ
 - **`agents/` و`skills/` و`hooks/`:** ما تعملش لهم symlink، وإلا كل حاجة هتظهر مرتين، و`kit-doctor` هينبّهك.
 - **الـ hooks:** مابتشتغلش من الـ symlinks، بتيجي من الـ plugin بس.
 
-### Codex · Gemini CLI · Cursor · غيرهم
+### Codex CLI و Kimi Code CLI (كل أداة لوحدها)
+
+سكربت واحد بيثبّت الكيت في الأداة بصيغتها. محتاج نسخة محلية من الكيت و Python:
+
+```bash
+python3 ~/sabry-claude-kit/hooks/kit_install.py --target codex
+```
+
+```bash
+python3 ~/sabry-claude-kit/hooks/kit_install.py --target kimi
+```
+
+| بيتثبّت | Codex CLI | Kimi Code CLI |
+|---|---|---|
+| التعليمات + الـ profile | بلوك جوه `~/.codex/AGENTS.md` | بلوك جوه `~/.kimi-code/AGENTS.md` |
+| الـ skills | `~/.agents/skills/` (مشترك) | `~/.agents/skills/`، وتتنادى بـ `/skill:<name>` |
+| الـ agents | `~/.codex/agents/*.toml` | `~/.kimi-code/agents/sabry-kit/*.md` |
+
+- **محتواك مابيتلمسش:** في `AGENTS.md` الكيت بيكتب بين علامتين بس، وأي skill أو agent بنفس الاسم عندك مابيتكتبش فوقه.
+- **تجربة من غير كتابة:** `--dry-run`. **إلغاء التثبيت:** `--uninstall` بيشيل اللي الكيت كتبه بس.
+- **بعد أي تحديث للكيت أو للـ profile:** شغّل نفس الأمر تاني.
+- **الموديلات:** كل agent ليه مستوى (`fast` · `balanced` · `strong`). الافتراضي موديل الأداة، ولو عايز موديل معيّن لمستوى: `"providers": {"codex": {"tiers": {"strong": "<model>"}}}` في الـ profile.
+- **الـ hooks لسه مش بتتثبّت تلقائياً** (منع توقيع الـ AI، فحص الأسرار، الذاكرة جوه المشروع): القواعد مكتوبة في `AGENTS.md` بس مش مفروضة بالقوة. Codex تقدر تربطه يدوي من [hooks/README.md](hooks/README.md#8-أدوات-تانية-codex--gemini-cli--cursor)، و Kimi في مرحلة جاية.
+- **GLM:** مالوش CLI رسمي؛ بيتشغّل من Codex CLI أو أدوات تانية، فبياخد الكيت من تثبيت الأداة دي.
+
+### Gemini CLI · Cursor · غيرهم
 
 | الأداة | التعليمات | الـ hooks |
 |---|---|---|
-| Codex CLI | `cp ~/sabry-claude-kit/CLAUDE.md ~/.codex/AGENTS.md` | `~/.codex/hooks.json` بنفس شكل Claude Code |
 | Gemini CLI | `cp ~/sabry-claude-kit/CLAUDE.md ~/.gemini/GEMINI.md` | `~/.gemini/settings.json` عن طريق `adapt.py gemini` |
 | Cursor | انسخ `rules/` لـ `.cursor/rules/` | `~/.cursor/hooks.json` عن طريق `adapt.py cursor` |
 | Windsurf · Copilot · غيرهم | انسخ `CLAUDE.md` لملف التعليمات بتاع الأداة | فحص الأسرار شغال عن طريق الـ git pre-commit |

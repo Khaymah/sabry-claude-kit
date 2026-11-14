@@ -3,6 +3,7 @@ name: code-reviewer
 description: "Read-only code review (Senior-Engineer Review Mode): strengths, Nits, Discussion, Blockers, verdict. For a diff, PR or files; never edits. Keywords - code review, review PR, review diff, refactor suggestions, performance review, test coverage, مراجعة كود"
 tools: Read, Grep, Glob, Bash
 model: sonnet
+tier: balanced
 color: yellow
 memory: project
 ---

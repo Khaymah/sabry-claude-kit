@@ -3,6 +3,7 @@ name: senior-engineer
 description: Implements code to the owner's standards on explicit assignment - features, fixes, tests, scoped refactors. Follows the matching Stack file, PascalCase naming, 600-line cap, runs typecheck before declaring done. Keywords - implement, write code, fix bug, add tests, refactor, migration, endpoint, component, نفّذ, كود, إصلاح
 tools: Read, Edit, Write, Bash, Grep, Glob
 model: sonnet
+tier: strong
 memory: project
 ---
 # 👨‍💻 Senior Software Engineer — sabry-kit Agent

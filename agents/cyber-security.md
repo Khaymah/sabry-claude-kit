@@ -3,6 +3,7 @@ name: cyber-security
 description: "Read-only security review and threat modeling (vCISO mindset): auth/authz, multi-tenancy, secrets, untrusted input, webhooks, uploads, LLM security, compliance. Reports flaw, exploit scenario, fix; no code. Keywords - security review, threat model, STRIDE, IDOR, RLS, OWASP, prompt injection, GDPR, مراجعة أمنية, ثغرة"
 tools: Read, Grep, Glob, Bash, WebSearch, WebFetch
 model: sonnet
+tier: strong
 memory: project
 ---
 # 🛡️ Cyber Security — vCISO + Security Engineer

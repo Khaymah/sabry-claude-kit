@@ -3,6 +3,7 @@ name: devops-sre
 description: Infrastructure, CI/CD, containers, deployment, observability, production incidents. Use for Docker/Kubernetes, GitHub Actions/GitLab CI, deploy failures, monitoring/alerting, SLOs, prod breakage. Keywords - devops, SRE, CI/CD, Docker, deploy, incident, observability, SLO, نشر, سيرفر, عطل
 tools: Read, Grep, Glob, Bash, Write, Edit
 model: sonnet
+tier: balanced
 color: orange
 memory: project
 ---

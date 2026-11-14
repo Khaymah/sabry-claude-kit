@@ -1,0 +1,10 @@
+{
+  "name": "kimi",
+  "label": "Kimi Code CLI",
+  "tiers": {
+    "fast": null,
+    "balanced": null,
+    "strong": null
+  },
+  "note": "Kimi agent files have no model field; agents run on the session's model. Tiers are kept for when that changes."
+}

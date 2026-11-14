@@ -1,6 +1,6 @@
 # خطة: كيت يشتغل مع أكتر من مزوّد AI، وأذكى في التنفيذ
 
-- **التاريخ:** 2026-11-14 · **الحالة:** مستنية موافقة المالك · **الإصدار المستهدف:** 0.3.0
+- **التاريخ:** 2026-11-14 · **الحالة:** معتمدة · المرحلة 1 خلصت (2026-11-14) · مستنية مراجعة المالك قبل المرحلة 2 · **الإصدار المستهدف:** 0.3.0
 - **الطلب:** الكيت يشتغل كويس مع Claude و Codex و Kimi و GLM، ويبقى أذكى (مايكررش الغلط، ينسّق بين الـ agents، جودة تنفيذ أعلى، المهام الطويلة ماتتوهش)، مع 4 agents جداد.
 
 ## 1. الوضع الحالي
@@ -14,51 +14,47 @@
 | التنسيق بين الـ agents | يدوي. الجدول في `Roles/README.md` وصف مش تنفيذ |
 | المهام الطويلة | `Plan/Progress` + سطر "الجاي" في ملخص المشروع. مفيش خطة بمراحل بتتتابع |
 
-## 2. حقايق اتأكدت منها (2026-11-14)
+## 2. حقايق اتأكدت منها من الـ docs الرسمية (2026-11-14)
 
-كل مزوّد ليه طريقتين مختلفتين، ولازم الكيت يدعم الاتنين:
+**قرار المالك:** كل أداة تشتغل لوحدها بالكيت كامل. مفيش تشغيل مزوّد جوه أداة مزوّد تاني.
 
-| المزوّد | (أ) موديل جوه Claude Code | (ب) الـ CLI بتاعه |
-|---|---|---|
-| **GLM (Z.ai)** | endpoint متوافق مع Anthropic عن طريق `ANTHROPIC_BASE_URL`، وأسماء موديلات Claude بتتحوّل لموديلات GLM | مفيش CLI رسمي؛ بيتستخدم جوه Claude Code أو أدوات تانية |
-| **Kimi (Moonshot)** | `ANTHROPIC_BASE_URL=https://api.moonshot.ai/anthropic` + `ANTHROPIC_AUTH_TOKEN` | Kimi Code CLI: بيقرا `AGENTS.md`، وعنده skills و hooks و subagents بملفات YAML |
-| **Codex (OpenAI)** | — | Codex CLI: `AGENTS.md`، skills بصيغة `SKILL.md` في `.agents/skills/`، agents بملفات TOML في `.codex/agents/`، hooks بنفس شكل Claude Code |
+| | Claude Code | Codex CLI | Kimi Code CLI |
+|---|---|---|---|
+| التعليمات | حقن بالـ hook | `~/.codex/AGENTS.md` + `AGENTS.md` في المشروع | `~/.kimi-code/AGENTS.md` + `AGENTS.md` في المشروع |
+| الـ skills | plugin | `~/.agents/skills/` و `.agents/skills/` (`SKILL.md`) | `~/.agents/skills/` و `~/.kimi-code/skills/` (`SKILL.md`)، تتنادى بـ `/skill:<name>` |
+| الـ agents | `agents/*.md` | TOML في `~/.codex/agents/` (`name` · `description` · `developer_instructions` · `model`) | Markdown + frontmatter في `~/.kimi-code/agents/` (`name` kebab-case · `description` · `tools` · `disallowedTools`) |
+| الـ hooks | `hooks.json` | `~/.codex/hooks.json` بنفس الشكل ونفس مخرجات المنع | `[[hooks]]` في `~/.kimi-code/config.toml` أو من plugin؛ نفس مخرجات المنع. `SessionStart` مابيحقنش context، و`UserPromptSubmit` بيحقن |
+| الـ plugins | `.claude-plugin/plugin.json` | موجودة (الصيغة لسه ما اتراجعتش) | `.kimi-plugin/plugin.json`: skills · agents · hooks · commands، وتتسطّب من رابط GitHub |
 
-**نتيجة مهمة للطريقة (أ):** حسب docs Claude Code، الجلسة اللي بتدخل بـ `ANTHROPIC_AUTH_TOKEN` **مش بتزامن** الـ plugins ولا الـ skills من حساب claude.ai. يعني مع GLM أو Kimi جوه Claude Code:
-- الكيت لازم يتسطّب من الـ marketplace (مش المزامنة).
-- الـ profile ومفتاح التوقيع لازم يكونوا محليين في `~/.agents/` (الـ zip المرفوع مش هيوصل).
-
-**اللي لسه محتاج تأكيد من الـ docs الرسمية قبل تنفيذ كل adapter:** أسماء أحداث الـ hooks وصيغة ملف الـ agent في Kimi Code CLI، ومسار الـ agents وصيغتها في Codex، والـ base URL الحالي لـ GLM Coding Plan. المصادر اللي لقيتها أغلبها غير رسمي ومتضاربة في أرقام الإصدارات.
+- **GLM (Z.ai):** مالوش CLI رسمي. Z.ai بتوثّق تشغيله من Codex CLI و OpenCode و Pi و Crush و Claude Code. يعني دعمه بييجي من دعم الأداة اللي المالك بيشغّله منها (**قرار مفتوح**).
+- المصادر: [Codex customization](https://learn.chatgpt.com/docs/customization/overview) · [Codex subagents](https://learn.chatgpt.com/codex/agent-configuration/subagents) · [Kimi agents](https://www.kimi.com/code/docs/en/kimi-code-cli/customization/agents) · [Kimi hooks](https://www.kimi.com/code/docs/en/kimi-code-cli/customization/hooks.html) · [Kimi skills](https://www.kimi.com/code/docs/en/kimi-code-cli/customization/skills.html) · [Kimi plugins](https://www.kimi.com/code/docs/en/kimi-code-cli/customization/plugins.html).
 
 ## 3. التصميم
 
-### 3.1 مصدر واحد، وتصدير لكل أداة
+### 3.1 مصدر واحد، وتثبيت لكل أداة
 
-الكيت يفضل مكتوب مرة واحدة (rules · Roles · agents · skills · hooks)، وسكربت واحد يصدّره لكل أداة:
+الكيت يفضل مكتوب مرة واحدة، وسكربت واحد يثبّته في كل أداة بصيغتها:
 
 ```text
-python hooks/kit_install.py --target claude|codex|kimi [--project]
+python hooks/kit_install.py --target codex|kimi [--dry-run] [--uninstall]
 ```
 
-| الجزء | Claude Code | Codex CLI | Kimi Code CLI |
+| الجزء | Codex CLI | Kimi Code CLI | المرحلة |
 |---|---|---|---|
-| التعليمات + الـ profile | حقن بالـ hook (زي دلوقتي) | `AGENTS.md` مولّد (profile + القواعد المختصرة) | `AGENTS.md` مولّد |
-| الـ skills | plugin | نسخ لـ `~/.agents/skills/` (نفس صيغة `SKILL.md`) | نسخ لمجلد الـ skills بتاعه |
-| الـ agents | `agents/*.md` | تحويل لـ TOML | تحويل لـ YAML |
-| الـ hooks | `hooks.json` | `hooks.json` مولّد (نفس الشكل) | إعداد مولّد عن طريق `adapt.py kimi` |
+| التعليمات + الـ profile | بلوك مُدار جوه `~/.codex/AGENTS.md` | بلوك مُدار جوه `~/.kimi-code/AGENTS.md` | 1 |
+| الـ skills | نسخ لـ `~/.agents/skills/` (مشترك بين الأداتين) | نفسه | 1 |
+| الـ agents | TOML في `~/.codex/agents/` | Markdown في `~/.kimi-code/agents/sabry-kit/` | 1 |
+| الـ hooks | `~/.codex/hooks.json` | plugin لـ Kimi أو `[[hooks]]` | 6 · 7 |
 
-- الملفات المولّدة عليها علامة "generated by sabry-kit" عشان إعادة التثبيت تحدّثها من غير ما تلمس ملفات المستخدم.
-- `kit-doctor` يفحص كل أداة متسطّبة: هل الكيت متثبّت فيها؟ هل نسخته قديمة؟
+- محتوى المستخدم في `AGENTS.md` مابيتلمسش: الكيت بيكتب بين علامتين بس.
+- skill أو agent بنفس الاسم عند المستخدم ومش بتاع الكيت مابيتكتبش فوقه، وبيتقال في التقرير.
+- كل ملف اتكتب بيتسجّل، و`--uninstall` بيشيل اللي الكيت كتبه بس.
 
 ### 3.2 مستويات موديلات بدل أسماء (model tiers)
 
-الـ agents دلوقتي مكتوب فيها `model: sonnet`، والقواعد بتقول "sonnet للـ subagents". ده مالوش معنى مع GLM أو Codex.
-
-- كل agent يعلن مستوى: `fast` · `balanced` · `strong`.
-- ملف `providers/<name>.json` لكل مزوّد يربط كل مستوى بموديل، ويحدد إعدادات التشغيل (متغيّرات البيئة للطريقة (أ)، وأي أدوات مش متاحة).
-- المزوّد الحالي بيتحدد تلقائياً (من `ANTHROPIC_BASE_URL` أو من الأداة اللي شغالة)، وبيتكتب في ملخص أول الجلسة.
-- القواعد تتكلم بالمستويات مش بالأسماء.
-- `kit_profile.py provider <name>` يطبع متغيّرات البيئة المطلوبة للطريقة (أ)، من غير ما يخزّن أي مفتاح API.
+- كل agent يعلن `tier:` (`fast` · `balanced` · `strong`) جنب `model:` بتاع Claude.
+- `providers/<target>.json` يربط كل مستوى بموديل الأداة. القيمة الفاضية معناها "موديل الأداة الافتراضي"، والمالك يحدد موديلاته في الـ profile (`providers.<target>.tiers`).
+- الكيت مابيخزّنش أي مفتاح API.
 
 ### 3.3 التعلّم من التصحيحات (مايكررش الغلط)
 
@@ -113,13 +109,13 @@ skill اسمها `kit-orchestrate` (مش agent، لأن الـ subagent مايق
 
 | # | المرحلة | المخرجات | معيار القبول |
 |---|---|---|---|
-| 1 | model tiers + ملفات المزوّدين | `providers/*.json` · تعديل الـ agents والقواعد · كشف المزوّد | نفس الـ agent بيشتغل تحت Claude و GLM و Kimi جوه Claude Code؛ اختبارات للربط |
-| 2 | الـ agents الأربعة | 4 agents + 4 Roles | frontmatter صالح؛ حالة eval لكل واحد |
+| 1 | الأساس لكل الأدوات: tiers + `kit_install.py` (التعليمات · الـ skills · الـ agents) لـ Codex و Kimi | `providers/*.json` · `tier:` في الـ agents · `hooks/kit_install.py` | اختبارات على HOME مؤقت: تثبيت، إعادة تثبيت من غير تكرار، حفظ محتوى المستخدم، إلغاء تثبيت نضيف |
+| 2 | الـ agents الأربعة + دمج 3 أزواج متداخلة | 4 agents + 4 Roles · العدد 19 | frontmatter صالح؛ حالة eval لكل واحد |
 | 3 | الدروس | hooks التسجيل والعرض + الترقية | تصحيح في جلسة بيظهر كتنبيه في الجلسة اللي بعدها؛ اختبارات |
 | 4 | الخطط الطويلة | plan.md + hooks المتابعة و PreCompact | جلسة جديدة بتكمّل من أول بند مش متعلّم |
 | 5 | الـ orchestrator + معايير الجودة | `kit-orchestrate` + playbooks + معيار "خلصت" | حالات eval: feature كاملة بتعدّي بالتسلسل الصح |
-| 6 | التصدير لـ Codex | `kit_install.py --target codex` | بعد تأكيد الصيغ من docs الرسمية؛ اختبار على الملفات المولّدة |
-| 7 | التصدير لـ Kimi Code CLI | `--target kimi` + `adapt.py kimi` | نفس الشرط |
+| 6 | hooks الكيت في Codex CLI | `~/.codex/hooks.json` مولّد | القواعد المفروضة (commits · أسرار · كومنتات) بتمنع جوه Codex |
+| 7 | hooks الكيت في Kimi Code CLI + plugin لـ Kimi | `.kimi-plugin/plugin.json` + `adapt.py kimi` | نفس الشرط، والـ profile بيتحقن مع أول رسالة |
 | 8 | توثيق + 0.3.0 | README بالعربي والإنجليزي + جدول "إيه بيشتغل فين" | الروابط سليمة؛ `verify-hooks.py` كله ناجح |
 
 كل مرحلة: اختبارات + `verify-hooks.py` + push على `main` + ملخص.
@@ -133,11 +129,15 @@ skill اسمها `kit-orchestrate` (مش agent، لأن الـ subagent مايق
 | موديلات أضعف بتتجاهل قواعد | القواعد الحرجة مفروضة بالـ hooks مش بالنص؛ evals لكل مزوّد عند الحاجة |
 | كشف التصحيح بيغلط | بيطلب تسجيل درس بس، مابيمنعش حاجة. ومفتاح قفل في الـ profile |
 
-## 6. قرارات مستنية المالك
+## 6. القرارات
 
-1. **Kimi و GLM:** الأولوية للطريقة (أ) جوه Claude Code، ولا (ب) الـ CLI بتاع Kimi كمان؟
-2. **دمج الـ agents المتداخلة** (`security-reviewer`+`cyber-security` · `code-reviewer`+`senior-engineer` · `ux-reviewer`+`ui-ux`) عشان العدد يفضل قريب من 19 بدل 22؟
-3. **ترتيب المراحل:** زي الجدول، ولا المزوّدين (1 · 6 · 7) الأول؟
+| القرار | الحالة |
+|---|---|
+| كل أداة لوحدها بالكيت كامل، مش مزوّد جوه أداة تانية | ✅ المالك، 2026-11-14 |
+| دمج 3 أزواج agents متداخلة (العدد 19) | ✅ المالك |
+| ترتيب المراحل زي الجدول، والتنفيذ مرحلة مرحلة مع مراجعة | ✅ المالك |
+| GLM بيتشغّل من أنهي أداة (Codex CLI · OpenCode · غيرهم) | ⏳ مفتوح |
+| موديلات كل مستوى في Codex و Kimi | ⏳ مفتوح (الافتراضي: موديل الأداة) |
 
 ## 7. اللي مش في الخطة
 

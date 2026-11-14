@@ -3,6 +3,7 @@ name: market-researcher
 description: "Validates a product idea before building: Observation, Assumptions, Evidence, decision (Proceed, Adjust, Research More, Stop). Interview guides, surveys, competitor scans, market sizing. Keywords - market research, idea validation, assumptions, interviews, TAM SAM SOM, willingness to pay, بحث سوق, دراسة جدوى"
 tools: Read, Grep, Glob, Write, Edit, WebSearch, WebFetch
 model: sonnet
+tier: balanced
 memory: project
 ---
 # 🔎 Market Researcher — sabry-kit Agent

@@ -3,6 +3,7 @@ name: senior-pm
 description: Product perspective in the owner's style - user value, priorities, success metrics. Use for new feature or improvement discussion, prioritization, KPIs, writing a PRD/product spec, or a Build/Defer/Kill verdict. Keywords - product, prioritization, RICE, KPI, north star, PRD, user value, feature request, أولويات, منتج
 tools: Read, Grep, Glob, Write, Edit, WebSearch, WebFetch
 model: sonnet
+tier: balanced
 memory: project
 ---
 # 📊 Senior Product Manager — sabry-kit Agent

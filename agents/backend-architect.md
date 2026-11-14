@@ -3,6 +3,7 @@ name: backend-architect
 description: Designs and builds server-side systems - API design and contracts, service boundaries, data modelling and schema, auth/authz architecture, queues and background jobs, caching, scaling and reliability. Use for a new backend or service, an API or schema change, a migration plan, or a performance or scaling problem on the server. Keywords - backend, API design, REST, GraphQL, schema, microservices, queue, cache, rate limit, idempotency, multi-tenancy, scaling.
 color: blue
 model: sonnet
+tier: strong
 memory: project
 ---
 # 🏗️ Backend Architect — sabry-kit Agent

@@ -234,11 +234,35 @@ New-Item -ItemType SymbolicLink -Force -Path "$HOME\.claude\rules"         -Targ
 - **`agents/`, `skills/`, `hooks/`:** don't symlink them, or everything shows up twice (`kit-doctor` flags it).
 - **Hooks:** never run from symlinks; they come from the plugin only.
 
-### Codex · Gemini CLI · Cursor · others
+### Codex CLI and Kimi Code CLI (each tool on its own)
+
+One script installs the kit into the tool in its own format. Needs a local clone of the kit and Python:
+
+```bash
+python3 ~/sabry-claude-kit/hooks/kit_install.py --target codex
+```
+
+```bash
+python3 ~/sabry-claude-kit/hooks/kit_install.py --target kimi
+```
+
+| Installed | Codex CLI | Kimi Code CLI |
+|---|---|---|
+| Instructions + profile | a block inside `~/.codex/AGENTS.md` | a block inside `~/.kimi-code/AGENTS.md` |
+| Skills | `~/.agents/skills/` (shared) | `~/.agents/skills/`, invoked as `/skill:<name>` |
+| Agents | `~/.codex/agents/*.toml` | `~/.kimi-code/agents/sabry-kit/*.md` |
+
+- **Your content is untouched:** in `AGENTS.md` the kit writes only between two markers, and a skill or agent of the same name that is yours is never overwritten.
+- **Preview:** `--dry-run`. **Remove:** `--uninstall` deletes only what the kit wrote.
+- **After any kit or profile update:** run the same command again.
+- **Models:** each agent has a tier (`fast` · `balanced` · `strong`). The default is the tool's own model; to pin one: `"providers": {"codex": {"tiers": {"strong": "<model>"}}}` in the profile.
+- **Hooks are not installed automatically yet** (AI-attribution ban, secret scan, per-project memory): the rules are written in `AGENTS.md` but not enforced. Codex can be wired by hand from [hooks/README.md](hooks/README.md#8-أدوات-تانية-codex--gemini-cli--cursor); Kimi comes in a later phase.
+- **GLM:** has no official CLI; it runs from Codex CLI or other tools and gets the kit from that tool's install.
+
+### Gemini CLI · Cursor · others
 
 | Tool | Instructions | Hooks |
 |---|---|---|
-| Codex CLI | `cp ~/sabry-claude-kit/CLAUDE.md ~/.codex/AGENTS.md` | `~/.codex/hooks.json`, same shape as Claude Code |
 | Gemini CLI | `cp ~/sabry-claude-kit/CLAUDE.md ~/.gemini/GEMINI.md` | `~/.gemini/settings.json` through `adapt.py gemini` |
 | Cursor | copy `rules/` to `.cursor/rules/` | `~/.cursor/hooks.json` through `adapt.py cursor` |
 | Windsurf · Copilot · others | copy `CLAUDE.md` into the tool's instruction file | secret scan works through the git pre-commit hook |

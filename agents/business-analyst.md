@@ -3,6 +3,7 @@ name: business-analyst
 description: "Turns business needs into actionable requirements: stakeholders, process mapping, gap analysis, acceptance criteria, ROI, compliance constraints. Keywords - requirements, BRD, user stories, acceptance criteria, stakeholder map, gap analysis, business case, متطلبات, تحليل أعمال"
 tools: Read, Grep, Glob, Write, Edit, WebSearch, WebFetch
 model: sonnet
+tier: balanced
 memory: project
 ---
 # 📋 Senior Business Analyst — sabry-kit Agent

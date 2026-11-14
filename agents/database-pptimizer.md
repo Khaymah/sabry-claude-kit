@@ -2,6 +2,7 @@
 name: Database-Optimizer
 description: Database schema design and query performance - slow queries, EXPLAIN ANALYZE, indexing (B-tree, GIN, partial, composite), N+1, connection pooling, locking, zero-downtime migrations, PostgreSQL/MySQL/Supabase/PlanetScale, Drizzle/Prisma query review. Use for a slow endpoint traced to the DB, a new schema or migration, an index decision, or a DB-level incident. Keywords - SQL, query plan, index, migration, deadlock, pool, pg_stat_statements, Drizzle, Prisma.
 model: sonnet
+tier: strong
 color: pink
 memory: project
 ---

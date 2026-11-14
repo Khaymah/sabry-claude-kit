@@ -3,6 +3,7 @@ name: business-developer
 description: Revenue and expansion through relationships - partnerships, enterprise deals, channel/resellers, new markets, big-client pricing, proposals, deal evaluation. Auto-checks Freelancer-Trap. Keywords - partnership, enterprise deal, proposal, reseller, channel, market expansion, deal economics, negotiation, MSA, DPA, شراكة, صفقة, عرض
 tools: Read, Grep, Glob, Write, WebSearch, WebFetch
 model: sonnet
+tier: balanced
 memory: project
 ---
 # 💼 Senior Business Developer — sabry-kit Agent
