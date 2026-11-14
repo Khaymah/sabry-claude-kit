@@ -11,7 +11,7 @@ HOOK = os.path.join(os.path.dirname(os.path.abspath(__file__)), "inject-rules.py
 RULE_SWITCHES = {"deal-economics.md", "code-tools.md", "framework-gotchas.md"}
 
 
-def run(config_dir, force=False, profile=None):
+def run(config_dir, force=False, profile=None, args=()):
     env = {k: v for k, v in os.environ.items() if not k.startswith("SABRY_KIT_")}
     env.update(CLAUDE_CONFIG_DIR=config_dir, HOME=config_dir, USERPROFILE=config_dir)
     if profile is not None:
@@ -21,7 +21,7 @@ def run(config_dir, force=False, profile=None):
         env["SABRY_KIT_PROFILE"] = path
     if force:
         env["SABRY_KIT_FORCE_INJECT"] = "1"
-    out = subprocess.run([sys.executable, HOOK], env=env, input="{}", capture_output=True,
+    out = subprocess.run([sys.executable, HOOK] + list(args), env=env, input="{}", capture_output=True,
                          text=True, encoding="utf-8", timeout=60)
     return out.returncode, out.stdout.strip()
 
@@ -121,6 +121,29 @@ class InjectRulesTest(unittest.TestCase):
                 with open(os.path.join(rules, name), encoding="utf-8") as fh:
                     heading = next(l for l in fh if l.startswith("# "))
                 self.assertIn(heading.strip(), ctx, name)
+
+    def test_parts_stay_under_the_hook_output_cap_and_cover_everything(self):
+        with tempfile.TemporaryDirectory() as d:
+            whole = ctx_of(run(d)[1])
+            parts = []
+            for n in range(1, 5):
+                out = run(d, args=("--part", str(n)))[1]
+                if out:
+                    parts.append(ctx_of(out))
+            self.assertEqual(run(d, args=("--part", "9"))[1], "")
+        self.assertGreater(len(whole), 10000, "the split exists because the whole is over the cap")
+        self.assertGreater(len(parts), 1)
+        for text in parts:
+            self.assertLess(len(text), 10000)
+        self.assertTrue(parts[0].startswith("# ⚙️ sabry-kit"))
+        self.assertIn("part 2 of", parts[1])
+        joined = "\n".join(parts)
+        for heading in [l for l in whole.splitlines() if l.startswith("# ")]:
+            self.assertIn(heading, joined)
+        import json as _json
+        hooks = _json.load(open(os.path.join(os.path.dirname(HOOK), "hooks.json"), encoding="utf-8"))
+        registered = [h["command"] for g in hooks["hooks"]["SessionStart"] for h in g["hooks"] if "inject-rules.py" in h["command"]]
+        self.assertGreaterEqual(len(registered), len(parts), "every part must be registered in hooks.json")
 
 
 if __name__ == "__main__":

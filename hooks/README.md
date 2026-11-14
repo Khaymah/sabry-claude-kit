@@ -88,7 +88,7 @@
 | `git-identity.py` | SessionStart | لو هوية git فاضية أو AI (زي `Claude <noreply@anthropic.com>` في جلسات الكلاود): يحط `git_name`/`git_email` من الـ profile، ومابيلمسش هوية شخص حقيقي أبداً. ولو الـ profile مفيهوش هوية، بيطلب من الـ agent يسأل المالك | لا |
 | `git-signing.py` | SessionStart | بيوقّع الـ commits بمفتاحك. المفتاح بيتقري من **الـ profile** (`~/.agents/signing_key`، أو `signing_key` جوه skill `sabry-profile` المتزامنة من claude.ai) فبيوصل لكل جهاز وكل بيئة من غير إعداد، وإلا من `SABRY_SIGNING_KEY`. لو `ssh-keygen` مش موجود في جلسة سحابية بيسطّبه لوحده. المفتاح عمره ما بيتطبع، الـ fingerprint بس | لا |
 | `inject-rules.py --late` | UserPromptSubmit | لو الجلسة بدأت قبل ما الـ profile يتزامن من claude.ai: يحقنه مع أول رسالة، مرة واحدة | لا |
-| `inject-rules.py` | SessionStart | يحقن `rules/*.md` في السياق (لو مش محمّلة أصلاً من `~/.claude/rules`) | لا |
+| `inject-rules.py --part 1..4` | SessionStart | يحقن الـ profile و `rules/*.md` في السياق (لو مش محمّلة أصلاً من `~/.claude/rules`). متقسّم على 4 نداءات لأن Claude Code بيقصّ أي ناتج hook فوق 10,000 حرف لأول 2,000 بس | لا |
 | `maintain-note.py` | SessionStart | تذكير مرة في اليوم بالصيانة الأسبوعية | لا |
 | `team-review-reminder.py --baseline` | SessionStart | يصوّر حالة الشجرة عشان يفرّق بين شغل الجلسة والتعديلات القديمة | لا |
 | `team-review-reminder.py` | Stop | لو كود اتغيّر في الجلسة: يقترح `/team-review` بالـ reviewers المناسبين، مرة واحدة لكل change-set | لا |

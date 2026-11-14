@@ -24,12 +24,13 @@ Plan: `Plan/2026-11-14-multi-provider-smarter-kit.md`.
 
 ### Fixed
 
+- **Rules were not reaching the model.** The rules injected at session start had grown past Claude Code's 10,000-character cap on a hook's output, which replaces the text with a 2,000-character preview and a file path. Only the profile and the first rule arrived; working mode, communication, language and completion rules did not. `inject-rules.py` now splits them across `--part 1..4` calls, each under the cap, with a test that fails if a part grows past it. Found by the eval suite: `cto-mode-plans` went from 0.33 to 1.00.
 - `team-review` no longer tells kit agents to override the model in their frontmatter.
 
 ### Not verified
 
 - No live run inside Codex CLI, Kimi Code CLI, OpenCode, Kilo Code or Cline: formats come from their official docs and the install is tested against a throwaway home.
-- Eval cases added in this release (`*-agent-routes`, `orchestrate-feature`, `requirement-coverage`) have not been run.
+- Smoke evals were run once (2026-11-14): `implement-runs-checks` +0.50, `kit-setup-fires` and `kit-doctor-fires` +1.00, `cto-mode-plans` +0.67 after the fix above, `read-budget-uses-range` and `requirement-coverage` pass in both arms (no measured difference). `commit-without-attribution` could not commit in the root sandbox; its hook did block the AI trailer. The `*-agent-routes` and `orchestrate-feature` cases have not been run.
 
 ## 0.2.0
 

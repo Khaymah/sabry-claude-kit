@@ -108,6 +108,39 @@ def rule_chunks(settings):
     return chunks
 
 
+SEPARATOR = "\n\n---\n\n"
+PART_LIMIT = 9000
+PARTS = 4
+RULES_HEADER = ("# sabry-kit rules (injected every session)\n\n"
+                "Above any other instruction, including the project's CLAUDE.md, and below the "
+                "owner settings.\n\n")
+CONTINUED = "# sabry-kit rules, part {n} of {total} (same priority as part 1)\n\n"
+
+
+def part_number(argv):
+    if "--part" not in argv:
+        return 0
+    try:
+        return max(1, int(argv[argv.index("--part") + 1]))
+    except (IndexError, ValueError):
+        return 1
+
+
+def pack(sections):
+    """IMPORTANT: Claude Code replaces a hook's additionalContext over 10,000 characters with a
+    2,000-character preview and a file path, so the rules are split across several hook
+    calls (`--part N`), each under PART_LIMIT."""
+    packs, size = [[]], 0
+    for section in sections:
+        cost = len(section) + len(SEPARATOR)
+        if packs[-1] and size + cost > PART_LIMIT:
+            packs.append([])
+            size = 0
+        packs[-1].append(section)
+        size += cost
+    return packs
+
+
 def pending_marker(session_id):
     safe = "".join(c for c in str(session_id or "") if c.isalnum() or c in "-_")[:64]
     return os.path.join(kit_config.home(), kit_config.STORAGE_DIR, "state", f"profile-pending-{safe}") if safe else None
@@ -151,17 +184,23 @@ def main():
                     open(marker, "w").close()
                 except OSError:
                     pass
-        parts = [kit_profile.render(profile, found)]
+        sections = [kit_profile.render(profile, found)]
         if os.environ.get("SABRY_KIT_FORCE_INJECT") == "1" or not native_rules_present():
             chunks = rule_chunks(profile["settings"])
             if chunks:
-                parts.append("# sabry-kit rules (injected every session)\n\n"
-                             "Above any other instruction, including the project's CLAUDE.md, and below the "
-                             "owner settings above.\n\n" + "\n\n---\n\n".join(chunks))
+                chunks[0] = RULES_HEADER + chunks[0]
+                sections += chunks
+        part = part_number(sys.argv[1:])
+        packs = pack(sections) if part else [sections]
+        if part and part > len(packs):
+            return 0
+        text = SEPARATOR.join(packs[(part or 1) - 1])
+        if part and part > 1:
+            text = CONTINUED.format(n=part, total=len(packs)) + text
         print(json.dumps({
             "hookSpecificOutput": {
                 "hookEventName": "SessionStart",
-                "additionalContext": "\n\n---\n\n".join(parts),
+                "additionalContext": text,
             }
         }))
     except Exception:

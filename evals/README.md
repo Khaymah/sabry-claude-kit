@@ -15,11 +15,11 @@ Measures what the kit adds over plain Claude Code. Every case runs **with** the 
 | `orchestrate-feature` | A three-ask feature reaches `kit-orchestrate`, agents are launched through one handoff file, and all three asks are closed (concurrency with a real mechanism) | orchestration |
 | `requirement-coverage` | Three asks, one impossible: two are implemented and the third is reported as not done, not dropped or faked | smoke · quality |
 | `kit-setup-fires` · `kit-doctor-fires` | The request reaches the kit's skill, not a built-in or another plugin | smoke · skills |
-| `reply-language` | No profile → replies in Arabic and suggests `kit-setup` | smoke · language |
+| `reply-language` | No profile → answers the question and suggests `kit-setup` | smoke · language |
 
 ## Run
 
-Requires Claude Code ≥ 2.1.269. Cases that use Bash need the sandbox (macOS, Linux, or WSL2 on Windows). Runs use your normal credentials and count against your plan.
+Requires Claude Code ≥ 2.1.269. Cases that use Bash need the sandbox (macOS, Linux, or WSL2 on Windows; on Linux install `bubblewrap` and `socat`, otherwise every run is refused and reported as a score of 0 at $0.00). Run as a normal user: as root the sandbox keeps `.git` read-only, so `commit-without-attribution` cannot commit. Runs use your normal credentials and count against your plan.
 
 Cheap check (smoke cases, one run per arm):
 

@@ -1,5 +1,5 @@
 ---
-description: Without a profile the kit replies in its default language (Egyptian Arabic) and suggests kit-setup.
+description: Without a profile the kit suggests kit-setup once and still answers the question (in the language the user wrote in).
 tags: [smoke, language]
 max_turns: 3
 ---

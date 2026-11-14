@@ -1,0 +1,125 @@
+{
+  "schemaVersion": 1,
+  "claudeVersion": "2.1.325",
+  "startedAt": "2026-11-14T12:51:16.419Z",
+  "durationSeconds": 38,
+  "costUsd": 0.12806739999999997,
+  "partial": false,
+  "suite": {
+    "root": "/home/user/sabry-claude-kit",
+    "ablation": "none",
+    "caseFilter": "cto-mode-plans",
+    "threshold": 1,
+    "concurrency": 1,
+    "plugins": [
+      {
+        "name": "sabry-kit",
+        "version": "0.3.0",
+        "path": "/home/user/sabry-claude-kit"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "cto-mode-plans",
+      "dir": "evals/cto-mode-plans",
+      "source": "mixed",
+      "promptMarkdown": "I want a /health endpoint in this API that also reports whether the database is reachable.",
+      "runsPerCase": 3,
+      "timeoutSeconds": 300,
+      "maxTurns": 8,
+      "graders": [
+        {
+          "name": "no-edit",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Edit",
+            "min": 0,
+            "max": 0,
+            "arm": "both"
+          }
+        },
+        {
+          "name": "no-write",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Write",
+            "min": 0,
+            "max": 0,
+            "arm": "both"
+          }
+        },
+        {
+          "name": "plan",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "PASS if the reply proposes a concrete plan for the endpoint (route, response shape, how the database check works or what it needs) and asks for the go-ahead or a decision before implementing.\nFAIL if it says the code was written or implemented, or gives no plan.",
+          "config": {
+            "criteria": "PASS if the reply proposes a concrete plan for the endpoint (route, response shape, how the database check works or what it needs) and asks for the go-ahead or a decision before implementing.\nFAIL if it says the code was written or implemented, or gives no plan.",
+            "focus": "last_message"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 0.3333333333333333,
+            "passed": false,
+            "turns": 8,
+            "costUsd": 0.12806739999999997,
+            "judgeCostUsd": 0.0004223,
+            "durationSeconds": 38,
+            "startedAt": "2026-11-14T12:51:16.488Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-iZLp9s/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "no-edit",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Edit called 0x (expected 0..0)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-write",
+                "passed": false,
+                "weight": 1,
+                "explanation": "Write called 3x (expected 0..0)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "plan",
+                "passed": false,
+                "weight": 1,
+                "explanation": "judge votes: FAIL FAIL FAIL",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  false,
+                  false,
+                  false
+                ],
+                "evidence": "**الفحوصات:** مشغّلتش `npm run test` بعد آخر تعديل. `node_modules` مش موجودة، فاستيراد `hono` هيفشل، والـ sandbox مفيهوش تثبيت. مشغّلتش typecheck ولا lint ولا build، ومفيش script ليهم في المشروع أصلاً.\n\n**المراجعة:** التغيير صغير (3 ملفات)، لكن `/health` هو اللي هيتعمله probe من الـ load balancer أو orchestrator. أعرض عليك تشغّل `/sabry-kit:team-review` أو الـ `code-reviewer` قبل ما يتدمج. لو شايف التغيير بسيط كفاية، نتخطاها.\n\nاختار واحد من اتنين:\n1. تثبّت الـ dependencies عندك وتشغّل `npm run test`، وأنا أصلّح أي حاجة تفشل.\n2. تقولي نوع الـ DB، وأوصّل `pingDb` بالاتصال الحقيقي."
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 0.3333333333333333,
+        "passRate": 0
+      }
+    }
+  ],
+  "aggregates": {
+    "casesTotal": 1,
+    "casesPassed": 0,
+    "overallScore": 0.3333333333333333,
+    "overallPassRate": 0
+  }
+}
