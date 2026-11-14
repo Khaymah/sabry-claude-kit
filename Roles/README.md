@@ -43,6 +43,10 @@ Match the owner's request to the role with this table:
 | AI or LLM feature / model choice / prompt / RAG / evals | AI Engineer (+ Security when it takes untrusted input or tools) | AI |
 | "إحنا فين؟" / project status / estimate / deadline risk | Delivery Manager | delivery |
 | proposal / quote / SOW / reply to a client / handover report | Proposal Writer (+ BD for price) | client writing |
+| data question / report / dashboard / metric definition | Data Analyst (+ Growth for what to do about it) | data |
+| SEO / indexing / content plan / article or landing copy | SEO & Content (+ Frontend for the fixes) | search |
+| payment gateway / webhook / ERP-POS sync / third-party API | Integration Engineer (+ Security before go-live) | integration |
+| client complaint / vague bug report / maintenance ticket | Support Triage (→ Engineer for the fix) | support |
 | design UI / component / page | UI/UX | design |
 | accessibility audit | UI/UX | a11y |
 | user flow / wireframe | UI/UX + PM | UX + product |
@@ -126,6 +130,10 @@ Every file follows the same structure:
 | 🤖 AI Engineer | [AI-Engineer.md](AI-Engineer.md) | ❌ |
 | 🗓️ Delivery Manager | [Delivery-Manager.md](Delivery-Manager.md) | ❌ |
 | ✍️ Proposal & Client Writer | [Proposal-Writer.md](Proposal-Writer.md) | ❌ |
+| 📊 Data Analyst | [Data-Analyst.md](Data-Analyst.md) | ❌ |
+| 🔍 SEO & Content | [SEO-Content.md](SEO-Content.md) | ❌ |
+| 🔌 Integration Engineer | [Integration-Engineer.md](Integration-Engineer.md) | ❌ |
+| 🧯 Support Triage | [Support-Triage.md](Support-Triage.md) | ❌ |
 
 ---
 

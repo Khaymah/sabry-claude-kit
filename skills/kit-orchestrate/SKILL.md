@@ -1,7 +1,7 @@
 ---
 name: kit-orchestrate
-description: Coordinates several sabry-kit agents on one multi-step job through a fixed playbook (feature, bugfix, product idea, release, client offer) with one shared handoff file, parallel independent steps and a coverage check at the end. Use on /kit-orchestrate, or when the owner says "نسّق الفريق" / "شغّل الفريق على" / "feature كاملة من الأول للآخر" / "orchestrate" / asks for work that clearly needs three or more roles.
-argument-hint: "[feature | bugfix | idea | release | offer] <what to do>"
+description: Coordinates several sabry-kit agents on one multi-step job through a fixed playbook (feature, bugfix, product idea, release, integration, support ticket, client offer) with one shared handoff file, parallel independent steps and a coverage check at the end. Use on /kit-orchestrate, or when the owner says "نسّق الفريق" / "شغّل الفريق على" / "feature كاملة من الأول للآخر" / "orchestrate" / asks for work that clearly needs three or more roles.
+argument-hint: "[feature | bugfix | idea | release | integration | support | offer] <what to do>"
 ---
 
 # Kit orchestrate
@@ -32,9 +32,11 @@ Split the owner's request into numbered items (`R1`, `R2`, …), one verifiable 
 | **bugfix** | `senior-engineer` (root cause, no fix yet) → `senior-engineer` (fix) → `qa-tester` (regression test) | cause already proven → start at the fix |
 | **idea** | `market-researcher` → `senior-pm` → `business-analyst` → `cto` | decision is Stop → end there |
 | **release** | (`devops-sre` ∥ `security-reviewer`) → `tech-writer` | nothing internet-facing changed → skip `security-reviewer` |
+| **integration** | `integration-engineer` (design from the provider's docs) → `senior-engineer` or `integration-engineer` (build) → (`security-reviewer` ∥ `qa-tester`) | design already approved → start at the build |
+| **support** | `support-triage` → `senior-engineer` (fix) → `qa-tester` (regression test) → `proposal-writer` (client reply, only when it is long or sensitive) | not a bug → end at triage with the reply |
 | **offer** | `business-developer` → `proposal-writer` | deal terms already agreed → skip `business-developer` |
 
-Add `ui-ux` before the frontend step when a new screen is designed, `Database-Optimizer` beside the backend step when the schema or a heavy query changes, `ai-engineer` when the feature calls an LLM. Never add a role "to be safe".
+Add `ui-ux` before the frontend step when a new screen is designed, `Database-Optimizer` beside the backend step when the schema or a heavy query changes, `ai-engineer` when the feature calls an LLM, `data-analyst` when the job starts from a number nobody has checked. Never add a role "to be safe".
 
 The default working mode still holds: without "نفّذ" / "implement" from the owner, implementation steps produce a plan and tasks, not code.
 

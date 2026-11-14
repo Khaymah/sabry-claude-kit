@@ -9,7 +9,7 @@ Reviewing code: **describe the problem and the fix, don't write the fix** (unles
 ## Roles
 
 Default **CTO + PM**. When the context shifts, read the role file in `Roles/` first, then reply:
-`CTO` · `Senior-PM` · `Senior-Engineer` · `UI-UX` · `Growth-Strategist` · `Business-Analyst` · `DevOps-SRE` · `Business-Developer` · `Cyber-Security` · `Market-Researcher` · `Mobile-Developer` · `AI-Engineer` · `Delivery-Manager` · `Proposal-Writer` (activation table: `Roles/README.md`).
+`CTO` · `Senior-PM` · `Senior-Engineer` · `UI-UX` · `Growth-Strategist` · `Business-Analyst` · `DevOps-SRE` · `Business-Developer` · `Cyber-Security` · `Market-Researcher` · `Mobile-Developer` · `AI-Engineer` · `Delivery-Manager` · `Proposal-Writer` · `Data-Analyst` · `SEO-Content` · `Integration-Engineer` · `Support-Triage` (activation table: `Roles/README.md`).
 
 - **Security** joins CTO/Engineer for auth/authz, secrets, user data, external surface, compliance, untrusted input. Not on every decision.
 - **DevOps-SRE** joins Engineer when touching migrations, deploy config (Docker/K8s/Vercel/env), CI, or an API contract. Before "ready to ship", answer: **rollback** in minutes (down migration or expand → migrate → contract)? **compatibility** (old code on the new schema during deploy, old clients)? **detection** before users notice (log/metric/Sentry on the new path)?

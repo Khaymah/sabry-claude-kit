@@ -64,7 +64,7 @@
 | 🧭 **بيبدأ وهو عارف المشروع** | في أول كل جلسة: الـ stack، وأوامر التحقق، والفولدرات، وحالة git، وآخر "الجاي" من `Plan/Progress`. ملخص صغير من غير استكشاف |
 | 🔐 **فحص الأسرار قبل كل commit** | مفاتيح API وtokens وprivate keys وملفات `.env`. بيشتغل كـ hook في Claude Code وكـ git pre-commit، فبيحمي المشروع من أي أداة أو أي شخص |
 | 🩺 **فحص التعارضات** | `/sabry-kit:kit-doctor` بيفحص كل اللي متسطّب عندك ويعرض التعارضات بالخطورة. بيصلّح بموافقتك، مع backup ورجوع بأمر واحد. ومرة في اليوم بينبّهك لو فيه تعارض خطير |
-| 🎭 **عيلة agents** | 20 agent بأدوار واضحة (CTO · PM · BA · Market Research · Security · DevOps …)، كلهم بنفس الشكل المختصر، وكل واحد بيقرا ملف الدور بتاعه من `Roles/` |
+| 🎭 **عيلة agents** | 24 agent بأدوار واضحة (CTO · PM · BA · Market Research · Security · DevOps …)، كلهم بنفس الشكل المختصر، وكل واحد بيقرا ملف الدور بتاعه من `Roles/` |
 | 🔒 **قواعد مفروضة بـ hooks** | commits بالإنجليزي ومن غير توقيع AI · كود بلا كومنتات · هيكل Next.js · تحذير التكرار · تذكير team review. كل قاعدة تقدر تقفلها من الـ profile |
 | 🔌 **أي AI agent** | `hooks/adapt.py` بيشغّل نفس الـ hooks في Codex وGemini CLI وCursor من غير نسخ الكود |
 | 💸 **تكلفة أقل** | context أصغر في كل جلسة، و agents أخف، وافتراضيات أوفر ([التفاصيل](#التكلفة-والأداء)) |
@@ -80,7 +80,7 @@
 | `/sabry-kit:kit-stats` | فين التوكنز راحت: لكل جلسة، ولكل أداة، وأكبر النتايج، والملفات اللي اتقرت أكتر من مرة، ونصايح للتوفير بالأرقام |
 | `architecture-decision` | بيتحمّل لوحده عند قرار معماري (stack · schema · API · auth): Quality-Gate + ADR |
 | `/sabry-kit:team-review` | مراجعة متوازية للتعديلات (أمان · صحة · اختبارات · UX)، وكل نتيجة بتتراجع قبل ما تتعرض |
-| `/sabry-kit:kit-orchestrate` | تنسيق كذا agent على شغلانة واحدة بـ playbook ثابت (feature · bugfix · فكرة · release · عرض لعميل)، بملف handoff واحد وجدول تغطية للمطلوب في الآخر |
+| `/sabry-kit:kit-orchestrate` | تنسيق كذا agent على شغلانة واحدة بـ playbook ثابت (feature · bugfix · فكرة · release · ربط خارجي · شكوى عميل · عرض لعميل)، بملف handoff واحد وجدول تغطية للمطلوب في الآخر |
 | `/sabry-kit:project-audit` | تدقيق شامل لمشروع: أمان وجودة وأداء ومعمارية، وتقرير بالعربي |
 | `/sabry-kit:self-maintain` | صيانة الكيت نفسه: بيفتح PR بالتحسينات، ومن غير دمج تلقائي |
 | `/sabry-kit:brag-slim` | فيديو إطلاق قصير لمشروع أو موقع |
@@ -97,7 +97,9 @@
 | المجال | الـ agents |
 |---|---|
 | القرار والمنتج | `cto` · `senior-pm` · `business-analyst` · `market-researcher` · `growth-strategist` · `business-developer` |
-| التسليم والعملاء | `delivery-manager` · `proposal-writer` |
+| التسليم والعملاء | `delivery-manager` · `proposal-writer` · `support-triage` |
+| البيانات والوصول | `data-analyst` · `seo-content` |
+| الربط الخارجي | `integration-engineer` |
 | التنفيذ | `senior-engineer` · `backend-architect` · `Frontend Developer` · `mobile-developer` · `ai-engineer` · `Database-Optimizer` · `devops-sre` · `qa-tester` · `tech-writer` |
 | المراجعة والتصميم | `code-reviewer` · `security-reviewer` (مراجعة أمنية + threat modeling) · `ui-ux` (تصميم + مراجعة UX) |
 
@@ -186,7 +188,7 @@ your-project/
 | المسار | الغرض |
 |---|---|
 | `.claude-plugin/` | تعريف الـ plugin والـ marketplace |
-| `agents/` | الـ 20 agent |
+| `agents/` | الـ 24 agent |
 | `Roles/` | ملف تفصيلي لكل دور (إطار التفكير · قالب الرد · anti-patterns)، والـ agent بيقراه قبل ما يشتغل |
 | `rules/` | القواعد اللي بتتحقن في كل جلسة (التواصل · وضع العمل · اللغة · الكومنتات · الـ subagents · التخزين …) |
 | `skills/` | الأوامر والـ design systems (الجدول فوق) |

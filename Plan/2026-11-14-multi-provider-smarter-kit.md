@@ -135,7 +135,7 @@ skill اسمها `kit-orchestrate` (مش agent، لأن الـ subagent مايق
 | القرار | الحالة |
 |---|---|
 | كل أداة لوحدها بالكيت كامل، مش مزوّد جوه أداة تانية | ✅ المالك، 2026-11-14 |
-| دمج الـ agents المتداخلة | ✅ اتدمج زوجين (`cyber-security` جوه `security-reviewer`، و`ux-reviewer` جوه `ui-ux`). `code-reviewer` فضل لوحده: دمجه في `senior-engineer` كان هيشيل منع التعديل المفروض بالأدوات عن المراجعة. العدد 20 · ✅ المالك أكّد إن مراجع الكود غير المهندس |
+| دمج الـ agents المتداخلة | ✅ اتدمج زوجين (`cyber-security` جوه `security-reviewer`، و`ux-reviewer` جوه `ui-ux`). `code-reviewer` فضل لوحده: دمجه في `senior-engineer` كان هيشيل منع التعديل المفروض بالأدوات عن المراجعة. العدد 20 · ✅ المالك أكّد إن مراجع الكود غير المهندس · بعدها اتضاف 4 بطلب المالك (`data-analyst` · `seo-content` · `integration-engineer` · `support-triage`): العدد 24 |
 | ترتيب المراحل زي الجدول، والتنفيذ مرحلة مرحلة مع مراجعة | ✅ المالك |
 | GLM بيتشغّل من OpenCode و KiloCode و Cline | ✅ المالك (المرحلة 7b) |
 | الـ hooks للأداتين قبل الـ agents والذكاء | ✅ المالك |
