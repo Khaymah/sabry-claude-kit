@@ -15,6 +15,10 @@ Modes:
                                   general lessons (--all: scoped ones too, for tools whose
                                   PreToolUse cannot add context). A prompt that reads like a
                                   correction: asks the agent to record a lesson.
+    lessons.py --start            SessionStart hook (Claude Code). Shows the general lessons at
+                                  once. After a compaction or /clear the earlier reminders are
+                                  gone from the context, so it forgets what it already showed:
+                                  general lessons come back now, scoped ones on the next match.
     lessons.py --match            PreToolUse hook (Bash, Write, Edit, MultiEdit). Shows the
                                   lessons whose pattern matches the file or command, once
                                   per lesson per session.
@@ -291,26 +295,48 @@ def gate(payload):
     return True, root
 
 
+FORGET_ON = ("compact", "clear")
+
+
+def greeting(session, root, show_all):
+    marker = session_path(session)
+    state = read_json(marker, {})
+    if state.get("greeted"):
+        return ""
+    state["greeted"] = True
+    write_json(marker, state)
+    lessons = all_lessons(root)
+    wanted = [l for l in lessons if show_all or is_general(l)]
+    fresh = take_unseen(session, wanted[-MAX_SHOWN:])
+    if not fresh:
+        return ""
+    scoped = 0 if show_all else sum(1 for l in lessons if not is_general(l))
+    tail = (f"\n{scoped} more apply to specific files or commands and appear when you touch them."
+            if scoped else "")
+    return ("[lessons] Corrections the owner already made. Follow them without being told again:\n"
+            + "\n".join(describe(l, with_scope=show_all) for l in fresh) + tail)
+
+
+def hook_start(payload):
+    ok, root = gate(payload)
+    if not ok:
+        return
+    session = payload.get("session_id")
+    if payload.get("source") in FORGET_ON:
+        write_json(session_path(session), {})
+    text = greeting(session, root, False)
+    if text:
+        emit("SessionStart", text)
+
+
 def hook_prompt(payload, show_all):
     ok, root = gate(payload)
     if not ok:
         return
     blocks = []
-    session = payload.get("session_id")
-    marker = session_path(session)
-    state = read_json(marker, {})
-    if not state.get("greeted"):
-        state["greeted"] = True
-        write_json(marker, state)
-        lessons = all_lessons(root)
-        wanted = [l for l in lessons if show_all or is_general(l)]
-        fresh = take_unseen(session, wanted[-MAX_SHOWN:])
-        if fresh:
-            scoped = 0 if show_all else sum(1 for l in lessons if not is_general(l))
-            tail = (f"\n{scoped} more apply to specific files or commands and appear when you touch them."
-                    if scoped else "")
-            blocks.append("[lessons] Corrections the owner already made. Follow them without being told again:\n"
-                          + "\n".join(describe(l, with_scope=show_all) for l in fresh) + tail)
+    text = greeting(payload.get("session_id"), root, show_all)
+    if text:
+        blocks.append(text)
     prompt = str(payload.get("prompt") or "")
     if prompt and len(prompt) <= 1500 and not prompt.lstrip().startswith("/") and CORRECTION.search(prompt):
         blocks.append(record_request())
@@ -460,6 +486,8 @@ def run_hook(mode, show_all):
         return 0
     if mode == "--prompt":
         hook_prompt(payload, show_all)
+    elif mode == "--start":
+        hook_start(payload)
     else:
         hook_match(payload)
     return 0
@@ -467,7 +495,7 @@ def run_hook(mode, show_all):
 
 def main():
     argv = sys.argv[1:]
-    if argv and argv[0] in ("--prompt", "--match"):
+    if argv and argv[0] in ("--prompt", "--match", "--start"):
         try:
             return run_hook(argv[0], "--all" in argv[1:])
         except Exception:

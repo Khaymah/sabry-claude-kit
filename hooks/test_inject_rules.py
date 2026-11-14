@@ -11,7 +11,7 @@ HOOK = os.path.join(os.path.dirname(os.path.abspath(__file__)), "inject-rules.py
 RULE_SWITCHES = {"deal-economics.md", "code-tools.md", "framework-gotchas.md"}
 
 
-def run(config_dir, force=False, profile=None, args=()):
+def run(config_dir, force=False, profile=None, args=(), payload="{}"):
     env = {k: v for k, v in os.environ.items() if not k.startswith("SABRY_KIT_")}
     env.update(CLAUDE_CONFIG_DIR=config_dir, HOME=config_dir, USERPROFILE=config_dir)
     if profile is not None:
@@ -21,7 +21,7 @@ def run(config_dir, force=False, profile=None, args=()):
         env["SABRY_KIT_PROFILE"] = path
     if force:
         env["SABRY_KIT_FORCE_INJECT"] = "1"
-    out = subprocess.run([sys.executable, HOOK] + list(args), env=env, input="{}", capture_output=True,
+    out = subprocess.run([sys.executable, HOOK] + list(args), env=env, input=payload, capture_output=True,
                          text=True, encoding="utf-8", timeout=60)
     return out.returncode, out.stdout.strip()
 
@@ -121,6 +121,18 @@ class InjectRulesTest(unittest.TestCase):
                 with open(os.path.join(rules, name), encoding="utf-8") as fh:
                     heading = next(l for l in fh if l.startswith("# "))
                 self.assertIn(heading.strip(), ctx, name)
+
+    def test_rules_are_injected_again_after_compaction(self):
+        compact = json.dumps({"hook_event_name": "SessionStart", "source": "compact", "session_id": "s"})
+        with tempfile.TemporaryDirectory() as d:
+            first = [run(d, args=("--part", str(n)))[1] for n in range(1, 5)]
+            again = [run(d, args=("--part", str(n)), payload=compact)[1] for n in range(1, 5)]
+        self.assertEqual(first, again)
+        self.assertIn("Working mode", "".join(again))
+        hooks = json.load(open(os.path.join(os.path.dirname(HOOK), "hooks.json"), encoding="utf-8"))
+        for group in hooks["hooks"]["SessionStart"]:
+            if any("inject-rules.py" in h["command"] for h in group["hooks"]):
+                self.assertNotIn("matcher", group, "a matcher here would skip the compact source")
 
     def test_parts_stay_under_the_hook_output_cap_and_cover_everything(self):
         with tempfile.TemporaryDirectory() as d:

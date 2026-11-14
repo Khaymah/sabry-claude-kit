@@ -100,6 +100,7 @@
 | `read-budget.py` | PreToolUse · `Read` | يرفض قراءة ملف نصي أكبر من 800 سطر كله من غير `offset`/`limit`، ويوجّه لـ Grep + مدى محدد. `limit` صريح = مسموح | ✅ |
 | `verify-reminder.py` | Stop | لو اتعدّل كود ومفيش test/typecheck/lint/build اشتغل بعد آخر تعديل: يطلب التحقق (بأوامر المشروع نفسه من `package.json`) أو يقول إيه اللي ما اتحققش. مرة لكل change-set | feedback |
 | `lessons.py --prompt` | UserPromptSubmit | أول رسالة في الجلسة: يعرض الدروس العامة. رسالة شكلها تصحيح ("غلط" · "قلتلك" · "مش كده" · "wrong" · "I told you"): يطلب من الـ agent يسجّل درس بـ `lessons.py add` | لا |
+| `lessons.py --start` | SessionStart | يعرض الدروس العامة أول الجلسة. بعد compact أو `/clear` بينسى اللي عرضه قبل كده، فالدروس العامة ترجع فوراً والمحددة بملف أو أمر تظهر تاني عند أول تطابق | لا |
 | `lessons.py --match` | PreToolUse · `Bash\|Write\|Edit\|MultiEdit` | يعرض الدروس اللي نمطها (`files` globs · `commands`) مطابق للملف أو الأمر، مرة واحدة لكل درس في الجلسة | لا |
 | `kit_plans.py --stop` | Stop | فيه خطة نشطة في `.agents/plans/<slug>/plan.md` واتعدّلت ملفات بعد آخر تحديث ليها: يطلب تعليم البنود اللي خلصت (مرة لكل تغيير) | لا |
 | `kit_plans.py --precompact` | PreCompact | يحفظ مكان الخطة، الملفات المتعدّلة وغير المتسجّلة، وآخر رسائل المالك في `~/.agents/state/` | لا |

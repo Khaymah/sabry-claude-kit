@@ -27,6 +27,8 @@ Plan: `Plan/2026-11-14-multi-provider-smarter-kit.md`.
 - **Rules were not reaching the model.** The rules injected at session start had grown past Claude Code's 10,000-character cap on a hook's output, which replaces the text with a 2,000-character preview and a file path. Only the profile and the first rule arrived; working mode, communication, language and completion rules did not. `inject-rules.py` now splits them across `--part 1..4` calls, each under the cap, with a test that fails if a part grows past it. Found by the eval suite: `cto-mode-plans` went from 0.33 to 1.00.
 - `team-review` no longer tells kit agents to override the model in their frontmatter.
 
+- **Lessons survive compaction.** Rules, the profile, the project brief and the active plan were already injected again after every compaction (`SessionStart` with source `compact`); lessons were shown once per session and lost. `lessons.py --start` now forgets what it showed when the context is compacted or cleared, so they come back.
+
 ### Not verified
 
 - No live run inside Codex CLI, Kimi Code CLI, OpenCode, Kilo Code or Cline: formats come from their official docs and the install is tested against a throwaway home.

@@ -158,6 +158,19 @@ class LessonsTest(unittest.TestCase):
         left = json.loads(self.cli("list", "--json"))
         self.assertEqual([l["right"] for l in left], ["A brand new rule that is unlike the others"])
 
+    def test_lessons_come_back_after_compaction(self):
+        self.add("Use bun, never npm")
+        self.add("Push to main directly", commands="git push")
+        start = lambda source: self.hook("--start", {"source": source})
+        self.assertIn("Use bun", start("startup"))
+        self.assertEqual(self.hook("--prompt", {"prompt": "hi"}), "", "already shown at session start")
+        self.assertIn("Push to main", self.bash("git push"))
+        self.assertEqual(self.bash("git push"), "")
+        self.assertEqual(start("resume"), "", "a resume keeps the context")
+        self.assertIn("Use bun", start("compact"))
+        self.assertIn("Push to main", self.bash("git push"), "scoped lessons match again after a compaction")
+        self.assertIn("Use bun", start("clear"))
+
     def test_switch_off(self):
         self.add("Use bun, never npm")
         self.assertEqual(self.hook("--prompt", {"prompt": "غلط"}, env={"SABRY_KIT_LESSONS": "0"}), "")
