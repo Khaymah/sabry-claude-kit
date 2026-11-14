@@ -100,7 +100,7 @@ def test_team_reminder():
             check("استبعد الدَنَس السابق (legacy.ts)", "legacy.ts" not in ctx,
                   "أدرج ملفاً لم تلمسه الجلسة")
             check("اختار security-reviewer (مسار auth)", "security-reviewer" in ctx)
-            check("اختار ux-reviewer (ملف .tsx)", "ux-reviewer" in ctx)
+            check("اختار ui-ux (ملف .tsx)", "ui-ux" in ctx)
             check("اختار qa-tester (لا اختبارات مسّت)", "qa-tester" in ctx)
 
         # نفس التغيير مرة أخرى → يجب ألا يُلحّ

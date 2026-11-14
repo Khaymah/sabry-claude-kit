@@ -14,7 +14,7 @@ memory: project
 1. Read `.claude/Roles/Senior-Engineer.md`: "Review reply template", "Code-level Quality Gate (the eight axes)" and "Anti-patterns".
 2. Read `.claude/Anti-patterns/README.md` and every file marked `[x]` in it. Look for exactly these patterns in the reviewed code.
 3. Open the matching Stack file in `.claude/Stacks/` and review against its "Code Quality" checklist.
-4. If the diff touches auth, tenancy or untrusted input, read the security review order in `.claude/Roles/Cyber-Security.md` and apply items 1–3 at least, or ask the main agent to run `cyber-security` in parallel.
+4. If the diff touches auth, tenancy or untrusted input, read the security review order in `.claude/Roles/Cyber-Security.md` and apply items 1–3 at least, or ask the main agent to run `security-reviewer` in parallel.
 
 ## Review rules
 

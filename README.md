@@ -64,7 +64,7 @@
 | 🧭 **بيبدأ وهو عارف المشروع** | في أول كل جلسة: الـ stack، وأوامر التحقق، والفولدرات، وحالة git، وآخر "الجاي" من `Plan/Progress`. ملخص صغير من غير استكشاف |
 | 🔐 **فحص الأسرار قبل كل commit** | مفاتيح API وtokens وprivate keys وملفات `.env`. بيشتغل كـ hook في Claude Code وكـ git pre-commit، فبيحمي المشروع من أي أداة أو أي شخص |
 | 🩺 **فحص التعارضات** | `/sabry-kit:kit-doctor` بيفحص كل اللي متسطّب عندك ويعرض التعارضات بالخطورة. بيصلّح بموافقتك، مع backup ورجوع بأمر واحد. ومرة في اليوم بينبّهك لو فيه تعارض خطير |
-| 🎭 **عيلة agents** | 18 agent بأدوار واضحة (CTO · PM · BA · Market Research · Security · DevOps …)، كلهم بنفس الشكل المختصر، وكل واحد بيقرا ملف الدور بتاعه من `Roles/` |
+| 🎭 **عيلة agents** | 20 agent بأدوار واضحة (CTO · PM · BA · Market Research · Security · DevOps …)، كلهم بنفس الشكل المختصر، وكل واحد بيقرا ملف الدور بتاعه من `Roles/` |
 | 🔒 **قواعد مفروضة بـ hooks** | commits بالإنجليزي ومن غير توقيع AI · كود بلا كومنتات · هيكل Next.js · تحذير التكرار · تذكير team review. كل قاعدة تقدر تقفلها من الـ profile |
 | 🔌 **أي AI agent** | `hooks/adapt.py` بيشغّل نفس الـ hooks في Codex وGemini CLI وCursor من غير نسخ الكود |
 | 💸 **تكلفة أقل** | context أصغر في كل جلسة، و agents أخف، وافتراضيات أوفر ([التفاصيل](#التكلفة-والأداء)) |
@@ -96,8 +96,9 @@
 | المجال | الـ agents |
 |---|---|
 | القرار والمنتج | `cto` · `senior-pm` · `business-analyst` · `market-researcher` · `growth-strategist` · `business-developer` |
-| التنفيذ | `senior-engineer` · `backend-architect` · `Frontend Developer` · `Database-Optimizer` · `devops-sre` · `qa-tester` · `tech-writer` |
-| المراجعة (قراءة فقط) | `code-reviewer` · `security-reviewer` · `cyber-security` · `ux-reviewer` · `ui-ux` |
+| التسليم والعملاء | `delivery-manager` · `proposal-writer` |
+| التنفيذ | `senior-engineer` · `backend-architect` · `Frontend Developer` · `mobile-developer` · `ai-engineer` · `Database-Optimizer` · `devops-sre` · `qa-tester` · `tech-writer` |
+| المراجعة والتصميم | `code-reviewer` · `security-reviewer` (مراجعة أمنية + threat modeling) · `ui-ux` (تصميم + مراجعة UX) |
 
 الترتيب لفكرة منتج جديدة: `market-researcher` (تستاهل؟) ← `senior-pm` (نبني إيه؟) ← `business-analyst` (المتطلبات) ← `cto` (المعمارية).
 
@@ -182,7 +183,7 @@ your-project/
 | المسار | الغرض |
 |---|---|
 | `.claude-plugin/` | تعريف الـ plugin والـ marketplace |
-| `agents/` | الـ 18 agent |
+| `agents/` | الـ 20 agent |
 | `Roles/` | ملف تفصيلي لكل دور (إطار التفكير · قالب الرد · anti-patterns)، والـ agent بيقراه قبل ما يشتغل |
 | `rules/` | القواعد اللي بتتحقن في كل جلسة (التواصل · وضع العمل · اللغة · الكومنتات · الـ subagents · التخزين …) |
 | `skills/` | الأوامر والـ design systems (الجدول فوق) |

@@ -74,7 +74,7 @@ class InstallTest(unittest.TestCase):
             head = text.split("\n---", 1)[0]
             self.assertRegex(head, r"\nname: [a-z0-9]+(-[a-z0-9]+)*\n")
             self.assertRegex(head, r'\ndescription: ".+"')
-        reviewer = self.read(".kimi-code", "agents", "sabry-kit", "ux-reviewer.md")
+        reviewer = self.read(".kimi-code", "agents", "sabry-kit", "code-reviewer.md")
         self.assertIn("disallowedTools:\n  - Write\n  - Edit", reviewer)
         engineer = self.read(".kimi-code", "agents", "sabry-kit", "senior-engineer.md")
         self.assertNotIn("disallowedTools", engineer)

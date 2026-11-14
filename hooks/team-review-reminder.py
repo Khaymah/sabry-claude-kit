@@ -35,7 +35,7 @@ ANGLE_RULES = [
         "crypt", "payment", "billing", "stripe", "webhook", "middleware", "permission",
         "acl", "role", "upload", ".env",
     )),
-    ("ux-reviewer", (".tsx", ".jsx", ".vue", ".svelte", ".css", ".scss", "component", "page")),
+    ("ui-ux", (".tsx", ".jsx", ".vue", ".svelte", ".css", ".scss", "component", "page")),
     ("devops-sre", (
         "dockerfile", "docker-compose", ".github/workflows", ".gitlab-ci",
         "k8s", "kubernetes", "helm", "nginx", "terraform", "deploy",

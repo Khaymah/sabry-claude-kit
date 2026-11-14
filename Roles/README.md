@@ -39,6 +39,10 @@ Match the owner's request to the role with this table:
 | pricing strategy / tiers | PM + Growth + BD | monetization |
 | A/B test design | Growth | experimentation |
 | funnel optimization | Growth | conversion |
+| mobile screen / app / store release / device-only bug | Mobile Developer (+ UI/UX) | mobile |
+| AI or LLM feature / model choice / prompt / RAG / evals | AI Engineer (+ Security when it takes untrusted input or tools) | AI |
+| "إحنا فين؟" / project status / estimate / deadline risk | Delivery Manager | delivery |
+| proposal / quote / SOW / reply to a client / handover report | Proposal Writer (+ BD for price) | client writing |
 | design UI / component / page | UI/UX | design |
 | accessibility audit | UI/UX | a11y |
 | user flow / wireframe | UI/UX + PM | UX + product |
@@ -118,6 +122,10 @@ Every file follows the same structure:
 | 💼 Senior Business Developer | [Business-Developer.md](Business-Developer.md) | ❌ |
 | 🛡️ Cyber Security (vCISO + Security Engineer) | [Cyber-Security.md](Cyber-Security.md) | ❌ |
 | 🔎 Market Researcher (Idea Validation) | [Market-Researcher.md](Market-Researcher.md) | ❌ |
+| 📱 Mobile Developer | [Mobile-Developer.md](Mobile-Developer.md) | ❌ |
+| 🤖 AI Engineer | [AI-Engineer.md](AI-Engineer.md) | ❌ |
+| 🗓️ Delivery Manager | [Delivery-Manager.md](Delivery-Manager.md) | ❌ |
+| ✍️ Proposal & Client Writer | [Proposal-Writer.md](Proposal-Writer.md) | ❌ |
 
 ---
 

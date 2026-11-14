@@ -62,7 +62,7 @@ Built for [Claude Code](https://code.claude.com) as a plugin. Its hooks also run
 | 🧭 **Starts knowing the project** | Every session opens with the stack, the check commands, the folders, git state and the last "next" from `Plan/Progress`, as a small brief instead of exploration |
 | 🔐 **Secret scan before every commit** | API keys, tokens, private keys, `.env` files. Runs as a Claude Code hook and as a git pre-commit hook, so the project is protected from any tool or person |
 | 🩺 **Conflict doctor** | `/sabry-kit:kit-doctor` scans everything installed, ranks conflicts by severity, and fixes them with your consent, with a backup and one-command undo. Once a day it alerts you to a high-severity conflict |
-| 🎭 **Agent family** | 18 agents with clear roles (CTO · PM · BA · Market Research · Security · DevOps …), all in the same compact shape, each reading its role file from `Roles/` |
+| 🎭 **Agent family** | 20 agents with clear roles (CTO · PM · BA · Market Research · Security · DevOps …), all in the same compact shape, each reading its role file from `Roles/` |
 | 🔒 **Rules enforced by hooks** | English commits with no AI attribution · code without comments · Next.js layout · duplication warning · team review reminder. Each one can be switched off in the profile |
 | 🔌 **Any AI agent** | `hooks/adapt.py` runs the same hooks under Codex, Gemini CLI and Cursor without forking them |
 | 💸 **Lower cost** | Smaller context per session, lighter agents, cheaper defaults ([details](#cost-and-performance)) |
@@ -94,8 +94,9 @@ The right role activates from the context of the request (full table in [Roles/R
 | Area | Agents |
 |---|---|
 | Decisions and product | `cto` · `senior-pm` · `business-analyst` · `market-researcher` · `growth-strategist` · `business-developer` |
-| Building | `senior-engineer` · `backend-architect` · `Frontend Developer` · `Database-Optimizer` · `devops-sre` · `qa-tester` · `tech-writer` |
-| Review (read-only) | `code-reviewer` · `security-reviewer` · `cyber-security` · `ux-reviewer` · `ui-ux` |
+| Delivery and clients | `delivery-manager` · `proposal-writer` |
+| Building | `senior-engineer` · `backend-architect` · `Frontend Developer` · `mobile-developer` · `ai-engineer` · `Database-Optimizer` · `devops-sre` · `qa-tester` · `tech-writer` |
+| Review and design | `code-reviewer` · `security-reviewer` (security review + threat modeling) · `ui-ux` (design + UX review) |
 
 Order for a new product idea: `market-researcher` (worth it?) → `senior-pm` (what to build?) → `business-analyst` (requirements) → `cto` (architecture).
 
@@ -180,7 +181,7 @@ Each cloud session starts in a fresh container that is deleted afterwards, and i
 | Path | Purpose |
 |---|---|
 | `.claude-plugin/` | Plugin and marketplace manifests |
-| `agents/` | The 18 agents |
+| `agents/` | The 20 agents |
 | `Roles/` | One file per role (thinking frame · reply template · anti-patterns), read by the agent before it works |
 | `rules/` | Rules injected every session (communication · working mode · language · comments · subagents · storage …) |
 | `skills/` | Commands and design systems (table above) |

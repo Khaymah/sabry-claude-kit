@@ -34,7 +34,7 @@ Don't always launch all four. Each angle has an activation condition:
 | Correctness and safety | `code-reviewer` | **always** |
 | Security | `security-reviewer` | auth · secrets · user input · file paths · external requests · payments · personal data |
 | Tests | `qa-tester` | new or modified logic with branches |
-| UI | `ux-reviewer` | `.tsx`/`.jsx`/`.vue`/CSS files or anything the user sees |
+| UI | `ui-ux` (review mode) | `.tsx`/`.jsx`/`.vue`/CSS files or anything the user sees |
 | Infrastructure | `devops-sre` | Dockerfile · CI · k8s · deploy config |
 
 ## 3. Launch in parallel
