@@ -13,6 +13,7 @@ Measures what the kit adds over plain Claude Code. Every case runs **with** the 
 | `mobile-agent-routes` · `ai-agent-routes` · `delivery-agent-routes` · `proposal-agent-routes` | The request reaches the new agent and the answer follows its role (offline handling · eval and cost before a model · evidence-based order · no invented price) | agents |
 | `data-agent-routes` · `seo-agent-routes` · `integration-agent-routes` · `support-agent-routes` | The request reaches the agent and the answer follows its role (metric defined before the query · technical causes before content · paid only from a verified webhook · evidence and severity before a fix) | agents |
 | `orchestrate-feature` | A three-ask, plan-only feature reaches `kit-orchestrate` and the final reply closes all three asks with the decision itself (concurrency with a real mechanism) | orchestration |
+| `orchestrate-implement` | An implementation job through `kit-orchestrate` on a small codebase with a hidden race: a team is launched, tests (including a concurrency test) run, and the report closes all three asks | orchestration · team |
 | `requirement-coverage` | Three asks, one impossible: two are implemented and the third is reported as not done, not dropped or faked | smoke · quality |
 | `kit-setup-fires` · `kit-doctor-fires` | The request reaches the kit's skill, not a built-in or another plugin | smoke · skills |
 | `reply-language` | No profile → answers the question and suggests `kit-setup` | smoke · language |
