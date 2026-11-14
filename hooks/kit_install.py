@@ -2,7 +2,7 @@
 """
 Installs sabry-kit into a coding agent other than Claude Code, in that agent's own format.
 
-    kit_install.py --target codex|kimi [--dry-run] [--no-hooks] [--uninstall]
+    kit_install.py --target codex|kimi|opencode|kilo|cline [--dry-run] [--no-hooks] [--uninstall]
 
 The kit is written once (rules, Roles, agents, skills). Claude Code loads it as a plugin;
 this script gives the same brain to tools that run on their own:
@@ -12,6 +12,13 @@ this script gives the same brain to tools that run on their own:
     skills          ~/.agents/skills/<name>/          ~/.agents/skills/<name>/  (shared)
     agents          ~/.codex/agents/<name>.toml       ~/.kimi-code/agents/sabry-kit/<name>.md
     hooks           ~/.codex/hooks.json               [[hooks]] block in ~/.kimi-code/config.toml
+
+    what            OpenCode                          Kilo Code                         Cline
+    instructions    ~/.config/opencode/AGENTS.md      ~/.config/kilo/sabry-kit.md +     ~/.cline/rules/sabry-kit.md
+                    (block)                           `instructions` in kilo.jsonc
+    skills          ~/.agents/skills/<name>/          ~/.agents/skills/<name>/          ~/.cline/skills/<name>/
+    agents          ~/.config/opencode/agents/*.md    ~/.config/kilo/agents/*.md        none (roles are read as files)
+    hooks           none: these three take hooks only as JS/TS plugins written against their own SDK
 
 Rules of the road:
   - AGENTS.md: only the text between the sabry-kit markers is written; the rest is the owner's.
@@ -48,10 +55,22 @@ WRITE_TOOLS = {"Write", "Edit", "MultiEdit", "NotebookEdit"}
 KIT_PATHS = ("Roles", "Stacks", "Quality-Gate.md", "Decisions", "Anti-patterns", "Patterns",
              "CommunicationProfiles.md", "CLAUDE.md")
 
+NO_AGENTS = ("- This tool has no named custom agents. When the kit calls for one of its agents, read "
+             "`{kit}/agents/<name>.md` and work in that role yourself; use the tool's own subagents only for "
+             "parallel read-only research.")
 TARGETS = {
-    "codex": {"home_env": "CODEX_HOME", "home": ".codex", "label": "Codex CLI"},
-    "kimi": {"home_env": "KIMI_CODE_HOME", "home": ".kimi-code", "label": "Kimi Code CLI"},
+    "codex": {"home_env": "CODEX_HOME", "home": ".codex", "label": "Codex CLI",
+              "instructions": ("block", "AGENTS.md"), "agents": "agents", "hooks": True},
+    "kimi": {"home_env": "KIMI_CODE_HOME", "home": ".kimi-code", "label": "Kimi Code CLI",
+             "instructions": ("block", "AGENTS.md"), "agents": "agents/sabry-kit", "hooks": True},
+    "opencode": {"home_env": "OPENCODE_CONFIG_DIR", "home": ".config/opencode", "label": "OpenCode",
+                 "instructions": ("block", "AGENTS.md"), "agents": "agents"},
+    "kilo": {"home_env": "KILO_CONFIG_DIR", "home": ".config/kilo", "label": "Kilo Code",
+             "instructions": ("file", "sabry-kit.md"), "agents": "agents", "config": True},
+    "cline": {"home_env": "CLINE_DIR", "home": ".cline", "label": "Cline",
+              "instructions": ("file", "rules/sabry-kit.md"), "skills": "skills", "extra": NO_AGENTS},
 }
+KILO_CONFIGS = ("kilo.jsonc", "kilo.json")
 
 PREAMBLE = """# sabry-kit
 
@@ -67,7 +86,7 @@ Map tool names to this tool's equivalents:
 
 def target_home(target):
     spec = TARGETS[target]
-    return os.environ.get(spec["home_env"]) or os.path.join(kit_config.home(), spec["home"])
+    return os.environ.get(spec["home_env"]) or os.path.join(kit_config.home(), *spec["home"].split("/"))
 
 
 def agents_home():
@@ -177,6 +196,16 @@ def render_agent(target, agent, tiers):
             lines += ["disallowedTools:", "  - Write", "  - Edit"]
         lines += ["---", f"<!-- {GENERATED} -->", "", body]
         return agent["name"] + ".md", "\n".join(lines)
+    if target in ("opencode", "kilo"):
+        lines = ["---", f"description: {yaml_quote(agent['description'])}", "mode: subagent"]
+        if model:
+            lines.append(f"model: {model}")
+        if agent["read_only"] and target == "opencode":
+            lines += ["permissions:", "  - action: edit", '    resource: "*"', "    effect: deny"]
+        if agent["read_only"] and target == "kilo":
+            lines += ["permission:", "  edit: deny"]
+        lines += ["---", f"<!-- {GENERATED} -->", "", body]
+        return agent["name"] + ".md", "\n".join(lines)
     lines = [f"# {GENERATED}", f"name = {toml_basic(agent['name'])}",
              f"description = {toml_basic(agent['description'])}"]
     if model:
@@ -185,9 +214,14 @@ def render_agent(target, agent, tiers):
     return agent["name"] + ".toml", "\n".join(lines) + "\n"
 
 
-def render_instructions(root=None):
+def render_instructions(root=None, extra=""):
     profile = kit_config.load_profile(root)
-    parts = [PREAMBLE.format(kit=KIT.replace("\\", "/")).strip(),
+    kit = KIT.replace("\\", "/")
+    preamble = PREAMBLE.format(kit=kit).strip()
+    if extra:
+        preamble = preamble.replace("- `Agent` / subagents → this tool's own agents; the kit's agents are "
+                                    "installed under the same names.", extra.format(kit=kit))
+    parts = [preamble,
              kit_profile.render(profile, kit_config.has_profile(root))]
     chunks = load_inject_rules().rule_chunks(profile["settings"])
     if chunks:
@@ -389,17 +423,70 @@ def uninstall_hooks(target, home, dry):
     return path + " (kit hooks)"
 
 
+def kilo_config_path(home):
+    for name in KILO_CONFIGS:
+        if os.path.isfile(os.path.join(home, name)):
+            return os.path.join(home, name)
+    return os.path.join(home, KILO_CONFIGS[0])
+
+
+def set_kilo_instructions(home, rule_path, dry, remove=False):
+    """Adds or removes the kit's rule file in the `instructions` list of Kilo's global config.
+    A config with comments (JSONC) is left untouched: rewriting it would drop them."""
+    path = kilo_config_path(home)
+    entry = rule_path.replace("\\", "/")
+    data = {"$schema": "https://app.kilo.ai/config.json"}
+    if os.path.isfile(path):
+        try:
+            data = json.loads(read(path))
+            if not isinstance(data, dict) or not isinstance(data.get("instructions", []), list):
+                raise ValueError
+        except ValueError:
+            return path, f'skipped: has comments or an unexpected shape; add "{entry}" to its "instructions" list by hand'
+    elif remove:
+        return path, "absent"
+    items = [i for i in data.get("instructions", []) if i != entry]
+    if not remove:
+        items.append(entry)
+    if items:
+        data["instructions"] = items
+    else:
+        data.pop("instructions", None)
+    if remove and set(data) <= {"$schema"}:
+        if not dry:
+            os.remove(path)
+        return path, "written"
+    write(path, json.dumps(data, indent=2, ensure_ascii=False) + "\n", dry)
+    return path, "written"
+
+
 def install(target, dry=False, hooks=True):
     home = target_home(target)
-    report = {"target": TARGETS[target]["label"], "written": [], "skipped": [], "dry_run": dry}
+    spec = TARGETS[target]
+    report = {"target": spec["label"], "written": [], "skipped": [], "dry_run": dry}
     files, dirs = [], []
 
-    block, profile = render_instructions()
-    agents_md = os.path.join(home, "AGENTS.md")
-    write(agents_md, with_block(read(agents_md), block), dry)
-    report["written"].append(agents_md)
+    block, profile = render_instructions(extra=spec.get("extra", ""))
+    mode, rel = spec["instructions"]
+    agents_md = os.path.join(home, *rel.split("/"))
+    if mode == "block":
+        write(agents_md, with_block(read(agents_md), block), dry)
+        report["written"].append(agents_md)
+    elif os.path.isfile(agents_md) and GENERATED not in read(agents_md):
+        report["skipped"].append(f"{agents_md} (yours, not written by the kit)")
+        agents_md = None
+    else:
+        write(agents_md, f"<!-- {GENERATED}; edit the kit or run kit_install again, not this file -->\n\n"
+              + block.strip() + "\n", dry)
+        files.append(agents_md)
+        report["written"].append(agents_md)
+        if spec.get("config"):
+            path, status = set_kilo_instructions(home, agents_md, dry)
+            (report["written"] if status == "written" else report["skipped"]).append(
+                path + (" (instructions entry)" if status == "written" else f" ({status})"))
+        agents_md = None
 
-    skills_dst = os.path.join(agents_home(), "skills")
+    skills_dst = os.path.join(home, spec["skills"]) if spec.get("skills") else os.path.join(agents_home(), "skills")
     for name in sorted(os.listdir(os.path.join(KIT, "skills"))):
         src = os.path.join(KIT, "skills", name)
         if not os.path.isfile(os.path.join(src, "SKILL.md")):
@@ -412,8 +499,8 @@ def install(target, dry=False, hooks=True):
             report["skipped"].append(f"{dst} (yours, not written by the kit)")
 
     tiers = provider(target, profile)
-    agent_dir = os.path.join(home, "agents", "sabry-kit") if target == "kimi" else os.path.join(home, "agents")
-    for agent in load_agents():
+    agent_dir = os.path.join(home, *spec["agents"].split("/")) if spec.get("agents") else None
+    for agent in load_agents() if agent_dir else []:
         fn, text = render_agent(target, agent, tiers)
         dst = os.path.join(agent_dir, fn)
         if os.path.isfile(dst) and GENERATED not in read(dst):
@@ -423,7 +510,9 @@ def install(target, dry=False, hooks=True):
         files.append(dst)
         report["written"].append(dst)
 
-    if hooks:
+    if not spec.get("hooks"):
+        report["hooks"] = "not installed: this tool takes hooks only as JS/TS plugins; the rules are instructions here, not enforced"
+    elif hooks:
         path, status = (install_codex_hooks if target == "codex" else install_kimi_hooks)(home, dry)
         if status == "written":
             report["written"].append(path + " (hooks)")
@@ -435,7 +524,8 @@ def install(target, dry=False, hooks=True):
         manifest = read_manifest()
         manifest[target] = {"agents_md": agents_md, "files": files, "dirs": dirs, "kit": KIT}
         write(manifest_path(), json.dumps(manifest, indent=2, ensure_ascii=False) + "\n", False)
-    report["models"] = {t: tiers[t] or "tool default" for t in TIERS}
+    if agent_dir:
+        report["models"] = {t: tiers[t] or "tool default" for t in TIERS}
     return report
 
 
@@ -459,9 +549,15 @@ def uninstall(target, dry=False):
             if not dry:
                 shutil.rmtree(path)
             report["removed"].append(path)
-    removed_hooks = uninstall_hooks(target, target_home(target), dry)
+    spec = TARGETS[target]
+    removed_hooks = uninstall_hooks(target, target_home(target), dry) if spec.get("hooks") else None
     if removed_hooks:
         report["removed"].append(removed_hooks)
+    if spec.get("config"):
+        rule = os.path.join(target_home(target), *spec["instructions"][1].split("/"))
+        path, status = set_kilo_instructions(target_home(target), rule, dry, remove=True)
+        if status == "written":
+            report["removed"].append(path + " (instructions entry)")
     agents_md = entry.get("agents_md")
     if agents_md and START in read(agents_md):
         rest = without_block(read(agents_md))

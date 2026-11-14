@@ -1,0 +1,10 @@
+{
+  "name": "opencode",
+  "label": "OpenCode",
+  "tiers": {
+    "fast": null,
+    "balanced": null,
+    "strong": null
+  },
+  "note": "Model ids are provider/model and depend on the providers you connected, so no default is set: agents inherit the session's model. To pin one per tier, set providers.opencode.tiers in your profile, e.g. {\"strong\": \"<provider>/<model>\"}."
+}

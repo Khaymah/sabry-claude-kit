@@ -280,7 +280,35 @@ python3 ~/sabry-claude-kit/hooks/kit_install.py --target kimi
 
 - **Codex بيطلب مراجعة الـ hooks الجديدة مرة واحدة:** اكتب `/hooks` جوه Codex ووافق. من غير كده مش هتشتغل.
 - **لو نقلت فولدر الكيت:** شغّل أمر التثبيت تاني، لأن الـ hooks متسجلة بمساره. `--no-hooks` بيثبّت من غيرها.
-- **GLM:** مالوش CLI رسمي؛ بيتشغّل من أدوات زي OpenCode و KiloCode و Cline. دعم الأدوات دي في مرحلة جاية من [الخطة](Plan/2026-11-14-multi-provider-smarter-kit.md).
+- **الدروس:** في Codex و Kimi بتتعرض كلها مع أول رسالة في الجلسة (مفيش تنبيه عند الملف أو الأمر زي Claude Code).
+
+### OpenCode · Kilo Code · Cline (ومنهم بتشغّل GLM)
+
+GLM مالوش CLI رسمي؛ بيتشغّل من الأدوات دي. نفس السكربت:
+
+```bash
+python3 ~/sabry-claude-kit/hooks/kit_install.py --target opencode
+```
+
+```bash
+python3 ~/sabry-claude-kit/hooks/kit_install.py --target kilo
+```
+
+```bash
+python3 ~/sabry-claude-kit/hooks/kit_install.py --target cline
+```
+
+| بيتثبّت | OpenCode | Kilo Code | Cline |
+|---|---|---|---|
+| التعليمات + الـ profile | بلوك جوه `~/.config/opencode/AGENTS.md` | `~/.config/kilo/sabry-kit.md` + سطر في `instructions` جوه `kilo.jsonc` | `~/.cline/rules/sabry-kit.md` |
+| الـ skills | `~/.agents/skills/` (بيقراها تلقائي) | `~/.agents/skills/` (تلقائي) | `~/.cline/skills/` |
+| الـ agents | `~/.config/opencode/agents/*.md` | `~/.config/kilo/agents/*.md` | ❌ Cline مافيهوش agents مخصصة: التعليمات بتقوله يقرا ملف الدور ويشتغل بيه |
+| الـ hooks | ❌ | ❌ | ❌ |
+
+- **مفيش hooks في التلاتة:** الأدوات دي بتاخد hooks كـ plugin مكتوب بـ JS/TS على الـ SDK بتاعها بس. يعني قواعد الكيت (commits · أسرار · كومنتات) هنا **تعليمات مش منع مفروض**. الـ git pre-commit hook بتاع فحص الأسرار بيفضل شغّال لأنه جوه git نفسه.
+- **`kilo.jsonc` فيه كومنتات؟** السكربت مابيلمسوش وبيقولك السطر اللي تضيفه بإيدك في `instructions`.
+- **موديل لكل مستوى** (مثلاً GLM): `"providers": {"opencode": {"tiers": {"strong": "<provider>/<model>"}}}` في الـ profile، ونفس الشكل لـ `kilo`. من غيره الـ agents بتاخد موديل الجلسة.
+- **ماتجرّبش live:** الصيغ من الـ docs الرسمية (اتراجعت 2026-11-14) والتثبيت متجرّب في home مؤقت، بس مش جوه الأدوات نفسها. لو agent ماظهرش أو ملف ماتقراش، ابعتلي الرسالة.
 
 ### Gemini CLI · Cursor · غيرهم
 
