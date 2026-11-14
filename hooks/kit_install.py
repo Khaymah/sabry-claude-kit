@@ -2,7 +2,7 @@
 """
 Installs sabry-kit into a coding agent other than Claude Code, in that agent's own format.
 
-    kit_install.py --target codex|kimi [--dry-run] [--uninstall]
+    kit_install.py --target codex|kimi [--dry-run] [--no-hooks] [--uninstall]
 
 The kit is written once (rules, Roles, agents, skills). Claude Code loads it as a plugin;
 this script gives the same brain to tools that run on their own:
@@ -11,13 +11,16 @@ this script gives the same brain to tools that run on their own:
     instructions    ~/.codex/AGENTS.md (block)        ~/.kimi-code/AGENTS.md (block)
     skills          ~/.agents/skills/<name>/          ~/.agents/skills/<name>/  (shared)
     agents          ~/.codex/agents/<name>.toml       ~/.kimi-code/agents/sabry-kit/<name>.md
+    hooks           ~/.codex/hooks.json               [[hooks]] block in ~/.kimi-code/config.toml
 
 Rules of the road:
   - AGENTS.md: only the text between the sabry-kit markers is written; the rest is the owner's.
   - A skill or agent of the same name that the kit did not write is never overwritten.
   - Every written path is recorded in ~/.agents/sabry-kit-install.json; --uninstall removes
     exactly those and the AGENTS.md block.
-  - Hooks are not installed here (each tool's hook wiring is a later, separate step).
+  - Hooks run through hooks/adapt.py with this Python and this kit path, so they break if
+    the kit folder moves: run kit_install again. Other hooks in the same files are kept.
+    Codex asks you to review new hooks once (/hooks) before it runs them.
 
 Models: each agent declares a `tier` (fast, balanced, strong). providers/<target>.json maps
 tiers to that tool's models; the owner's profile can override (`providers.<target>.tiers`).
@@ -247,7 +250,144 @@ def install_skill(src, dst, dry):
     return "written"
 
 
-def install(target, dry=False):
+HOOK_SETS = {
+    "codex": [
+        ("SessionStart", None, ["git-identity.py"], 15),
+        ("SessionStart", None, ["git-signing.py"], 180),
+        ("SessionStart", None, ["project-brief.py"], 15),
+        ("SessionStart", None, ["sounds/play.py", "notification.wav"], 20),
+        ("PreToolUse", "Bash", ["enforce-commit-style.py"], 10),
+        ("PreToolUse", "Bash", ["scan-secrets.py"], 30),
+        ("PreToolUse", "apply_patch", ["enforce-comment-discipline.py"], 10),
+        ("PermissionRequest", None, ["sounds/play.py", "needs-input.wav"], 20),
+        ("Stop", None, ["sounds/play.py", "done.wav"], 20),
+    ],
+    "kimi": [
+        ("SessionStart", None, ["git-identity.py"], 15),
+        ("SessionStart", None, ["git-signing.py"], 180),
+        ("UserPromptSubmit", None, ["--once", "project-brief.py"], 15),
+        ("PreToolUse", "Bash", ["enforce-commit-style.py"], 10),
+        ("PreToolUse", "Bash", ["scan-secrets.py"], 30),
+        ("PreToolUse", "Write|Edit", ["enforce-comment-discipline.py"], 10),
+        ("PreToolUse", "Write|Edit", ["enforce-nextjs-structure.py"], 10),
+        ("PermissionRequest", None, ["sounds/play.py", "needs-input.wav"], 20),
+        ("Stop", None, ["sounds/play.py", "done.wav"], 20),
+    ],
+}
+TOML_START = "# >>> sabry-kit hooks (generated; run kit_install again to change)"
+TOML_END = "# <<< sabry-kit hooks"
+
+
+def hook_command(target, parts):
+    quote = lambda v: '"' + v.replace("\\", "/") + '"'
+    adapt = os.path.join(HOOKS, "adapt.py")
+    return " ".join([quote(sys.executable), quote(adapt), target] + parts)
+
+
+def is_ours(command, target):
+    return f'adapt.py" {target} ' in str(command)
+
+
+def strip_codex_hooks(data, target):
+    hooks = data.get("hooks") or {}
+    for event in list(hooks):
+        groups = []
+        for group in hooks[event] or []:
+            kept = [h for h in group.get("hooks") or [] if not is_ours(h.get("command"), target)]
+            if kept:
+                groups.append(dict(group, hooks=kept))
+        if groups:
+            hooks[event] = groups
+        else:
+            del hooks[event]
+    if hooks:
+        data["hooks"] = hooks
+    else:
+        data.pop("hooks", None)
+    return data
+
+
+def install_codex_hooks(home, dry):
+    path = os.path.join(home, "hooks.json")
+    data = {}
+    if os.path.isfile(path):
+        try:
+            data = json.loads(read(path))
+            if not isinstance(data, dict):
+                raise ValueError
+        except ValueError:
+            return path, "skipped: hooks.json is not valid JSON, left untouched"
+    data = strip_codex_hooks(data, "codex")
+    hooks = data.setdefault("hooks", {})
+    for event, matcher, parts, timeout in HOOK_SETS["codex"]:
+        group = {"hooks": [{"type": "command", "command": hook_command("codex", parts), "timeout": timeout}]}
+        if matcher:
+            group["matcher"] = matcher
+        hooks.setdefault(event, []).append(group)
+    write(path, json.dumps(data, indent=2, ensure_ascii=False) + "\n", dry)
+    return path, "written"
+
+
+def toml_block():
+    lines = [TOML_START]
+    for event, matcher, parts, timeout in HOOK_SETS["kimi"]:
+        lines += ["[[hooks]]", f"event = {toml_basic(event)}"]
+        if matcher:
+            lines.append(f"matcher = {toml_basic(matcher)}")
+        lines += [f"command = {toml_basic(hook_command('kimi', parts))}", f"timeout = {timeout}", ""]
+    lines.append(TOML_END)
+    return "\n".join(lines) + "\n"
+
+
+def strip_toml_block(text):
+    if TOML_START not in text or TOML_END not in text:
+        return text
+    a, b = text.index(TOML_START), text.index(TOML_END) + len(TOML_END)
+    rest = text[:a].rstrip("\n") + "\n" + text[b:].lstrip("\n")
+    return rest if rest.strip() else ""
+
+
+def install_kimi_hooks(home, dry):
+    path = os.path.join(home, "config.toml")
+    text = strip_toml_block(read(path))
+    if re.search(r"^\s*hooks\s*=", text, re.M):
+        return path, "skipped: config.toml defines `hooks = ...` inline; add the kit's hooks by hand"
+    new = (text.rstrip("\n") + "\n\n" if text.strip() else "") + toml_block()
+    write(path, new, dry)
+    return path, "written"
+
+
+def uninstall_hooks(target, home, dry):
+    if target == "codex":
+        path = os.path.join(home, "hooks.json")
+        try:
+            data = json.loads(read(path))
+        except ValueError:
+            return None
+        before = json.dumps(data, sort_keys=True)
+        data = strip_codex_hooks(data, "codex")
+        if json.dumps(data, sort_keys=True) == before:
+            return None
+        if not dry:
+            if data:
+                write(path, json.dumps(data, indent=2, ensure_ascii=False) + "\n", False)
+            else:
+                os.remove(path)
+        return path + " (kit hooks)"
+    path = os.path.join(home, "config.toml")
+    text = read(path)
+    if TOML_START not in text:
+        return None
+    rest = strip_toml_block(text)
+    if not dry:
+        if rest.strip():
+            write(path, rest, False)
+        else:
+            os.remove(path)
+    return path + " (kit hooks)"
+
+
+def install(target, dry=False, hooks=True):
     home = target_home(target)
     report = {"target": TARGETS[target]["label"], "written": [], "skipped": [], "dry_run": dry}
     files, dirs = [], []
@@ -281,6 +421,14 @@ def install(target, dry=False):
         files.append(dst)
         report["written"].append(dst)
 
+    if hooks:
+        path, status = (install_codex_hooks if target == "codex" else install_kimi_hooks)(home, dry)
+        if status == "written":
+            report["written"].append(path + " (hooks)")
+            report["hooks"] = sorted({f"{e}:{m or '*'}:{p[-1] if p[0] != 'sounds/play.py' else 'sound'}"
+                                      for e, m, p, _ in HOOK_SETS[target]})
+        else:
+            report["skipped"].append(f"{path} ({status})")
     if not dry:
         manifest = read_manifest()
         manifest[target] = {"agents_md": agents_md, "files": files, "dirs": dirs, "kit": KIT}
@@ -309,6 +457,9 @@ def uninstall(target, dry=False):
             if not dry:
                 shutil.rmtree(path)
             report["removed"].append(path)
+    removed_hooks = uninstall_hooks(target, target_home(target), dry)
+    if removed_hooks:
+        report["removed"].append(removed_hooks)
     agents_md = entry.get("agents_md")
     if agents_md and START in read(agents_md):
         rest = without_block(read(agents_md))
@@ -331,7 +482,7 @@ def main():
         print(__doc__.strip(), file=sys.stderr)
         return 2
     dry = "--dry-run" in args
-    report = uninstall(target, dry) if "--uninstall" in args else install(target, dry)
+    report = uninstall(target, dry) if "--uninstall" in args else install(target, dry, "--no-hooks" not in args)
     print(json.dumps(report, indent=2, ensure_ascii=False))
     return 0
 

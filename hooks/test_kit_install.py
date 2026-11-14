@@ -118,6 +118,82 @@ class InstallTest(unittest.TestCase):
         self.assertIn('model = "big-model"', self.read(".codex", "agents", "cto.toml"))
         self.assertNotIn("model =", self.read(".codex", "agents", "senior-pm.toml"))
 
+    def run_installed(self, command, payload):
+        p = subprocess.run(command, shell=True, input=json.dumps(payload), capture_output=True, text=True,
+                           env=self.env, cwd=self.home, timeout=120)
+        return p.stdout.strip()
+
+    def bad_commit(self):
+        trailer = "Co-Authored-By: " + "Claude <noreply@anthropic.com>"
+        return {"hook_event_name": "PreToolUse", "tool_name": "Bash", "cwd": self.home,
+                "tool_input": {"command": 'git commit -m "feat: x\n\n%s"' % trailer}}
+
+    def test_codex_hooks_merge_run_and_uninstall(self):
+        os.makedirs(self.path(".codex"))
+        mine = {"hooks": {"PreToolUse": [{"matcher": "Bash", "hooks": [{"type": "command", "command": "my-linter"}]}]}}
+        with open(self.path(".codex", "hooks.json"), "w") as fh:
+            json.dump(mine, fh)
+        self.run_install("--target", "codex")
+        self.run_install("--target", "codex")
+        data = json.loads(self.read(".codex", "hooks.json"))
+        commands = [h["command"] for groups in data["hooks"].values() for g in groups for h in g["hooks"]]
+        self.assertIn("my-linter", commands)
+        ours = [c for c in commands if 'adapt.py" codex ' in c]
+        self.assertEqual(len(ours), len(set(ours)), "no duplicates after a second install")
+        self.assertEqual(len(ours), 9)
+        commit_hook = next(c for c in ours if c.endswith("enforce-commit-style.py"))
+        self.assertIn('"deny"', self.run_installed(commit_hook, self.bad_commit()))
+        patch = {"hook_event_name": "PreToolUse", "tool_name": "apply_patch", "cwd": self.home, "tool_input": {
+            "command": "*** Begin Patch\n*** Add File: src/a.ts\n+// note\n+export const a = 1\n*** End Patch"}}
+        patch_hook = next(c for c in ours if c.endswith("enforce-comment-discipline.py"))
+        self.assertIn('"deny"', self.run_installed(patch_hook, patch))
+        patch["tool_input"]["command"] = "*** Begin Patch\n*** Add File: src/a.ts\n+export const a = 1\n*** End Patch"
+        self.assertEqual(self.run_installed(patch_hook, patch), "")
+        self.run_install("--target", "codex", "--uninstall")
+        self.assertEqual(json.loads(self.read(".codex", "hooks.json")), mine)
+
+    def test_kimi_hooks_block_in_config_toml(self):
+        os.makedirs(self.path(".kimi-code"))
+        with open(self.path(".kimi-code", "config.toml"), "w") as fh:
+            fh.write('default_model = "x"\n\n[[hooks]]\nevent = "Stop"\ncommand = "my-hook"\n')
+        self.run_install("--target", "kimi")
+        self.run_install("--target", "kimi")
+        text = self.read(".kimi-code", "config.toml")
+        self.assertEqual(text.count("# >>> sabry-kit hooks"), 1)
+        if tomllib:
+            data = tomllib.loads(text)
+            self.assertEqual(data["default_model"], "x")
+            commands = [h["command"] for h in data["hooks"]]
+            self.assertIn("my-hook", commands)
+            for h in data["hooks"]:
+                self.assertLessEqual(set(h), {"event", "matcher", "command", "timeout"}, "Kimi rejects other keys")
+            commit_hook = next(c for c in commands if c.endswith("enforce-commit-style.py"))
+            self.assertIn('"deny"', self.run_installed(commit_hook, self.bad_commit()))
+            write_hook = next(c for c in commands if c.endswith("enforce-comment-discipline.py"))
+            payload = {"hook_event_name": "PreToolUse", "tool_name": "Write", "cwd": self.home,
+                       "tool_input": {"path": self.path("a.ts"), "content": "// x\nconst a = 1\n"}}
+            self.assertIn('"deny"', self.run_installed(write_hook, payload))
+        self.run_install("--target", "kimi", "--uninstall")
+        rest = self.read(".kimi-code", "config.toml")
+        self.assertNotIn("sabry-kit", rest)
+        self.assertIn("my-hook", rest)
+
+    def test_hooks_skipped_when_the_file_cannot_be_merged_safely(self):
+        os.makedirs(self.path(".codex"))
+        os.makedirs(self.path(".kimi-code"))
+        with open(self.path(".codex", "hooks.json"), "w") as fh:
+            fh.write("{not json")
+        with open(self.path(".kimi-code", "config.toml"), "w") as fh:
+            fh.write('hooks = []\n')
+        self.assertTrue(any("hooks.json" in x for x in self.run_install("--target", "codex")["skipped"]))
+        self.assertTrue(any("config.toml" in x for x in self.run_install("--target", "kimi")["skipped"]))
+        self.assertEqual(self.read(".codex", "hooks.json"), "{not json")
+        self.assertEqual(self.read(".kimi-code", "config.toml"), "hooks = []\n")
+
+    def test_no_hooks_flag(self):
+        self.run_install("--target", "codex", "--no-hooks")
+        self.assertFalse(os.path.exists(self.path(".codex", "hooks.json")))
+
     def test_dry_run_writes_nothing(self):
         report = self.run_install("--target", "kimi", "--dry-run")
         self.assertTrue(report["written"])

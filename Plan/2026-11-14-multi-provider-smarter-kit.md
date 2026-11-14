@@ -1,6 +1,6 @@
 # خطة: كيت يشتغل مع أكتر من مزوّد AI، وأذكى في التنفيذ
 
-- **التاريخ:** 2026-11-14 · **الحالة:** معتمدة · المرحلة 1 خلصت (2026-11-14) · مستنية مراجعة المالك قبل المرحلة 2 · **الإصدار المستهدف:** 0.3.0
+- **التاريخ:** 2026-11-14 · **الحالة:** معتمدة · خلصت المراحل 1 و 6 و 7 (2026-11-14) · الجاي: المرحلة 2 · **الإصدار المستهدف:** 0.3.0
 - **الطلب:** الكيت يشتغل كويس مع Claude و Codex و Kimi و GLM، ويبقى أذكى (مايكررش الغلط، ينسّق بين الـ agents، جودة تنفيذ أعلى، المهام الطويلة ماتتوهش)، مع 4 agents جداد.
 
 ## 1. الوضع الحالي
@@ -44,7 +44,7 @@ python hooks/kit_install.py --target codex|kimi [--dry-run] [--uninstall]
 | التعليمات + الـ profile | بلوك مُدار جوه `~/.codex/AGENTS.md` | بلوك مُدار جوه `~/.kimi-code/AGENTS.md` | 1 |
 | الـ skills | نسخ لـ `~/.agents/skills/` (مشترك بين الأداتين) | نفسه | 1 |
 | الـ agents | TOML في `~/.codex/agents/` | Markdown في `~/.kimi-code/agents/sabry-kit/` | 1 |
-| الـ hooks | `~/.codex/hooks.json` | plugin لـ Kimi أو `[[hooks]]` | 6 · 7 |
+| الـ hooks | `~/.codex/hooks.json` (دمج مع الموجود) | بلوك `[[hooks]]` في `~/.kimi-code/config.toml` | 6 · 7 ✅ |
 
 - محتوى المستخدم في `AGENTS.md` مابيتلمسش: الكيت بيكتب بين علامتين بس.
 - skill أو agent بنفس الاسم عند المستخدم ومش بتاع الكيت مابيتكتبش فوقه، وبيتقال في التقرير.
@@ -109,13 +109,14 @@ skill اسمها `kit-orchestrate` (مش agent، لأن الـ subagent مايق
 
 | # | المرحلة | المخرجات | معيار القبول |
 |---|---|---|---|
-| 1 | الأساس لكل الأدوات: tiers + `kit_install.py` (التعليمات · الـ skills · الـ agents) لـ Codex و Kimi | `providers/*.json` · `tier:` في الـ agents · `hooks/kit_install.py` | اختبارات على HOME مؤقت: تثبيت، إعادة تثبيت من غير تكرار، حفظ محتوى المستخدم، إلغاء تثبيت نضيف |
+| 1 ✅ | الأساس لكل الأدوات: tiers + `kit_install.py` (التعليمات · الـ skills · الـ agents) لـ Codex و Kimi | `providers/*.json` · `tier:` في الـ agents · `hooks/kit_install.py` | اختبارات على HOME مؤقت: تثبيت، إعادة تثبيت من غير تكرار، حفظ محتوى المستخدم، إلغاء تثبيت نضيف |
 | 2 | الـ agents الأربعة + دمج 3 أزواج متداخلة | 4 agents + 4 Roles · العدد 19 | frontmatter صالح؛ حالة eval لكل واحد |
 | 3 | الدروس | hooks التسجيل والعرض + الترقية | تصحيح في جلسة بيظهر كتنبيه في الجلسة اللي بعدها؛ اختبارات |
 | 4 | الخطط الطويلة | plan.md + hooks المتابعة و PreCompact | جلسة جديدة بتكمّل من أول بند مش متعلّم |
 | 5 | الـ orchestrator + معايير الجودة | `kit-orchestrate` + playbooks + معيار "خلصت" | حالات eval: feature كاملة بتعدّي بالتسلسل الصح |
-| 6 | hooks الكيت في Codex CLI | `~/.codex/hooks.json` مولّد | القواعد المفروضة (commits · أسرار · كومنتات) بتمنع جوه Codex |
-| 7 | hooks الكيت في Kimi Code CLI + plugin لـ Kimi | `.kimi-plugin/plugin.json` + `adapt.py kimi` | نفس الشرط، والـ profile بيتحقن مع أول رسالة |
+| 6 ✅ | hooks الكيت في Codex CLI | `~/.codex/hooks.json` مولّد | القواعد المفروضة (commits · أسرار · كومنتات) بتمنع جوه Codex |
+| 7 ✅ | hooks الكيت في Kimi Code CLI | بلوك `[[hooks]]` في `config.toml` + `adapt.py kimi` (plugin لـ Kimi اتأجل: التثبيت بالسكربت كفاية) | نفس الشرط، والـ profile بيتحقن مع أول رسالة |
+| 7b | الأدوات اللي GLM بيتشغّل منها: OpenCode · KiloCode · Cline | targets جديدة في `kit_install.py` | بعد مراجعة صيغة كل أداة من الـ docs الرسمية (تعليمات · skills · agents · hooks لو موجودة) |
 | 8 | توثيق + 0.3.0 | README بالعربي والإنجليزي + جدول "إيه بيشتغل فين" | الروابط سليمة؛ `verify-hooks.py` كله ناجح |
 
 كل مرحلة: اختبارات + `verify-hooks.py` + push على `main` + ملخص.
@@ -136,7 +137,8 @@ skill اسمها `kit-orchestrate` (مش agent، لأن الـ subagent مايق
 | كل أداة لوحدها بالكيت كامل، مش مزوّد جوه أداة تانية | ✅ المالك، 2026-11-14 |
 | دمج 3 أزواج agents متداخلة (العدد 19) | ✅ المالك |
 | ترتيب المراحل زي الجدول، والتنفيذ مرحلة مرحلة مع مراجعة | ✅ المالك |
-| GLM بيتشغّل من أنهي أداة (Codex CLI · OpenCode · غيرهم) | ⏳ مفتوح |
+| GLM بيتشغّل من OpenCode و KiloCode و Cline | ✅ المالك (المرحلة 7b) |
+| الـ hooks للأداتين قبل الـ agents والذكاء | ✅ المالك |
 | موديلات كل مستوى في Codex و Kimi | ⏳ مفتوح (الافتراضي: موديل الأداة) |
 
 ## 7. اللي مش في الخطة

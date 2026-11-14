@@ -253,13 +253,28 @@ python3 ~/sabry-claude-kit/hooks/kit_install.py --target kimi
 | التعليمات + الـ profile | بلوك جوه `~/.codex/AGENTS.md` | بلوك جوه `~/.kimi-code/AGENTS.md` |
 | الـ skills | `~/.agents/skills/` (مشترك) | `~/.agents/skills/`، وتتنادى بـ `/skill:<name>` |
 | الـ agents | `~/.codex/agents/*.toml` | `~/.kimi-code/agents/sabry-kit/*.md` |
+| الـ hooks | `~/.codex/hooks.json` | `~/.kimi-code/config.toml` |
 
 - **محتواك مابيتلمسش:** في `AGENTS.md` الكيت بيكتب بين علامتين بس، وأي skill أو agent بنفس الاسم عندك مابيتكتبش فوقه.
 - **تجربة من غير كتابة:** `--dry-run`. **إلغاء التثبيت:** `--uninstall` بيشيل اللي الكيت كتبه بس.
 - **بعد أي تحديث للكيت أو للـ profile:** شغّل نفس الأمر تاني.
 - **الموديلات:** كل agent ليه مستوى (`fast` · `balanced` · `strong`). الافتراضي موديل الأداة، ولو عايز موديل معيّن لمستوى: `"providers": {"codex": {"tiers": {"strong": "<model>"}}}` في الـ profile.
-- **الـ hooks لسه مش بتتثبّت تلقائياً** (منع توقيع الـ AI، فحص الأسرار، الذاكرة جوه المشروع): القواعد مكتوبة في `AGENTS.md` بس مش مفروضة بالقوة. Codex تقدر تربطه يدوي من [hooks/README.md](hooks/README.md#8-أدوات-تانية-codex--gemini-cli--cursor)، و Kimi في مرحلة جاية.
-- **GLM:** مالوش CLI رسمي؛ بيتشغّل من Codex CLI أو أدوات تانية، فبياخد الكيت من تثبيت الأداة دي.
+- **الـ hooks بتتثبّت مع الباقي** (في `~/.codex/hooks.json` و`[[hooks]]` جوه `~/.kimi-code/config.toml`، وأي hooks عندك بتفضل زي ما هي):
+
+  | القاعدة | Codex CLI | Kimi Code CLI |
+  |---|---|---|
+  | منع توقيع الـ AI + commits بالإنجليزي | ✅ | ✅ |
+  | فحص الأسرار قبل الـ commit | ✅ | ✅ |
+  | كود بلا كومنتات | ✅ (بيقرا الـ `apply_patch`) | ✅ |
+  | هيكل Next.js | ❌ | ✅ |
+  | هوية git بتاعتك + التوقيع بمفتاحك | ✅ | ✅ |
+  | ملخص المشروع في أول الجلسة | ✅ | ✅ (مع أول رسالة) |
+  | الأصوات | ✅ | ✅ |
+  | الذاكرة جوه المشروع · عدّاد التوكنز · تذكير التحقق | ❌ (معتمدين على صيغة Claude Code) | ❌ |
+
+- **Codex بيطلب مراجعة الـ hooks الجديدة مرة واحدة:** اكتب `/hooks` جوه Codex ووافق. من غير كده مش هتشتغل.
+- **لو نقلت فولدر الكيت:** شغّل أمر التثبيت تاني، لأن الـ hooks متسجلة بمساره. `--no-hooks` بيثبّت من غيرها.
+- **GLM:** مالوش CLI رسمي؛ بيتشغّل من أدوات زي OpenCode و KiloCode و Cline. دعم الأدوات دي في مرحلة جاية من [الخطة](Plan/2026-11-14-multi-provider-smarter-kit.md).
 
 ### Gemini CLI · Cursor · غيرهم
 
