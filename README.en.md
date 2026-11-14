@@ -4,7 +4,7 @@
 
 One portable brain for your coding agent. It asks how you work once and keeps the answers as top-priority settings. It keeps each project's memory inside that project, stops secrets from being committed, and finds plugins or settings that fight it, then fixes them with your consent.
 
-Built for [Claude Code](https://code.claude.com) as a plugin. Its hooks also run under Codex CLI, Gemini CLI and Cursor ([details](hooks/README.md#8-أدوات-تانية-codex--gemini-cli--cursor)).
+Built for [Claude Code](https://code.claude.com) as a plugin, and installs into Codex CLI, Kimi Code, OpenCode, Kilo Code and Cline with one script ([how](#codex-cli-and-kimi-code-cli-each-tool-on-its-own)). Its hooks also run under Codex CLI, Gemini CLI and Cursor ([details](hooks/README.md#8-أدوات-تانية-codex--gemini-cli--cursor)).
 
 ---
 
@@ -62,9 +62,13 @@ Built for [Claude Code](https://code.claude.com) as a plugin. Its hooks also run
 | 🧭 **Starts knowing the project** | Every session opens with the stack, the check commands, the folders, git state and the last "next" from `Plan/Progress`, as a small brief instead of exploration |
 | 🔐 **Secret scan before every commit** | API keys, tokens, private keys, `.env` files. Runs as a Claude Code hook and as a git pre-commit hook, so the project is protected from any tool or person |
 | 🩺 **Conflict doctor** | `/sabry-kit:kit-doctor` scans everything installed, ranks conflicts by severity, and fixes them with your consent, with a backup and one-command undo. Once a day it alerts you to a high-severity conflict |
-| 🎭 **Agent family** | 20 agents with clear roles (CTO · PM · BA · Market Research · Security · DevOps …), all in the same compact shape, each reading its role file from `Roles/` |
+| 🎭 **Agent family** | 24 agents with clear roles (CTO · PM · BA · Market Research · Security · DevOps …), all in the same compact shape, each reading its role file from `Roles/` |
 | 🔒 **Rules enforced by hooks** | English commits with no AI attribution · code without comments · Next.js layout · duplication warning · team review reminder. Each one can be switched off in the profile |
-| 🔌 **Any AI agent** | `hooks/adapt.py` runs the same hooks under Codex, Gemini CLI and Cursor without forking them |
+| 🎓 **Learns from your corrections** | Say "wrong" or "I told you" and the lesson is recorded in `.agents/memory/lessons.md`, then shown in later sessions at the same file or command. A lesson seen in two projects becomes owner-wide |
+| 🗺️ **Long tasks stay on track** | A checkbox plan in `.agents/plans/`, shown at every session start with its first unchecked item; its state is saved before context compaction and restored after |
+| 🎼 **Team orchestration** | `/sabry-kit:kit-orchestrate`: 7 playbooks with a fixed sequence, one handoff file, and a closing table that accounts for every ask |
+| ✅ **Definition of done** | Per task type (feature · bugfix · refactor · migration), with a clean-context review for large or sensitive changes |
+| 🔌 **Any AI agent** | `kit_install.py` installs instructions, skills and agents into Codex, Kimi, OpenCode, Kilo Code and Cline in each tool's format; `hooks/adapt.py` runs the same hooks under Codex, Kimi, Gemini CLI and Cursor |
 | 💸 **Lower cost** | Smaller context per session, lighter agents, cheaper defaults ([details](#cost-and-performance)) |
 
 ---
@@ -78,6 +82,7 @@ Built for [Claude Code](https://code.claude.com) as a plugin. Its hooks also run
 | `/sabry-kit:kit-stats` | Where the tokens went: per session and per tool, the largest results, re-read files, and savings backed by the numbers |
 | `architecture-decision` | Loads on its own for an architectural decision (stack · schema · API · auth): Quality-Gate + ADR |
 | `/sabry-kit:team-review` | Parallel review of changes (security · correctness · tests · UX), every finding verified before it is shown |
+| `/sabry-kit:kit-orchestrate` | Coordinates several agents on one job through a fixed playbook (feature · bugfix · idea · release · integration · support ticket · client offer), with one handoff file and a coverage table at the end |
 | `/sabry-kit:project-audit` | Full project audit: security, quality, performance, architecture, with an Arabic report |
 | `/sabry-kit:self-maintain` | Maintain the kit itself: opens a PR with improvements, never auto-merges |
 | `/sabry-kit:brag-slim` | A short launch video for a project or site |
@@ -94,7 +99,9 @@ The right role activates from the context of the request (full table in [Roles/R
 | Area | Agents |
 |---|---|
 | Decisions and product | `cto` · `senior-pm` · `business-analyst` · `market-researcher` · `growth-strategist` · `business-developer` |
-| Delivery and clients | `delivery-manager` · `proposal-writer` |
+| Delivery and clients | `delivery-manager` · `proposal-writer` · `support-triage` |
+| Data and reach | `data-analyst` · `seo-content` |
+| External systems | `integration-engineer` |
 | Building | `senior-engineer` · `backend-architect` · `Frontend Developer` · `mobile-developer` · `ai-engineer` · `Database-Optimizer` · `devops-sre` · `qa-tester` · `tech-writer` |
 | Review and design | `code-reviewer` · `security-reviewer` (security review + threat modeling) · `ui-ux` (design + UX review) |
 
@@ -173,6 +180,8 @@ Each cloud session starts in a fresh container that is deleted afterwards, and i
 | Token meter (`usage.py`) + `/sabry-kit:kit-stats` | every session is measured: exactly where the waste is |
 | `read-budget`: no accidental full read of a file over 800 lines | read only the part needed, since results are re-sent every turn |
 | `verify-reminder`: a check before "done", using the project's own commands | fewer bugs, less rework |
+| `lessons`: an owner correction becomes one line in `.agents/memory/lessons.md` and is shown in later sessions at the same file or command | the mistake is not repeated, with no re-explaining |
+| `kit_plans`: a long task gets a checkbox plan in `.agents/plans/<slug>/plan.md`, shown in every session brief and saved before compaction | a new session continues from the first unchecked item instead of re-exploring |
 
 ---
 
@@ -181,7 +190,7 @@ Each cloud session starts in a fresh container that is deleted afterwards, and i
 | Path | Purpose |
 |---|---|
 | `.claude-plugin/` | Plugin and marketplace manifests |
-| `agents/` | The 20 agents |
+| `agents/` | The 24 agents |
 | `Roles/` | One file per role (thinking frame · reply template · anti-patterns), read by the agent before it works |
 | `rules/` | Rules injected every session (communication · working mode · language · comments · subagents · storage …) |
 | `skills/` | Commands and design systems (table above) |
@@ -274,6 +283,34 @@ python3 ~/sabry-claude-kit/hooks/kit_install.py --target kimi
 - **Codex asks you to review new hooks once:** type `/hooks` inside Codex and approve; they do not run before that.
 - **If you move the kit folder:** run the install command again, since hooks are registered with its path. `--no-hooks` installs without them.
 - **GLM:** has no official CLI; it runs from tools such as OpenCode, KiloCode and Cline. Support for those is a later phase of the [plan](Plan/2026-11-14-multi-provider-smarter-kit.md).
+
+### OpenCode · Kilo Code · Cline (where GLM runs)
+
+GLM has no official CLI; it runs inside these tools. Same script:
+
+```bash
+python3 ~/sabry-claude-kit/hooks/kit_install.py --target opencode
+```
+
+```bash
+python3 ~/sabry-claude-kit/hooks/kit_install.py --target kilo
+```
+
+```bash
+python3 ~/sabry-claude-kit/hooks/kit_install.py --target cline
+```
+
+| Installed | OpenCode | Kilo Code | Cline |
+|---|---|---|---|
+| Instructions + profile | a block inside `~/.config/opencode/AGENTS.md` | `~/.config/kilo/sabry-kit.md` plus an entry in `instructions` in `kilo.jsonc` | `~/.cline/rules/sabry-kit.md` |
+| Skills | `~/.agents/skills/` (read by default) | `~/.agents/skills/` (read by default) | `~/.cline/skills/` |
+| Agents | `~/.config/opencode/agents/*.md` | `~/.config/kilo/agents/*.md` | ❌ Cline has no custom agents: the instructions tell it to read the role file and work in that role |
+| Hooks | ❌ | ❌ | ❌ |
+
+- **No hooks in these three:** they take hooks only as JS/TS plugins written against their own SDK, so the kit's rules (commits · secrets · comments) are **instructions there, not enforcement**. The git pre-commit secret scan still runs because it lives in git.
+- **`kilo.jsonc` with comments** is left untouched; the script prints the entry to add to `instructions` by hand.
+- **A model per tier** (for example GLM): `"providers": {"opencode": {"tiers": {"strong": "<provider>/<model>"}}}` in the profile, same shape for `kilo`. Without it agents use the session's model.
+- **Not tried live:** formats come from the official docs (read 2026-11-14) and the install is tested in a throwaway home, not inside the tools themselves.
 
 ### Gemini CLI · Cursor · others
 

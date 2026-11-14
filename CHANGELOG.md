@@ -1,0 +1,36 @@
+# Changelog
+
+## 0.3.0 — 2026-11-14
+
+Plan: `Plan/2026-11-14-multi-provider-smarter-kit.md`.
+
+### Smarter
+
+- **Lessons** (`hooks/lessons.py`): a prompt that reads like a correction asks the agent to record a lesson in `.agents/memory/lessons.md`. General lessons are shown on the first prompt of a session; scoped ones when a matching file is edited or a matching command runs, once per session. A lesson recorded in two projects, or added with `--global`, is copied to `~/.agents/lessons.md` and travels in the `sabry-profile` bundle. Switch: `lessons`.
+- **Long-task plans** (`hooks/kit_plans.py`): `.agents/plans/<slug>/plan.md` with phases, acceptance lines and checkboxes. The session brief names the active plan and its next item, the Stop hook asks for the boxes after work, and state is saved before compaction and restored after. Switch: `long_task_plans`.
+- **Orchestration** (`/sabry-kit:kit-orchestrate`): seven playbooks (feature, bugfix, idea, release, integration, support, offer), one handoff file, parallel independent steps, a closing table that accounts for every numbered ask.
+- **Quality rules**: requirement coverage, a definition of done per task type, clean-context self-review above a size or risk threshold.
+
+### Agents (18 → 24)
+
+- New: `mobile-developer`, `ai-engineer`, `delivery-manager`, `proposal-writer`, `data-analyst`, `seo-content`, `integration-engineer`, `support-triage`, each with a role file in `Roles/`.
+- Merged: `cyber-security` into `security-reviewer`, `ux-reviewer` into `ui-ux`.
+- Every agent declares a `tier` (`fast`, `balanced`, `strong`) that maps to a model per tool.
+
+### Other tools
+
+- `hooks/kit_install.py --target codex|kimi|opencode|kilo|cline` installs the instructions, profile, skills and agents in each tool's own format, never overwrites the owner's files, and removes exactly what it wrote with `--uninstall`.
+- Enforcement hooks run inside Codex CLI and Kimi Code CLI through `hooks/adapt.py`. OpenCode, Kilo Code and Cline get no hooks: they only accept JS/TS plugins.
+
+### Fixed
+
+- `team-review` no longer tells kit agents to override the model in their frontmatter.
+
+### Not verified
+
+- No live run inside Codex CLI, Kimi Code CLI, OpenCode, Kilo Code or Cline: formats come from their official docs and the install is tested against a throwaway home.
+- Eval cases added in this release (`*-agent-routes`, `orchestrate-feature`, `requirement-coverage`) have not been run.
+
+## 0.2.0
+
+First-run setup with a top-priority profile, per-project storage in `.agents/`, secret scanning, the conflict doctor, token meter and `/sabry-kit:kit-stats`, read budget, verify reminder, project brief, cloud-session persistence, the account-wide profile skill, git identity and signing, the eval suite.

@@ -6,7 +6,7 @@
 
 عقل واحد لوكيل البرمجة بتاعك، بيتنقل معاك على أي جهاز. بيسألك عن طريقتك مرة واحدة ويحفظها كإعدادات بأولوية قصوى، وبيشيل ذاكرة كل مشروع جوه المشروع نفسه. وبيمنع الأسرار من إنها تتعمل لها commit، وبيكتشف أي plugin أو إعداد متعارض معاه ويصلّحه بموافقتك.
 
-مبني لـ [Claude Code](https://code.claude.com) كـ plugin. والـ hooks بتاعته بتشتغل كمان في Codex CLI وGemini CLI وCursor ([التفاصيل](hooks/README.md#8-أدوات-تانية-codex--gemini-cli--cursor)).
+مبني لـ [Claude Code](https://code.claude.com) كـ plugin، وبيتثبّت كمان في Codex CLI و Kimi Code و OpenCode و Kilo Code و Cline بسكربت واحد ([إزاي](#codex-cli-و-kimi-code-cli-كل-أداة-لوحدها)). والـ hooks بتاعته بتشتغل في Codex CLI وGemini CLI وCursor ([التفاصيل](hooks/README.md#8-أدوات-تانية-codex--gemini-cli--cursor)).
 
 ---
 
@@ -66,7 +66,11 @@
 | 🩺 **فحص التعارضات** | `/sabry-kit:kit-doctor` بيفحص كل اللي متسطّب عندك ويعرض التعارضات بالخطورة. بيصلّح بموافقتك، مع backup ورجوع بأمر واحد. ومرة في اليوم بينبّهك لو فيه تعارض خطير |
 | 🎭 **عيلة agents** | 24 agent بأدوار واضحة (CTO · PM · BA · Market Research · Security · DevOps …)، كلهم بنفس الشكل المختصر، وكل واحد بيقرا ملف الدور بتاعه من `Roles/` |
 | 🔒 **قواعد مفروضة بـ hooks** | commits بالإنجليزي ومن غير توقيع AI · كود بلا كومنتات · هيكل Next.js · تحذير التكرار · تذكير team review. كل قاعدة تقدر تقفلها من الـ profile |
-| 🔌 **أي AI agent** | `hooks/adapt.py` بيشغّل نفس الـ hooks في Codex وGemini CLI وCursor من غير نسخ الكود |
+| 🎓 **بيتعلّم من تصحيحك** | لما تقوله "غلط" أو "قلتلك"، الدرس بيتسجّل في `.agents/memory/lessons.md` وبيظهر في الجلسات اللي بعدها عند نفس الملف أو الأمر. الدرس اللي يتكرر في مشروعين بيبقى عام |
+| 🗺️ **المهام الطويلة مابتتوهش** | خطة بـ checkboxes في `.agents/plans/`، بتظهر في أول كل جلسة بأول بند مش متعلّم، وحالتها بتتحفظ قبل ضغط الـ context وبترجع بعده |
+| 🎼 **تنسيق الفريق** | `/sabry-kit:kit-orchestrate`: 7 playbooks بتسلسل ثابت، ملف handoff واحد، وجدول في الآخر بيقفل كل بند في المطلوب |
+| ✅ **معيار "خلصت"** | لكل نوع مهمة (feature · bugfix · refactor · migration)، مع مراجعة بسياق نضيف للتغييرات الكبيرة أو الحساسة |
+| 🔌 **أي AI agent** | `kit_install.py` بيثبّت التعليمات والـ skills والـ agents في Codex · Kimi · OpenCode · Kilo Code · Cline بصيغة كل أداة، و`hooks/adapt.py` بيشغّل نفس الـ hooks في Codex و Kimi و Gemini CLI و Cursor |
 | 💸 **تكلفة أقل** | context أصغر في كل جلسة، و agents أخف، وافتراضيات أوفر ([التفاصيل](#التكلفة-والأداء)) |
 
 ---

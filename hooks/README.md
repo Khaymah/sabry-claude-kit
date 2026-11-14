@@ -237,6 +237,8 @@ for t in hooks/test_*.py; do python3 "$t" >/dev/null && echo "PASS $t" || echo "
 
 ## 8. أدوات تانية (Codex · Gemini CLI · Cursor)
 
+> **التثبيت الكامل** (تعليمات + skills + agents + hooks) في Codex و Kimi، ومن غير hooks في OpenCode و Kilo Code و Cline: `kit_install.py --target <codex|kimi|opencode|kilo|cline>`، وشرحه في [README](../README.md#codex-cli-و-kimi-code-cli-كل-أداة-لوحدها). القسم ده عن تسجيل الـ hooks بإيدك عن طريق `adapt.py`.
+
 السكربتات مكتوبة بلغة الـ hooks بتاعة Claude Code. `adapt.py` بيترجم في الاتجاهين، فنفس القواعد بتشتغل في كل أداة من غير ما نعمل نسخة لكل واحدة:
 
 ```bash

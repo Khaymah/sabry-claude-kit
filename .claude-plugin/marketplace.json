@@ -7,7 +7,7 @@
     {
       "name": "sabry-kit",
       "source": "./",
-      "description": "Portable AI-agent brain: a top-priority owner profile from a first-run setup, role agents, per-project memory under .agents/, secret scanning, a conflict doctor, and enforcement hooks that also run under Codex, Gemini CLI and Cursor."
+      "description": "Portable AI-agent brain: a top-priority owner profile, 24 role agents with an orchestrator, lessons learned from the owner's corrections, checkbox plans for long tasks, per-project memory under .agents/, secret scanning, a conflict doctor and enforcement hooks. Installs into Codex CLI, Kimi Code, OpenCode, Kilo Code and Cline as well."
     }
   ]
 }
