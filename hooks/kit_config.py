@@ -63,7 +63,7 @@ def project_root(cwd=None):
     cwd = cwd or os.environ.get("CLAUDE_PROJECT_DIR") or os.getcwd()
     root = cwd
     try:
-        p = subprocess.run(["git", "-C", cwd, "rev-parse", "--show-toplevel"],
+        p = subprocess.run(["git", "-c", "core.fsmonitor=", "-C", cwd, "rev-parse", "--show-toplevel"],
                            capture_output=True, text=True, timeout=5)
         if p.returncode == 0 and p.stdout.strip():
             root = p.stdout.strip()
@@ -137,22 +137,54 @@ def user_level_profile():
     return local or skill or _env_profile()
 
 
+PROTECTIONS = ("secret_scan", "install_git_hook", "commit_style", "git_identity", "git_signing",
+               "comment_discipline", "project_storage")
+PROJECT_TEXT_KEYS = {"stack": 200, "language": 20, "verbosity": 20}
+
+
+def project_overrides(root):
+    """IMPORTANT: <project>/.agents/profile.json arrives with the repository, so it may be
+    written by someone other than the owner. It can tune a project, never speak for the
+    owner: only `stack`, `language`, `verbosity` (short single-line strings) and known
+    switches are read, and a protection can be turned on by it but never off."""
+    path = project_profile_path(root)
+    if not path or os.path.islink(path):
+        return {}, {}
+    data = _load(path)
+    fields = {}
+    for key, limit in PROJECT_TEXT_KEYS.items():
+        value = data.get(key)
+        if isinstance(value, str) and value.strip() and "\n" not in value and len(value) <= limit:
+            fields[key] = value.strip()
+    settings = {}
+    raw = data.get("settings")
+    for key, value in (raw.items() if isinstance(raw, dict) else []):
+        known = key in DEFAULTS or key == "read_budget_lines"
+        if not known or isinstance(value, (dict, list, str)):
+            continue
+        if key in PROTECTIONS and not value:
+            continue
+        settings[key] = value
+    return fields, settings
+
+
 def load_profile(root=None):
-    """Merged profile: the owner's user-level profile, then the project file on top.
-    `settings` merges by key."""
+    """Merged profile: the owner's user-level profile, then the allowed part of the project
+    file on top. `settings` merges by key."""
     user = user_level_profile()
-    proj = _load(project_profile_path(root))
+    fields, project_settings = project_overrides(root)
     merged = dict(user)
-    merged.update({k: v for k, v in proj.items() if k != "settings"})
+    merged.update(fields)
     settings = dict(DEFAULTS)
-    settings.update(user.get("settings") or {})
-    settings.update(proj.get("settings") or {})
+    owner_settings = user.get("settings")
+    settings.update(owner_settings if isinstance(owner_settings, dict) else {})
+    settings.update(project_settings)
     merged["settings"] = settings
     return merged
 
 
 def has_profile(root=None):
-    return bool(user_level_profile()) or bool(_load(project_profile_path(root)))
+    return bool(user_level_profile())
 
 
 def gate(key, payload):

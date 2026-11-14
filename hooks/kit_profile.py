@@ -132,8 +132,9 @@ def kit_version():
         return ""
 
 
-def bundle(out=None):
-    """Zip the owner profile as a claude.ai skill, uploaded once to reach every session."""
+def bundle(out=None, with_signing_key=False):
+    """Zip the owner profile as a claude.ai skill, uploaded once to reach every session.
+    The private signing key goes in only when asked for: the zip leaves the machine."""
     import zipfile
     data = kit_config.user_level_profile()
     if not data:
@@ -146,11 +147,12 @@ def bundle(out=None):
         ctx = existing_context_path()
         if ctx:
             z.write(ctx, "sabry-profile/profile.md")
-        lessons = os.path.join(user_dir(), "lessons.md")
-        if os.path.isfile(lessons):
-            z.write(lessons, "sabry-profile/lessons.md")
+        for name in ("lessons.md", "lessons-trusted.json"):
+            extra = os.path.join(user_dir(), name)
+            if os.path.isfile(extra):
+                z.write(extra, "sabry-profile/" + name)
         key = os.path.join(user_dir(), "signing_key")
-        if os.path.isfile(key):
+        if with_signing_key and os.path.isfile(key):
             z.write(key, "sabry-profile/signing_key")
     return out
 
@@ -230,11 +232,15 @@ def main():
         return 0
     if cmd == "bundle":
         out = args[args.index("--out") + 1] if "--out" in args and len(args) > args.index("--out") + 1 else None
-        path = bundle(out)
+        with_key = "--with-signing-key" in args
+        path = bundle(out, with_key)
         if not path:
             print("no user profile yet: run /sabry-kit:kit-setup first", file=sys.stderr)
             return 1
         print(path)
+        if not with_key and os.path.isfile(os.path.join(user_dir(), "signing_key")):
+            print("signing key left out: add --with-signing-key to carry it in the zip "
+                  "(the zip is uploaded to claude.ai)", file=sys.stderr)
         return 0
     if cmd == "env":
         data = kit_config.user_level_profile()
@@ -263,6 +269,9 @@ def main():
             print("not inside a project", file=sys.stderr)
             return 2
         data = merge(read_json(path), patch)
+        if project:
+            print("note: a project profile can set stack, language, verbosity and switches, and cannot "
+                  "turn a protection off; other keys are ignored", file=sys.stderr)
         data["version"] = 1
         data["updated"] = datetime.datetime.now().replace(microsecond=0).isoformat()
         if not project:
