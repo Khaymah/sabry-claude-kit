@@ -81,7 +81,7 @@ Agent(subagent_type: "<agent>", prompt:
 Between implementation and "done", in this order:
 
 1. **Checks:** the project's typecheck, the tests for the changed files, lint (commands are in the project brief). Run them here in the main loop, not in a subagent.
-2. **Definition of done** for the task type (`rules/completion-discipline.md`).
+2. **Definition of done** for the task type (`Reference/definition-of-done.md` in the kit folder).
 3. **Clean-context review:** `code-reviewer` gets the diff and the numbered request only, never the handoff or your reasoning. Required when the change is over ~150 lines or 5 files, or touches auth, payments, migrations or personal data. Fix blockers, then re-run step 1.
 
 ## 6. Close every item

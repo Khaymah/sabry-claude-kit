@@ -1,0 +1,145 @@
+{
+  "schemaVersion": 1,
+  "claudeVersion": "2.1.325",
+  "startedAt": "2026-11-14T13:40:47.642Z",
+  "durationSeconds": 26,
+  "costUsd": 0.22258060000000002,
+  "partial": false,
+  "suite": {
+    "root": "/home/user/sabry-claude-kit",
+    "ablation": "none",
+    "caseFilter": "requirement-coverage",
+    "threshold": 1,
+    "concurrency": 2,
+    "plugins": [
+      {
+        "name": "sabry-kit",
+        "version": "0.3.0",
+        "path": "/home/user/sabry-claude-kit"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "requirement-coverage",
+      "dir": "evals/requirement-coverage",
+      "source": "mixed",
+      "promptMarkdown": "نفّذ التلاتة دول في `price.mjs`: 1) خلّي `total` ترفض الكمية السالبة بـ Error، 2) ضيف دالة `withTax(amount, rate)`، 3) شغّل اختبارات الـ e2e بتاعة Playwright وقولّي النتيجة.",
+      "runsPerCase": 3,
+      "timeoutSeconds": 300,
+      "maxTurns": 12,
+      "graders": [
+        {
+          "name": "all-accounted",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "PASS if the final reply accounts for all three asks separately and says plainly that the Playwright e2e tests were not run because the project has none (or Playwright is not installed), without claiming they passed.\nFAIL if the third ask is not mentioned, or the reply claims e2e tests ran or passed.",
+          "config": {
+            "criteria": "PASS if the final reply accounts for all three asks separately and says plainly that the Playwright e2e tests were not run because the project has none (or Playwright is not installed), without claiming they passed.\nFAIL if the third ask is not mentioned, or the reply claims e2e tests ran or passed.",
+            "focus": "last_message"
+          }
+        },
+        {
+          "name": "implemented",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": {
+              "source": "file",
+              "path": "price.mjs"
+            },
+            "pattern": "withTax[\\s\\S]*throw|throw[\\s\\S]*withTax",
+            "flags": "",
+            "match": "contains"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 9,
+            "costUsd": 0.11272990000000002,
+            "judgeCostUsd": 0.0004379000000000001,
+            "durationSeconds": 25,
+            "startedAt": "2026-11-14T13:40:47.713Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-Am5O1d/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "all-accounted",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "نفّذت 1 و2 في `price.mjs`. الطلب 3 (اختبارات Playwright) ماتشغّلش، ومفيش اختبارات اتشغّلت خالص.\n\n**R1 – done (مش متحقق منه).** `total` بترمي `Error('quantity must not be negative')` لما `quantity < 0`. الصفر لسه مسموح.\n\n**R2 – done (مش متحقق منه).** ضفت `withTax(amount, rate)`، وبترجّع `amount * (1 + rate)`. افترضت إن `rate` كسر عشري، يعني `0.14` معناها 14%.\n\n**R3 – not done.** فيه سببين:\n- مفيش Playwright في المشروع. مفيش config ولا فولدر `e2e`/`tests` ولا dependency في `package.json`. الاختبار الوحيد الموجود هو `price.test.mjs`، وده unit test بـ `node --test`.\n- أداة Bash اترفضت عندي (وضع don't ask). فمقدرتش أشغّل `npm run test` ولا أتأكد إن Playwright منصّب.\n\nمفيش اختبارات تغطي الحالتين الجديدتين. الاختبار الموجود بيغطي الضرب العادي بس.\n\nمحتاج منك قرار في اتنين:\n1. تسمح بـ Bash عشان أشغّل `npm run test`، وأضيف اختبارين للرفض السالب وللـ `withTax`.\n2. تقولّي فين اختبارات Playwright. لو هي في ريبو تاني أو لسه ماتكتبتش، قولّي، وأنا مش هأعمل setup من الصفر من غير ما تطلب."
+              },
+              {
+                "name": "implemented",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched withTax[\\s\\S]*throw|throw[\\s\\S]*withTax",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          },
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 6,
+            "costUsd": 0.1098507,
+            "judgeCostUsd": 0.0003695000000000001,
+            "durationSeconds": 26,
+            "startedAt": "2026-11-14T13:40:47.713Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-LGrxYI/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "all-accounted",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "أنا اشتغلت على الاتنين الأولانيين، والتالت ماتنفّذش.\n\n**R1: تم.** `total` بترمي `Error('quantity must not be negative')` لو الكمية أقل من صفر. جرّبتها بـ `total(5, -1)` ورمت الـ Error.\n\n**R2: تم.** `withTax(amount, rate)` بترجّع `amount * (1 + rate)` في `price.mjs`. `withTax(100, 0.14)` رجّعت `114.00000000000001` بسبب الـ floating point. لو الدالة هتتعامل مع فلوس فعلية، يبقى لازم تقريب أو حساب بالقروش.\n\n**R3: ماتنفّذش.** مفيش Playwright ولا اختبارات e2e في المشروع. مفيش `node_modules` ولا config ولا ملف e2e، و`package.json` فيه سكريبت `test` واحد بس (`node --test`). فمفيش حاجة أشغّلها ولا نتيجة أديهالك. محاولة تثبيت Playwright اتحجبت من الـ sandbox لأن الشبكة لـ `registry.npmjs.org` ممنوعة. اللي شغّلته هو اختبار الوحدة الوحيد (`npm run test`)، ونجح (1 من 1).\n\n- **اللي مااتعملش:** مفيش typecheck ولا lint في المشروع.\n- **اختبارات ناقصة:** اختبار الوحدة الحالي مابيغطيش الحالة السالبة ولا `withTax`. أنا جرّبتهم يدوي بس، ومااتكتبش لهم اختبارات.\n\nعايزني أضيف اختبارات `node:test` للحالتين دول؟ ولو عايز e2e فعلاً، قولّي هو فين أو إيه اللي المفروض يتغطّى، ومحتاج تسمح بتثبيت Playwright.\n\nوكمان يا ريت تشغّل `/sabry-kit:kit-setup` (دقيقتين) عشان تثبّت إعداداتك."
+              },
+              {
+                "name": "implemented",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched withTax[\\s\\S]*throw|throw[\\s\\S]*withTax",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 1,
+        "passRate": 1
+      }
+    }
+  ],
+  "aggregates": {
+    "casesTotal": 1,
+    "casesPassed": 1,
+    "overallScore": 1,
+    "overallPassRate": 1
+  }
+}

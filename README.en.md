@@ -193,6 +193,7 @@ Each cloud session starts in a fresh container that is deleted afterwards, and i
 | `agents/` | The 24 agents |
 | `Roles/` | One file per role (thinking frame · reply template · anti-patterns), read by the agent before it works |
 | `rules/` | Rules injected every session (communication · working mode · language · comments · subagents · storage …) |
+| `Reference/` | Detail the rules point to, read only when needed (progress log · definition of done · long-task plans · subagent briefing · stack list · git identity) |
 | `skills/` | Commands and design systems (table above) |
 | `hooks/` | Every hook plus `kit_profile.py`, `doctor.py`, `adapt.py` and the tests. **Full guide: [hooks/README.md](hooks/README.md)** |
 | `sounds/` | Notification sounds + `play.py` (Windows · macOS · Linux) |

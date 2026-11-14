@@ -31,6 +31,10 @@ Plan: `Plan/2026-11-14-multi-provider-smarter-kit.md`.
 - **`kit-orchestrate` on plan-only work.** At most two agents, each with one narrow question, and the closing message states the decision for every numbered ask instead of pointing at a file.
 - **Lessons survive compaction.** Rules, the profile, the project brief and the active plan were already injected again after every compaction (`SessionStart` with source `compact`); lessons were shown once per session and lost. `lessons.py --start` now forgets what it showed when the context is compacted or cleared, so they come back.
 
+### Lighter
+
+- **Injected rules cut from about 18,600 to 11,000 characters** (roughly 41% less text at every session start and after every compaction). Behaviour stays in the rules; templates, tables and lists moved to `Reference/` (progress log, definition of done, long-task plans, subagent briefing, stack list, git identity), read only when the rule that names them applies. Smoke evals after the cut, two runs per arm: mean Δ +0.46 (it was +0.38 on one run before), every behavioural case unchanged or better. `requirement-coverage` failed one of two runs and passed two of two on a repeat.
+
 ### Not verified
 
 - No live run inside Codex CLI, Kimi Code CLI, OpenCode, Kilo Code or Cline: formats come from their official docs and the install is tested against a throwaway home.

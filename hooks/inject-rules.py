@@ -116,7 +116,7 @@ RULES_HEADER = ("# sabry-kit rules (injected every session)\n\n"
                 "owner settings.\n\n{kit}\n\n")
 KIT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 KIT_FILES = ("Roles", "Stacks", "Quality-Gate.md", "Patterns", "Anti-patterns", "Decisions",
-             "CommunicationProfiles.md")
+             "CommunicationProfiles.md", "Reference")
 
 
 def kit_location():

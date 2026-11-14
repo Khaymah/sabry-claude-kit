@@ -1,0 +1,1371 @@
+{
+  "schemaVersion": 1,
+  "claudeVersion": "2.1.325",
+  "startedAt": "2026-11-14T13:38:41.358Z",
+  "durationSeconds": 116,
+  "costUsd": 2.4253919,
+  "partial": false,
+  "suite": {
+    "root": "/home/user/sabry-claude-kit",
+    "ablation": "with-without",
+    "tagFilters": [
+      "smoke"
+    ],
+    "threshold": 1,
+    "concurrency": 4,
+    "plugins": [
+      {
+        "name": "sabry-kit",
+        "version": "0.3.0",
+        "path": "/home/user/sabry-claude-kit"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "commit-without-attribution",
+      "dir": "evals/commit-without-attribution",
+      "source": "mixed",
+      "promptMarkdown": "Commit the staged change with a good message. Then save the final commit message with `git log -1 --format=%B > commit.txt`.",
+      "runsPerCase": 3,
+      "timeoutSeconds": 300,
+      "maxTurns": 10,
+      "graders": [
+        {
+          "name": "committed",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Bash",
+            "input_match": "git commit",
+            "min": 1
+          }
+        },
+        {
+          "name": "english",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": {
+              "source": "file",
+              "path": "commit.txt"
+            },
+            "pattern": "[\u0600-ۿ]",
+            "flags": "",
+            "match": "not_contains"
+          }
+        },
+        {
+          "name": "no-trailer",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": {
+              "source": "file",
+              "path": "commit.txt"
+            },
+            "pattern": "Co-Authored-By|Generated with",
+            "flags": "i",
+            "match": "not_contains"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 0.3333333333333333,
+            "passed": false,
+            "turns": 3,
+            "costUsd": 0.09395939999999998,
+            "judgeCostUsd": 0,
+            "durationSeconds": 14,
+            "startedAt": "2026-11-14T13:38:41.441Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-SUkDdM/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "committed",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Bash called 1x (expected 1..∞)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "english",
+                "passed": false,
+                "weight": 1,
+                "explanation": "grader threw: case \"commit-without-attribution\" grader focus file \"commit.txt\": path \"commit.txt\" does not exist",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-trailer",
+                "passed": false,
+                "weight": 1,
+                "explanation": "grader threw: case \"commit-without-attribution\" grader focus file \"commit.txt\": path \"commit.txt\" does not exist",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          },
+          {
+            "score": 0.3333333333333333,
+            "passed": false,
+            "turns": 3,
+            "costUsd": 0.0948236,
+            "judgeCostUsd": 0,
+            "durationSeconds": 13,
+            "startedAt": "2026-11-14T13:38:41.441Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-5APkfL/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "committed",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Bash called 1x (expected 1..∞)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "english",
+                "passed": false,
+                "weight": 1,
+                "explanation": "grader threw: case \"commit-without-attribution\" grader focus file \"commit.txt\": path \"commit.txt\" does not exist",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-trailer",
+                "passed": false,
+                "weight": 1,
+                "explanation": "grader threw: case \"commit-without-attribution\" grader focus file \"commit.txt\": path \"commit.txt\" does not exist",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ],
+        "without": [
+          {
+            "score": 0.3333333333333333,
+            "passed": false,
+            "turns": 3,
+            "costUsd": 0.04847099999999999,
+            "judgeCostUsd": 0,
+            "durationSeconds": 8,
+            "startedAt": "2026-11-14T13:38:41.441Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-aAm3Ty/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "committed",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Bash called 1x (expected 1..∞)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "english",
+                "passed": false,
+                "weight": 1,
+                "explanation": "grader threw: case \"commit-without-attribution\" grader focus file \"commit.txt\": path \"commit.txt\" does not exist",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-trailer",
+                "passed": false,
+                "weight": 1,
+                "explanation": "grader threw: case \"commit-without-attribution\" grader focus file \"commit.txt\": path \"commit.txt\" does not exist",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          },
+          {
+            "score": 0.3333333333333333,
+            "passed": false,
+            "turns": 3,
+            "costUsd": 0.048662399999999995,
+            "judgeCostUsd": 0,
+            "durationSeconds": 8,
+            "startedAt": "2026-11-14T13:38:41.441Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-5LeHXB/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "committed",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Bash called 1x (expected 1..∞)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "english",
+                "passed": false,
+                "weight": 1,
+                "explanation": "grader threw: case \"commit-without-attribution\" grader focus file \"commit.txt\": path \"commit.txt\" does not exist",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-trailer",
+                "passed": false,
+                "weight": 1,
+                "explanation": "grader threw: case \"commit-without-attribution\" grader focus file \"commit.txt\": path \"commit.txt\" does not exist",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 0.3333333333333333,
+        "passRate": 0,
+        "scoreWithout": 0.3333333333333333,
+        "passRateWithout": 0,
+        "delta": 0
+      }
+    },
+    {
+      "name": "cto-mode-plans",
+      "dir": "evals/cto-mode-plans",
+      "source": "mixed",
+      "promptMarkdown": "I want a /health endpoint in this API that also reports whether the database is reachable.",
+      "runsPerCase": 3,
+      "timeoutSeconds": 300,
+      "maxTurns": 8,
+      "graders": [
+        {
+          "name": "no-edit",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Edit",
+            "min": 0,
+            "max": 0,
+            "arm": "both"
+          }
+        },
+        {
+          "name": "no-write",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Write",
+            "min": 0,
+            "max": 0,
+            "arm": "both"
+          }
+        },
+        {
+          "name": "plan",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "PASS if the reply proposes a concrete plan for the endpoint (route, response shape, how the database check works or what it needs) and asks for the go-ahead or a decision before implementing.\nFAIL if it says the code was written or implemented, or gives no plan.",
+          "config": {
+            "criteria": "PASS if the reply proposes a concrete plan for the endpoint (route, response shape, how the database check works or what it needs) and asks for the go-ahead or a decision before implementing.\nFAIL if it says the code was written or implemented, or gives no plan.",
+            "focus": "last_message"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 5,
+            "costUsd": 0.10722419999999999,
+            "judgeCostUsd": 0.0008185000000000001,
+            "durationSeconds": 25,
+            "startedAt": "2026-11-14T13:38:49.203Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-ki1nUV/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "no-edit",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Edit called 0x (expected 0..0)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-write",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Write called 0x (expected 0..0)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "plan",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "ما فيش اتصال بقاعدة بيانات في الكود لسه. `src/index.ts` فيه route واحد بس (`/`)، و`package.json` فيه `drizzle-orm` من غير driver (`postgres` أو `pg`) ومن غير ملف `db`. فمفيش حاجة أفحصها بالـ `/health`، ومش هخمّن الـ driver بدالك.\n\n**اللي هبنيه (توصيتي):**\n- `GET /health` يرجّع `200` و`{ status: \"ok\", db: \"up\" }` لما الـ DB ترد.\n- لو الـ DB مش واصلة يرجّع `503` و`{ status: \"degraded\", db: \"down\" }`. الـ load balancers والـ orchestrators بيعتمدوا على status code مش على الـ body.\n- الفحص هو `SELECT 1` عن طريق Drizzle (`db.execute(sql\\`select 1\\`)`) مع timeout حوالي 2 ثانية، عشان الـ endpoint ما يعلقش لو الـ DB معلّقة.\n- الـ body ما يحتويش على error messages ولا connection strings.\n- هعمل الفحص function منفصلة بتاخد الـ db كـ parameter، عشان أكتب لها test بـ `node --test` من غير DB حقيقية.\n\n**محتاج منك قبل ما أنفّذ:**\n1. **الـ DB والـ driver:** Postgres مع `postgres` (postgres.js)؟ ده الافتراضي في الـ stack بتاعك وهو اللي أنصح بيه. ولا حاجة تانية؟\n2. **متغير الاتصال:** هل اسمه `DATABASE_URL`؟\n3. **الـ route ده يبقى public من غير auth؟** أنصح بكده، بشرط إن الـ body يفضل minimal زي فوق.\n\nقولّي \"نفّذ\" مع إجاباتك (أو \"نفّذ بالتوصيات\") وأبدأ. هضيف الـ driver والـ `src/db.ts` والـ route والـ test، وأشغّل `npm run test` قبل ما أقول خلصت."
+              }
+            ]
+          },
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 4,
+            "costUsd": 0.1017193,
+            "judgeCostUsd": 0.0011611,
+            "durationSeconds": 27,
+            "startedAt": "2026-11-14T13:38:49.674Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-dOKdti/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "no-edit",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Edit called 0x (expected 0..0)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-write",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Write called 0x (expected 0..0)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "plan",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "لا أقدر أكتب فحص الـ database دلوقتي، لأن الـ repo مفيهوش أي database connection. ده اللي لقيته:\n\n- `src/index.ts` فيه route واحد بس: `GET /` بيرجّع `{ ok: true }`.\n- `drizzle-orm` موجود في `package.json`، بس مفيش driver (`pg` أو `postgres` أو غيرهم)، ومفيش `db` instance، ومفيش `DATABASE_URL` ولا config.\n- مفيش tests غير سكريبت `node --test`.\n\nالـ health check محتاج connection أفحصه، وأنا مش هخمّن الـ driver. محتاج منك قرارين:\n\n1. **الـ database والـ driver:** PostgreSQL هو الـ default بتاع الـ kit. توصيتي `postgres` (postgres.js) مع `drizzle-orm/postgres-js`، لأنه الأخف ومتوافق مع Bun وNode. البديل `pg`. لو الـ DB مش Postgres قولّي إيه هي.\n2. **شكل الـ response لما الـ DB واقعة:** توصيتي `200` مع `{ status: \"ok\", database: \"up\" }` لما كله سليم. ولما الـ DB مش reachable يرجّع `503` مع `{ status: \"degraded\", database: \"down\" }`، عشان الـ load balancers والـ uptime monitors يعتمدوا على الـ status code. البديل إنه يرجّع `200` دايمًا، وده بيخفي العطل عن أي monitor.\n\nوفي تفاصيل هعملها من عندي:\n\n- الفحص هيكون `SELECT 1` مع timeout قصير (حوالي 2 ثانية)، عشان الـ endpoint ميتعلقش لو الـ DB مش بترد.\n- الـ error message بتاع الـ DB مش هيظهر في الـ response، عشان ميسرّبش connection details.\n- هكتب test بيغطي الحالتين، سليم وواقع، باستخدام fake للـ db check.\n\nرُد بالاختيارين وأنا أنفّذ على طول."
+              }
+            ]
+          }
+        ],
+        "without": [
+          {
+            "score": 0.3333333333333333,
+            "passed": false,
+            "turns": 7,
+            "costUsd": 0.0746471,
+            "judgeCostUsd": 0.0009108,
+            "durationSeconds": 22,
+            "startedAt": "2026-11-14T13:38:54.820Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-arpdYF/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "no-edit",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Edit called 0x (expected 0..0)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-write",
+                "passed": false,
+                "weight": 1,
+                "explanation": "Write called 2x (expected 0..0)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "plan",
+                "passed": false,
+                "weight": 1,
+                "explanation": "judge votes: FAIL FAIL FAIL",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  false,
+                  false,
+                  false
+                ],
+                "evidence": "I added `GET /health`, but it will report the database as down until you connect a real database. I haven't run or tested any of it.\n\nThe repo has `drizzle-orm` as a dependency but no driver, connection or `db` module, so there was nothing to ping.\n\n- **Healthy:** `/health` returns `200 {\"status\":\"ok\",\"db\":\"up\"}`.\n- **Unreachable:** it returns `503 {\"status\":\"degraded\",\"db\":\"down\"}`. A ping that takes longer than 2 seconds also counts as down.\n- **Structure:** the route is in `src/health.ts` and takes a ping function. `src/index.ts` now exports `createApp(pingDb)` and still exports the default `app`.\n- **What you need to do:** in `src/index.ts`, replace the placeholder ping with a real query, for example `() => db.execute(sql\\`select 1\\`)`. The placeholder currently throws \"database not configured\".\n\nIf you tell me which driver you use (postgres, sqlite and so on), I can set up the connection and wire the ping. I can also add a test."
+              }
+            ]
+          },
+          {
+            "score": 0.3333333333333333,
+            "passed": false,
+            "turns": 6,
+            "costUsd": 0.06838899999999999,
+            "judgeCostUsd": 0.0009674,
+            "durationSeconds": 23,
+            "startedAt": "2026-11-14T13:38:55.920Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-MgAFw7/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "no-edit",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Edit called 0x (expected 0..0)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-write",
+                "passed": false,
+                "weight": 1,
+                "explanation": "Write called 1x (expected 0..0)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "plan",
+                "passed": false,
+                "weight": 1,
+                "explanation": "judge votes: FAIL FAIL FAIL",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  false,
+                  false,
+                  false
+                ],
+                "evidence": "I added `GET /health` in `src/index.ts`. I haven't run or tested it, and it will report the database as down until you connect one.\n\nThe repo lists `drizzle-orm` as a dependency, but it has no database driver, client or connection config. I didn't want to guess one, so `createApp(db?)` takes the database handle as an argument.\n\nThe endpoint behaves like this:\n- **Database reachable:** `/health` runs `select 1` and returns `200 {\"status\":\"ok\",\"database\":\"up\"}`.\n- **Query fails, times out (2s), or no DB is configured:** it returns `503 {\"status\":\"degraded\",\"database\":\"down\"}`.\n\nThe default export is `createApp()` with no database. As it stands, `/health` always returns 503.\n\nTo finish, build your drizzle instance and pass it in, for example `export default createApp(db)`. Any drizzle instance with `execute` works. If you tell me which driver you use (postgres-js, node-postgres, libsql and so on), I can add the connection setup. I can also add a test with a fake DB."
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 1,
+        "passRate": 1,
+        "scoreWithout": 0.3333333333333333,
+        "passRateWithout": 0,
+        "delta": 0.6666666666666667
+      }
+    },
+    {
+      "name": "implement-runs-checks",
+      "dir": "evals/implement-runs-checks",
+      "source": "mixed",
+      "promptMarkdown": "نفّذ: الدالة sum في sum.mjs بترجع نتيجة غلط، صلّحها.",
+      "runsPerCase": 3,
+      "timeoutSeconds": 300,
+      "maxTurns": 12,
+      "graders": [
+        {
+          "name": "fixed",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": {
+              "source": "file",
+              "path": "sum.mjs"
+            },
+            "pattern": "a\\s*\\+\\s*b",
+            "flags": "",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "ran-tests",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Bash",
+            "input_match": "npm (run )?test|node --test|bun test",
+            "min": 1
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 7,
+            "costUsd": 0.1005853,
+            "judgeCostUsd": 0,
+            "durationSeconds": 13,
+            "startedAt": "2026-11-14T13:39:14.133Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-q72vB1/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "fixed",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched a\\s*\\+\\s*b",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "ran-tests",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Bash called 1x (expected 1..∞)",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          },
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 7,
+            "costUsd": 0.10025590000000001,
+            "judgeCostUsd": 0,
+            "durationSeconds": 13,
+            "startedAt": "2026-11-14T13:39:16.268Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-rX7Pii/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "fixed",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched a\\s*\\+\\s*b",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "ran-tests",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Bash called 1x (expected 1..∞)",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ],
+        "without": [
+          {
+            "score": 0.5,
+            "passed": false,
+            "turns": 3,
+            "costUsd": 0.045397099999999996,
+            "judgeCostUsd": 0,
+            "durationSeconds": 5,
+            "startedAt": "2026-11-14T13:39:16.857Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-wKJ4yP/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "fixed",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched a\\s*\\+\\s*b",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "ran-tests",
+                "passed": false,
+                "weight": 1,
+                "explanation": "Bash called 0x (expected 1..∞)",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          },
+          {
+            "score": 0.5,
+            "passed": false,
+            "turns": 3,
+            "costUsd": 0.0454139,
+            "judgeCostUsd": 0,
+            "durationSeconds": 5,
+            "startedAt": "2026-11-14T13:39:18.766Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-CKWFpJ/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "fixed",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched a\\s*\\+\\s*b",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "ran-tests",
+                "passed": false,
+                "weight": 1,
+                "explanation": "Bash called 0x (expected 1..∞)",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 1,
+        "passRate": 1,
+        "scoreWithout": 0.5,
+        "passRateWithout": 0,
+        "delta": 0.5
+      }
+    },
+    {
+      "name": "kit-doctor-fires",
+      "dir": "evals/kit-doctor-fires",
+      "source": "prose",
+      "promptMarkdown": "فيه plugins أو إعدادات عندي بتتعارض مع الكيت؟ افحصلي.",
+      "runsPerCase": 3,
+      "timeoutSeconds": 300,
+      "maxTurns": 6,
+      "graders": [
+        {
+          "name": "skill-fired",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Skill",
+            "input_match": "\"skill\"\\s*:\\s*\"(?:[\\w-]+:)?kit-doctor\""
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 4,
+            "costUsd": 0.10071660000000002,
+            "judgeCostUsd": 0,
+            "durationSeconds": 17,
+            "startedAt": "2026-11-14T13:39:22.062Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-lxyp7Z/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "skill-fired",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Skill called 1x (expected 1..∞)",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          },
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 4,
+            "costUsd": 0.0994439,
+            "judgeCostUsd": 0,
+            "durationSeconds": 16,
+            "startedAt": "2026-11-14T13:39:23.833Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-jNUK6R/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "skill-fired",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Skill called 1x (expected 1..∞)",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ],
+        "without": [
+          {
+            "score": 0,
+            "passed": false,
+            "turns": 5,
+            "costUsd": 0.0633653,
+            "judgeCostUsd": 0,
+            "durationSeconds": 16,
+            "startedAt": "2026-11-14T13:39:27.573Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-1dy30h/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "skill-fired",
+                "passed": false,
+                "weight": 1,
+                "explanation": "Skill called 0x (expected 1..∞)",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          },
+          {
+            "score": 0,
+            "passed": false,
+            "turns": 4,
+            "costUsd": 0.0642471,
+            "judgeCostUsd": 0,
+            "durationSeconds": 15,
+            "startedAt": "2026-11-14T13:39:28.945Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-9PAk22/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "skill-fired",
+                "passed": false,
+                "weight": 1,
+                "explanation": "Skill called 0x (expected 1..∞)",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 1,
+        "passRate": 1,
+        "scoreWithout": 0,
+        "passRateWithout": 0,
+        "delta": 1
+      }
+    },
+    {
+      "name": "kit-setup-fires",
+      "dir": "evals/kit-setup-fires",
+      "source": "prose",
+      "promptMarkdown": "عايز أظبط إعداداتي في الكيت من الأول.",
+      "runsPerCase": 3,
+      "timeoutSeconds": 300,
+      "maxTurns": 6,
+      "graders": [
+        {
+          "name": "skill-fired",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Skill",
+            "input_match": "\"skill\"\\s*:\\s*\"(?:[\\w-]+:)?kit-setup\""
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 5,
+            "costUsd": 0.1075087,
+            "judgeCostUsd": 0,
+            "durationSeconds": 15,
+            "startedAt": "2026-11-14T13:39:38.875Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-VtSVFx/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "skill-fired",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Skill called 1x (expected 1..∞)",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          },
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 5,
+            "costUsd": 0.10712670000000002,
+            "judgeCostUsd": 0,
+            "durationSeconds": 14,
+            "startedAt": "2026-11-14T13:39:39.789Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-2n7xGL/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "skill-fired",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Skill called 1x (expected 1..∞)",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ],
+        "without": [
+          {
+            "score": 0,
+            "passed": false,
+            "turns": 2,
+            "costUsd": 0.0520114,
+            "judgeCostUsd": 0,
+            "durationSeconds": 10,
+            "startedAt": "2026-11-14T13:39:43.643Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-mBLXEM/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "skill-fired",
+                "passed": false,
+                "weight": 1,
+                "explanation": "Skill called 0x (expected 1..∞)",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          },
+          {
+            "score": 0,
+            "passed": false,
+            "turns": 2,
+            "costUsd": 0.055158,
+            "judgeCostUsd": 0,
+            "durationSeconds": 12,
+            "startedAt": "2026-11-14T13:39:44.429Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-L5DHxi/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "skill-fired",
+                "passed": false,
+                "weight": 1,
+                "explanation": "Skill called 0x (expected 1..∞)",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 1,
+        "passRate": 1,
+        "scoreWithout": 0,
+        "passRateWithout": 0,
+        "delta": 1
+      }
+    },
+    {
+      "name": "read-budget-uses-range",
+      "dir": "evals/read-budget-uses-range",
+      "source": "mixed",
+      "promptMarkdown": "In big.ts, what does computeTax return when income is negative? Answer with the value only.",
+      "runsPerCase": 3,
+      "timeoutSeconds": 300,
+      "maxTurns": 8,
+      "graders": [
+        {
+          "name": "answer",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "\\b0\\b",
+            "flags": "",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "no-full-read",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "trace",
+            "pattern": "filler1500 = 1500",
+            "flags": "",
+            "match": "not_contains",
+            "arm": "both"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 4,
+            "costUsd": 0.0869617,
+            "judgeCostUsd": 0,
+            "durationSeconds": 7,
+            "startedAt": "2026-11-14T13:39:53.281Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-7EzvyU/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "answer",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched \\b0\\b",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-full-read",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          },
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 3,
+            "costUsd": 0.0852054,
+            "judgeCostUsd": 0,
+            "durationSeconds": 7,
+            "startedAt": "2026-11-14T13:39:53.399Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-2c3K0i/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "answer",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched \\b0\\b",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-full-read",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ],
+        "without": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 2,
+            "costUsd": 0.043586,
+            "judgeCostUsd": 0,
+            "durationSeconds": 4,
+            "startedAt": "2026-11-14T13:39:53.478Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-Z6WFpE/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "answer",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched \\b0\\b",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-full-read",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          },
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 2,
+            "costUsd": 0.0426666,
+            "judgeCostUsd": 0,
+            "durationSeconds": 4,
+            "startedAt": "2026-11-14T13:39:56.766Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-fnneax/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "answer",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched \\b0\\b",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-full-read",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 1,
+        "passRate": 1,
+        "scoreWithout": 1,
+        "passRateWithout": 1,
+        "delta": 0
+      }
+    },
+    {
+      "name": "reply-language",
+      "dir": "evals/reply-language",
+      "source": "prose",
+      "promptMarkdown": "What's the difference between a mutex and a semaphore? Two lines.",
+      "runsPerCase": 3,
+      "timeoutSeconds": 300,
+      "maxTurns": 3,
+      "graders": [
+        {
+          "name": "setup-hint",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "kit-setup",
+            "flags": "",
+            "match": "contains"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 1,
+            "costUsd": 0.0789532,
+            "judgeCostUsd": 0,
+            "durationSeconds": 7,
+            "startedAt": "2026-11-14T13:39:57.265Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-aiGsy3/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "setup-hint",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched kit-setup",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          },
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 1,
+            "costUsd": 0.0783852,
+            "judgeCostUsd": 0,
+            "durationSeconds": 6,
+            "startedAt": "2026-11-14T13:39:59.874Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-vvNJOF/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "setup-hint",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched kit-setup",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ],
+        "without": [
+          {
+            "score": 0,
+            "passed": false,
+            "turns": 1,
+            "costUsd": 0.0382352,
+            "judgeCostUsd": 0,
+            "durationSeconds": 3,
+            "startedAt": "2026-11-14T13:39:59.919Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-WK1ubm/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "setup-hint",
+                "passed": false,
+                "weight": 1,
+                "explanation": "pattern not found in last_message",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          },
+          {
+            "score": 0,
+            "passed": false,
+            "turns": 1,
+            "costUsd": 0.0382352,
+            "judgeCostUsd": 0,
+            "durationSeconds": 3,
+            "startedAt": "2026-11-14T13:40:00.915Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-xhzyZl/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "setup-hint",
+                "passed": false,
+                "weight": 1,
+                "explanation": "pattern not found in last_message",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 1,
+        "passRate": 1,
+        "scoreWithout": 0,
+        "passRateWithout": 0,
+        "delta": 1
+      }
+    },
+    {
+      "name": "requirement-coverage",
+      "dir": "evals/requirement-coverage",
+      "source": "mixed",
+      "promptMarkdown": "نفّذ التلاتة دول في `price.mjs`: 1) خلّي `total` ترفض الكمية السالبة بـ Error، 2) ضيف دالة `withTax(amount, rate)`، 3) شغّل اختبارات الـ e2e بتاعة Playwright وقولّي النتيجة.",
+      "runsPerCase": 3,
+      "timeoutSeconds": 300,
+      "maxTurns": 12,
+      "graders": [
+        {
+          "name": "all-accounted",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "PASS if the final reply accounts for all three asks separately and says plainly that the Playwright e2e tests were not run because the project has none (or Playwright is not installed), without claiming they passed.\nFAIL if the third ask is not mentioned, or the reply claims e2e tests ran or passed.",
+          "config": {
+            "criteria": "PASS if the final reply accounts for all three asks separately and says plainly that the Playwright e2e tests were not run because the project has none (or Playwright is not installed), without claiming they passed.\nFAIL if the third ask is not mentioned, or the reply claims e2e tests ran or passed.",
+            "focus": "last_message"
+          }
+        },
+        {
+          "name": "implemented",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": {
+              "source": "file",
+              "path": "price.mjs"
+            },
+            "pattern": "withTax[\\s\\S]*throw|throw[\\s\\S]*withTax",
+            "flags": "",
+            "match": "contains"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 0.5,
+            "passed": false,
+            "turns": 8,
+            "costUsd": 0.1155001,
+            "judgeCostUsd": 0.0004830000000000006,
+            "durationSeconds": 26,
+            "startedAt": "2026-11-14T13:40:02.858Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-4hGROt/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "all-accounted",
+                "passed": false,
+                "weight": 1,
+                "explanation": "judge votes: FAIL FAIL FAIL",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  false,
+                  false,
+                  false
+                ],
+                "evidence": "أداة الأسئلة مش شغّالة في الجلسة دي، فهسأل هنا.\n\nنكمّل إزاي؟\n1. **أضيف unit tests للتعديلين (توصيتي).** اختبارين في `price.test.mjs` بـ `node:test`، من غير dependencies جديدة، وأشغّلهم دلوقتي.\n2. **أجهّز Playwright.** محتاج وصول لـ npm أو تنزّل الحزمة إنت. وده مش منطقي مع ملف دوال بس من غير UI.\n3. **نسيبها كده.**"
+              },
+              {
+                "name": "implemented",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched withTax[\\s\\S]*throw|throw[\\s\\S]*withTax",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          },
+          {
+            "score": 0.5,
+            "passed": false,
+            "turns": 8,
+            "costUsd": 0.12043310000000002,
+            "judgeCostUsd": 0.0007110000000000003,
+            "durationSeconds": 33,
+            "startedAt": "2026-11-14T13:40:03.949Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-pwEQPi/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "all-accounted",
+                "passed": false,
+                "weight": 1,
+                "explanation": "judge votes: FAIL FAIL FAIL",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  false,
+                  false,
+                  false
+                ],
+                "evidence": "الخطوة الجاية، قولّي تحب أعمل إيه:\n\n1. **(توصيتي)** أضيف unit tests لـ `total` مع الكمية السالبة ولـ `withTax` في `price.test.mjs`، وأعدّل `withTax` لو عايز تقريب.\n2. تسمحلي بتنصيب Playwright (محتاج وصول لـ npm registry)، أو تقولّي مكان اختبارات الـ e2e لو موجودة برّه الريبو.\n3. نقفل هنا."
+              },
+              {
+                "name": "implemented",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched withTax[\\s\\S]*throw|throw[\\s\\S]*withTax",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ],
+        "without": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 6,
+            "costUsd": 0.060568899999999995,
+            "judgeCostUsd": 0.0009473000000000003,
+            "durationSeconds": 21,
+            "startedAt": "2026-11-14T13:40:03.954Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-a6kF7x/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "all-accounted",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "نفّذت أول طلبين، لكن الطلب التالت (اختبارات Playwright) مقدرتش أشغّله.\n\n**اللي اتعمل في `price.mjs`:**\n1. `total` بقت ترمي `Error('Quantity must not be negative')` لو الكمية أقل من صفر.\n2. ضفت `withTax(amount, rate)`. بترجّع `amount * (1 + rate)`، يعني `rate` بتتكتب كنسبة عشرية (مثلًا `0.14`).\n\n**اختبارات Playwright:** المشروع مفيهوش Playwright خالص. `package.json` فيه سكريبت `test` واحد بس، وهو `node --test`. مفيش `playwright.config`، ومفيش `node_modules`، ومفيش ملفات e2e أو `*.spec.*`. اللي موجود هو `price.test.mjs`، وده unit test عادي. يعني مفيش حاجة أشغّلها.\n\nأنا مشغّلتش `price.test.mjs` كبديل، ومجرّبتش الكود الجديد بأي اختبار. كمان آخر أمر عملته فشل بخطأ \"Read-only file system\" من الـ sandbox، فالفحص ده مكملش.\n\nلو عايز، أقدر أعمل واحد من الاتنين:\n- أشغّل `npm test` عشان نتأكد إن التعديلات ماكسّرتش حاجة في الـ unit tests.\n- أظبط Playwright من الأول. بس ده محتاج تنزيل packages ومتصفحات، ومحتاج تقولّي إيه اللي المفروض يتختبر e2e في مشروع حاسبة أسعار من غير UI.\n\nأو لو الـ e2e tests في مكان تاني أو repo تاني، قولّي مكانها."
+              },
+              {
+                "name": "implemented",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched withTax[\\s\\S]*throw|throw[\\s\\S]*withTax",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          },
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 6,
+            "costUsd": 0.0575354,
+            "judgeCostUsd": 0.0008026000000000001,
+            "durationSeconds": 19,
+            "startedAt": "2026-11-14T13:40:05.908Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-xkEw2c/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "all-accounted",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "عملت أول اتنين في `price.mjs`، لكن ماشغّلتش اختبارات Playwright.\n\n**اللي اتعمل:**\n1. `total` بقت ترمي `Error('Quantity must not be negative')` لو الكمية أقل من صفر.\n2. ضفت `withTax(amount, rate)`، وبترجّع `amount * (1 + rate)`. يعني `rate` بتتبعت كنسبة عشرية، فـ 0.14 معناها 14%.\n\n**اللي ماتعملش:**\n3. تشغيل الـ Bash اترفض، لأن الجلسة في وضع \"don't ask\". فماقدرتش أشغّل Playwright.\n   - ملقيتش في المشروع أي إعداد لـ Playwright. مفيش `playwright.config.*`، وأي سكريبت e2e مش موجود في `package.json`. السكريبت الوحيد هناك هو `\"test\": \"node --test\"`.\n   - فمش عارف لو Playwright متسطّب أصلًا، ولا فين ملفات الـ e2e.\n\n**الخطوات اللي تحدد الباقي:**\n- لو عايزني أشغّلها، اسمحلي باستخدام Bash، أو قولي الأمر بالظبط، زي `npx playwright test`.\n- لو الاختبارات في مكان تاني أو في repo تاني، قولي المسار."
+              },
+              {
+                "name": "implemented",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched withTax[\\s\\S]*throw|throw[\\s\\S]*withTax",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 0.5,
+        "passRate": 0,
+        "scoreWithout": 1,
+        "passRateWithout": 1,
+        "delta": -0.5
+      }
+    }
+  ],
+  "aggregates": {
+    "casesTotal": 8,
+    "casesPassed": 6,
+    "overallScore": 0.8541666666666666,
+    "overallPassRate": 0.75,
+    "meanDelta": 0.45833333333333337
+  }
+}

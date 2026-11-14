@@ -1,3 +1,4 @@
+import importlib.util
 import json
 import os
 import subprocess
@@ -156,12 +157,12 @@ class InjectRulesTest(unittest.TestCase):
                 if out:
                     parts.append(ctx_of(out))
             self.assertEqual(run(d, args=("--part", "9"))[1], "")
-        self.assertGreater(len(whole), 10000, "the split exists because the whole is over the cap")
-        self.assertGreater(len(parts), 1)
+        self.assertGreaterEqual(len(parts), 1)
         for text in parts:
             self.assertLess(len(text), 10000)
         self.assertTrue(parts[0].startswith("# ⚙️ sabry-kit"))
-        self.assertIn("part 2 of", parts[1])
+        if len(parts) > 1:
+            self.assertIn("part 2 of", parts[1])
         joined = "\n".join(parts)
         for heading in [l for l in whole.splitlines() if l.startswith("# ")]:
             self.assertIn(heading, joined)
@@ -169,6 +170,26 @@ class InjectRulesTest(unittest.TestCase):
         hooks = _json.load(open(os.path.join(os.path.dirname(HOOK), "hooks.json"), encoding="utf-8"))
         registered = [h["command"] for g in hooks["hooks"]["SessionStart"] for h in g["hooks"] if "inject-rules.py" in h["command"]]
         self.assertGreaterEqual(len(registered), len(parts), "every part must be registered in hooks.json")
+
+    def test_long_rules_are_split_instead_of_truncated(self):
+        spec = importlib.util.spec_from_file_location("inject_rules", HOOK)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        packs = mod.pack(["a" * 4000, "b" * 4000, "c" * 4000, "d" * 100])
+        self.assertEqual([len(p) for p in packs], [2, 2])
+        for p in packs:
+            self.assertLess(len(mod.SEPARATOR.join(p)), 10000)
+
+    def test_every_reference_the_rules_name_exists(self):
+        kit = os.path.dirname(os.path.dirname(HOOK))
+        import re
+        named = set()
+        for name in os.listdir(os.path.join(kit, "rules")):
+            with open(os.path.join(kit, "rules", name), encoding="utf-8") as fh:
+                named |= set(re.findall(r"`(Reference/[\w-]+\.md)`", fh.read()))
+        self.assertGreaterEqual(len(named), 5)
+        for rel in named:
+            self.assertTrue(os.path.isfile(os.path.join(kit, rel)), rel)
 
 
 if __name__ == "__main__":
