@@ -1,0 +1,165 @@
+{
+  "schemaVersion": 1,
+  "claudeVersion": "2.1.325",
+  "startedAt": "2026-11-14T13:33:36.690Z",
+  "durationSeconds": 90,
+  "costUsd": 0.60423,
+  "partial": false,
+  "suite": {
+    "root": "/home/user/sabry-claude-kit",
+    "ablation": "with-without",
+    "caseFilter": "orchestrate-team",
+    "threshold": 1,
+    "concurrency": 2,
+    "plugins": [
+      {
+        "name": "sabry-kit",
+        "version": "0.3.0",
+        "path": "/home/user/sabry-claude-kit"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "orchestrate-team",
+      "dir": "evals/orchestrate-team",
+      "source": "mixed",
+      "promptMarkdown": "نفّذ بالفريق (kit-orchestrate) على خدمة الطلبات دي. العقد في `docs/contract.md` ولازم يفضل زي ما هو إلا في اللي مكتوب هنا:\n\n1. `GET /orders/:id`: العميل مايشوفش طلب عميل تاني (يرجع 404)، والأدمن يشوف أي طلب.\n2. `POST /orders`: تحقق من المدخلات ويرجع 400 مع `{ error, fields }` لو `items` فاضية أو مش array، أو `quantity` مش عدد صحيح من 1 إلى 100، أو `productId` مش موجود. ومفيش مخزون يتحجز لطلب مرفوض.\n3. المخزون ماينزلش تحت صفر حتى مع 20 طلب في نفس اللحظة على نفس المنتج، والطلب اللي مالوش مخزون يرجع 409.\n4. `GET /orders`: `page` بيبدأ من 1، و`pageSize` الافتراضي 10 والأقصى 50، والأدمن يشوف طلبات الكل.\n5. الفلوس أعداد صحيحة بالقروش: المنتج يرجّع `priceCents` والطلب يرجّع `totalCents` (من غير `price` ولا `total`).\n6. `renderOrders` في `public/app.js` لازم تعمل escape لملاحظة العميل وتعرض الإجمالي بصيغة `12.34`.\n7. اختبارات لكل بند، وتحديث `docs/contract.md` بأكواد الأخطاء الجديدة. شغّل الاختبارات.",
+      "runsPerCase": 3,
+      "timeoutSeconds": 1800,
+      "maxTurns": 150,
+      "graders": [
+        {
+          "name": "ran-tests",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Bash",
+            "input_match": "node --test|npm (run )?test",
+            "min": 1
+          }
+        },
+        {
+          "name": "report",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "PASS if the final reply accounts for all seven asks separately, states for each whether it was done, reports the test run with its actual result, and says plainly what was not verified if anything was not.\nFAIL if an ask is missing from the reply, or it claims tests pass without having run them.",
+          "config": {
+            "criteria": "PASS if the final reply accounts for all seven asks separately, states for each whether it was done, reports the test run with its actual result, and says plainly what was not verified if anything was not.\nFAIL if an ask is missing from the reply, or it claims tests pass without having run them.",
+            "focus": "last_message"
+          }
+        },
+        {
+          "name": "team",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Agent",
+            "min": 2,
+            "arm": "with-only"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 0.5,
+            "passed": false,
+            "turns": 23,
+            "costUsd": 0.33781649999999996,
+            "judgeCostUsd": 0.0005359000000000001,
+            "durationSeconds": 85,
+            "startedAt": "2026-11-14T13:33:36.767Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-dsJSpl/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "ran-tests",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Bash called 2x (expected 1..∞)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "report",
+                "passed": false,
+                "weight": 1,
+                "explanation": "judge votes: FAIL FAIL FAIL",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  false,
+                  false,
+                  false
+                ],
+                "evidence": "`public/app.js` اتغيّر في الجلسة دي ومحدش راجعه. أنا مارجعتهوش بنفسي، وكمان ماشغّلتش `code-reviewer` على باقي الـ diff.\n\nالتغيير في `app.js` صغير (دالتين: `escapeHtml` و`formatCents`، وتعديل `renderOrders`). لكن التغيير الأكبر في `src/orders.mjs` و`src/store.mjs` بيلمس authz والمخزون، وده اللي يستاهل مراجعة بسياق نضيف.\n\nأنصح بتشغيل `/team-review` على الـ diff كله. تحب أشغّله؟"
+              },
+              {
+                "name": "team",
+                "passed": false,
+                "weight": 1,
+                "explanation": "Agent called 0x (expected 2..∞)",
+                "withOnly": true,
+                "scored": false
+              }
+            ]
+          }
+        ],
+        "without": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 21,
+            "costUsd": 0.2664135,
+            "judgeCostUsd": 0.0012918,
+            "durationSeconds": 90,
+            "startedAt": "2026-11-14T13:33:36.767Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-ZsZPEg/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "ran-tests",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Bash called 2x (expected 1..∞)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "report",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "نفّذت البنود السبعة، وكل الاختبارات نجحت (18 من 18).\n\nلم أستخدم الفريق (`kit-orchestrate`) لأنه مش موجود في قائمة الـ skills المتاحة عندي. الكود صغير فنفّذته بنفسي مباشرة. لو قصدك أداة تانية قولي.\n\n**التغييرات**\n1. **`GET /orders/:id`**: العميل اللي يطلب طلب عميل تاني ياخد 404، والأدمن يشوف أي طلب.\n2. **`POST /orders`**:\n   - بيرجع 400 مع `{ error: \"validation_failed\", fields }` لو `items` فاضية أو مش array، أو `quantity` مش عدد صحيح من 1 إلى 100، أو `productId` مش موجود.\n   - الـ `fields` بتبقى زي `items[0].quantity`.\n   - التحقق بيحصل قبل أي حجز، فالطلب المرفوض مايحجزش مخزون.\n3. **المخزون**:\n   - الفحص والخصم بقوا خطوة واحدة متزامنة في `reserveStock` داخل `src/store.mjs`. السبب إن الكود القديم كان يقرأ ثم يكتب بينهم `await`، وده اللي كان بيسمح بالبيع الزايد.\n   - الحجز كله أو لا شيء. لو منتج واحد مالوش مخزون، الطلب يرجع 409 `out_of_stock` ومفيش حاجة تتخصم.\n   - لو نفس المنتج اتكرر في أكتر من سطر، الكميات بتتجمع قبل الفحص.\n   - اختبار 20 طلب متزامن على `p1` (مخزونه 5) طلّع 5 طلبات نجحت (201) و15 رجعت 409.\n4. **`GET /orders`**: `page` بيبدأ من 1، و`pageSize` الافتراضي 10، وأي قيمة أكبر من 50 بتتقلّص لـ 50. الأدمن يشوف طلبات الكل.\n5. **الفلوس**: المنتج يرجّع `priceCents` والطلب يرجّع `totalCents`، من غير `price` ولا `total`. الأسعار في البيانات الأولية بقت 1999 و10 و14950.\n6. **`renderOrders`**: بتعمل escape للـ `id` والملاحظة، وبتعرض الإجمالي بصيغة `12.34` من غير أخطاء الفاصلة العائمة.\n7. **الاختبارات والعقد**: أضفت اختبارات لكل بند، وحدّثت `docs/contract.md` بجدول الأخطاء (400 و401 و404 و409) وقواعد الصلاحيات.\n\n**قرارات من عندي (مش مكتوبة في طلبك)**\n- `GET /orders` بيرجع 400 لو `page` أو `pageSize` مش عدد صحيح موجب، مثلًا `page=0`. موثّق في العقد، وتقدر تغيّره لو تفضّل تجاهل القيمة.\n- جدول مسارات العقد الأصلي ماتغيّرش، وأضفت تحته قسمين جداد (قواعد، وأخطاء).\n\n**عن التشغيل**: `npm test` اشتغل، لكن `tail` ورا الأمر طلّعت تحذير عن نظام ملفات للقراءة فقط وعن رفض اتصال بـ `registry.npmjs.org`. التحذيران مالهمش علاقة بنتيجة الاختبارات. ولسه ماعملتش commit."
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 0.5,
+        "passRate": 0,
+        "scoreWithout": 1,
+        "passRateWithout": 1,
+        "delta": -0.5
+      }
+    }
+  ],
+  "aggregates": {
+    "casesTotal": 1,
+    "casesPassed": 0,
+    "overallScore": 0.5,
+    "overallPassRate": 0,
+    "meanDelta": -0.5
+  }
+}
