@@ -523,7 +523,8 @@ def install(target, dry=False, hooks=True):
             report["skipped"].append(f"{path} ({status})")
     if not dry:
         manifest = read_manifest()
-        manifest[target] = {"agents_md": agents_md, "files": files, "dirs": dirs, "kit": KIT}
+        manifest[target] = {"agents_md": agents_md, "files": files, "dirs": dirs, "kit": KIT,
+                            "version": kit_profile.kit_version()}
         write(manifest_path(), json.dumps(manifest, indent=2, ensure_ascii=False) + "\n", False)
     if agent_dir:
         report["models"] = {t: tiers[t] or "tool default" for t in TIERS}

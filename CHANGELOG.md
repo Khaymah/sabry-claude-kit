@@ -37,6 +37,10 @@ Plan: `Plan/2026-11-14-multi-provider-smarter-kit.md`.
 
 - **One closing note.** The verify, plan and team-review reminders now reach the model through `stop-reminders.py` as a single note with one instruction: answer in one short addition, do not restate the report. The team-review reminder fires only for three or more code files, 150 or more changed lines, or a security-sensitive path; a small change gets a re-read of the diff, as the completion rule already said.
 
+### Updating
+
+- **Existing profiles need no migration**: a profile stores only the owner's choices and new switches come from the defaults. `kit_update.py` tells an owner with an older local profile, once per version, what is new, which switches were added and which installs in other tools are stale. Profiles and installs now record the kit version that wrote them.
+
 ### Not verified
 
 - No live run inside Codex CLI, Kimi Code CLI, OpenCode, Kilo Code or Cline: formats come from their official docs and the install is tested against a throwaway home.

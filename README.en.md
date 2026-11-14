@@ -166,6 +166,19 @@ Each cloud session starts in a fresh container that is deleted afterwards, and i
 
 **Why not fully automatic?** Claude Code only **downloads** the skills and plugins on your account; it never uploads. Uploading the zip once is the only manual step; after that there is no per-environment or per-machine setup. The kit itself already syncs everywhere because it is a plugin on your account.
 
+## Updating when you already have a profile
+
+The profile stores **only your choices**; every other switch comes from the defaults at read time. So:
+
+| Question | Answer |
+|---|---|
+| Re-run `kit-setup` after an update? | No. Your choices stay as they are; there is no migration |
+| New switches (such as `lessons`, `long_task_plans`)? | On from the first session. Turn one off in `kit-setup` or with `"settings": {"lessons": false}` |
+| How do I learn what is new? | In the first session after the update the kit tells you once: what is new and which switches were added. On demand: `python3 hooks/kit_update.py status` |
+| The `sabry-profile.zip` uploaded to claude.ai? | Keeps working. Re-upload only after changing settings, adding owner-wide lessons or changing the signing key |
+| Codex · Kimi · OpenCode · Kilo · Cline? | The installed copies are static: run `kit_install.py --target <tool>` again. The notice names the tools whose copy is older |
+| Cloud sessions? | They get the update with the plugin. The "what is new" notice is not shown there (a container cannot remember having said it) |
+
 ## Cost and performance
 
 | Change | Effect |

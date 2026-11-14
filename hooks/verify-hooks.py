@@ -397,6 +397,7 @@ def main():
     test_suite("🎓 الدروس من التصحيحات", "test_lessons.py")
     test_suite("🗺  خطط المهام الطويلة", "test_kit_plans.py")
     test_suite("🔔 تذكيرات آخر الدور في تنبيه واحد", "test_stop_reminders.py")
+    test_suite("⬆️  تحديث الكيت مع profile موجود", "test_kit_update.py")
     test_registration()
     test_sounds()
     test_adapter()

@@ -123,6 +123,15 @@ Rebuild with `kit_profile.py bundle` and re-upload on claude.ai (Settings → Sk
 """
 
 
+def kit_version():
+    try:
+        with open(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                               ".claude-plugin", "plugin.json"), encoding="utf-8") as fh:
+            return str(json.load(fh).get("version") or "")
+    except Exception:
+        return ""
+
+
 def bundle(out=None):
     """Zip the owner profile as a claude.ai skill, uploaded once to reach every session."""
     import zipfile
@@ -256,6 +265,8 @@ def main():
         data = merge(read_json(path), patch)
         data["version"] = 1
         data["updated"] = datetime.datetime.now().replace(microsecond=0).isoformat()
+        if not project:
+            data["kit_version"] = kit_version() or data.get("kit_version", "")
         write_json(path, data)
         print(path)
         return 0
