@@ -73,6 +73,7 @@
 | `project_brief` | ✅ | ملخص المشروع في أول الجلسة |
 | `lessons` | ✅ | `lessons`: تسجيل تصحيحات المالك وعرضها في الجلسات اللي بعدها |
 | `long_task_plans` | ✅ | `kit_plans`: خطة المهمة الطويلة في الملخص + تذكير الـ checkboxes + حفظ الحالة قبل الـ compaction |
+| `attribution_guard` | ✅ | `attribution-guard`: workflow على GitHub بيشيل توقيع الـ AI من الـ PRs والتعليقات. `github_owners` في الـ profile بيحصر التثبيت في حسابات معيّنة |
 
 ---
 
@@ -88,6 +89,8 @@
 | `git-identity.py` | SessionStart | لو هوية git فاضية أو AI (زي `Claude <noreply@anthropic.com>` في جلسات الكلاود): يحط `git_name`/`git_email` من الـ profile، ومابيلمسش هوية شخص حقيقي أبداً. ولو الـ profile مفيهوش هوية، بيطلب من الـ agent يسأل المالك | لا |
 | `git-signing.py` | SessionStart | بيوقّع الـ commits بمفتاحك. المفتاح بيتقري من **الـ profile** (`~/.agents/signing_key`، أو `signing_key` جوه skill `sabry-profile` المتزامنة من claude.ai) فبيوصل لكل جهاز وكل بيئة من غير إعداد، وإلا من `SABRY_SIGNING_KEY`. لو `ssh-keygen` مش موجود في جلسة سحابية بيسطّبه لوحده. المفتاح عمره ما بيتطبع، الـ fingerprint بس | لا |
 | `kit_update.py` | SessionStart | لو عندك profile محلي اتحفظ بنسخة أقدم من الكيت: مرة واحدة لكل نسخة يطلب من الـ agent يقولك الجديد، المفاتيح اللي اتضافت، وأي تثبيت في أداة تانية محتاج تحديث. `kit_update.py status` بيطبع نفس المعلومات عند الطلب | لا |
+| `attribution-guard.py` | SessionStart | في أي repo على GitHub: يثبّت `.github/workflows/no-ai-attribution.yml` ويقفل توقيع Claude Code في `.claude/settings.json`. ملف workflow مش بتاع الكيت مابيتلمسش | لا |
+| `attribution-guard.py --after` | PostToolUse | بعد كتابة PR أو تعليق والـ workflow لسه مش على الـ branch الأساسي: ينبّه إن سطر المنصة هيفضل لحد ما يتدمج | لا |
 | `inject-rules.py --subagent` | SubagentStart | يقول للـ subagent فولدر الكيت فين، عشان يلاقي ملف الدور بتاعه (`Roles/…`) بدل ما يدوّر عليه جوه المشروع | لا |
 | `inject-rules.py --late` | UserPromptSubmit | لو الجلسة بدأت قبل ما الـ profile يتزامن من claude.ai: يحقنه مع أول رسالة، مرة واحدة | لا |
 | `inject-rules.py --part 1..4` | SessionStart | يحقن الـ profile و `rules/*.md` في السياق (لو مش محمّلة أصلاً من `~/.claude/rules`). متقسّم على 4 نداءات لأن Claude Code بيقصّ أي ناتج hook فوق 10,000 حرف لأول 2,000 بس | لا |

@@ -63,6 +63,7 @@ SWITCH_LABELS = {
     "verify_reminder": "verify-before-done reminder",
     "lessons": "lessons from the owner's corrections",
     "long_task_plans": "checkbox plans for long tasks",
+    "attribution_guard": "GitHub workflow that strips AI attribution from PRs",
 }
 
 

@@ -20,6 +20,11 @@
           },
           {
             "type": "command",
+            "command": "\"$(command -v python3 || command -v python)\" \"${CLAUDE_PLUGIN_ROOT}/hooks/attribution-guard.py\"",
+            "timeout": 10
+          },
+          {
+            "type": "command",
             "command": "\"$(command -v python3 || command -v python)\" \"${CLAUDE_PLUGIN_ROOT}/hooks/project-brief.py\"",
             "timeout": 15
           },
@@ -138,7 +143,7 @@
         ]
       },
       {
-        "matcher": "mcp__.*(github|gitlab|bitbucket|gitea).*",
+        "matcher": "mcp__.*(github|gitlab|bitbucket|gitea|pull_request|merge_request|issue|comment|review|release|commit|push_files).*",
         "hooks": [
           {
             "type": "command",
@@ -176,6 +181,16 @@
             "type": "command",
             "command": "\"$(command -v python3 || command -v python)\" \"${CLAUDE_PLUGIN_ROOT}/hooks/run-if-installed.py\" code-review-graph update",
             "async": true
+          }
+        ]
+      },
+      {
+        "matcher": "Bash|mcp__.*(pull_request|issue|comment|review|release).*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$(command -v python3 || command -v python)\" \"${CLAUDE_PLUGIN_ROOT}/hooks/attribution-guard.py\" --after",
+            "timeout": 10
           }
         ]
       }

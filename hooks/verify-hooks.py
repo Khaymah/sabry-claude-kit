@@ -188,6 +188,8 @@ def test_registration():
     check("enforce-commit-style مسجَّل (PreToolUse)", "enforce-commit-style" in blob)
     check("enforce-comment-discipline مسجَّل (PreToolUse)", "enforce-comment-discipline" in blob)
     check("enforce-commit-style على أدوات GitHub/GitLab في الـ MCP", "mcp__.*(github" in blob)
+    check("attribution-guard مسجَّل (SessionStart + PostToolUse)",
+          blob.count("attribution-guard.py") >= 2 and "--after" in blob)
     check("inject-rules --late مسجَّل (UserPromptSubmit)", " --late" in blob)
     check("code-review-graph update مسجَّل (PostToolUse)", "code-review-graph update" in blob)
     check("team-review-reminder مسجَّل (Stop)", "team-review-reminder" in blob)
@@ -414,6 +416,7 @@ def main():
     test_suite("🗺  خطط المهام الطويلة", "test_kit_plans.py")
     test_suite("🔔 تذكيرات آخر الدور في تنبيه واحد", "test_stop_reminders.py")
     test_suite("⬆️  تحديث الكيت مع profile موجود", "test_kit_update.py")
+    test_suite("🚫 حارس توقيع الـ AI على GitHub", "test_attribution_guard.py")
     test_registration()
     test_sounds()
     test_adapter()

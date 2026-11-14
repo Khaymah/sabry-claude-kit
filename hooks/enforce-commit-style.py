@@ -334,6 +334,10 @@ def main() -> int:
         return 0
     command = visible_command(command)
     if not WRITES_MESSAGE.search(command):
+        if RAW_API.search(command):
+            found = attribution(command + "\n" + _attached_files(command, payload.get("cwd") or os.getcwd()))
+            if found:
+                return deny(attribution_reason(found))
         return 0
 
     cwd = payload.get("cwd") or os.getcwd()
@@ -406,7 +410,24 @@ def _strings(value):
             yield from _strings(v)
 
 
-MCP_WRITES = re.compile(r"(github|gitlab|bitbucket|gitea)", re.I)
+MCP_WRITES = re.compile(r"(github|gitlab|bitbucket|gitea|pull_request|merge_request|issue|comment|review|"
+                        r"release|commit|push_files|create_or_update_file)", re.I)
+RAW_API = re.compile(r"\b(?:curl|wget|http|https|xh)\b[^\n]*(?:api\.github\.com|/api/v[34]/|gitlab\.com/api|"
+                     r"api\.bitbucket\.org|uploads\.github\.com)", re.I)
+ATTACHED = re.compile(r"(?:--data(?:-binary|-raw)?|-d|--json|-T|--upload-file)\s+@([^\s'\"]+)")
+
+
+def _attached_files(command: str, cwd: str) -> str:
+    """Bodies sent from a file (`curl -d @body.json`) are read so the rule covers them too."""
+    out = []
+    for name in ATTACHED.findall(command)[:4]:
+        path = name if os.path.isabs(name) else os.path.join(cwd, name)
+        try:
+            with open(path, encoding="utf-8", errors="replace") as fh:
+                out.append(fh.read(200000))
+        except OSError:
+            pass
+    return "\n".join(out)
 MCP_MESSAGE = re.compile(r"(pull_request|merge_request|commit|push_files|create_or_update_file|"
                          r"create_branch|release)", re.I)
 

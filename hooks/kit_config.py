@@ -42,6 +42,7 @@ DEFAULTS = {
     "project_brief": True,
     "lessons": True,
     "long_task_plans": True,
+    "attribution_guard": True,
 }
 
 STORAGE_DIR = ".agents"
@@ -138,7 +139,7 @@ def user_level_profile():
 
 
 PROTECTIONS = ("secret_scan", "install_git_hook", "commit_style", "git_identity", "git_signing",
-               "comment_discipline", "project_storage")
+               "comment_discipline", "project_storage", "attribution_guard")
 PROJECT_TEXT_KEYS = {"stack": 200, "language": 20, "verbosity": 20}
 
 
