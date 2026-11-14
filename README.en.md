@@ -140,7 +140,7 @@ Details and switches: [hooks/README.md › storage](hooks/README.md#5-التخز
 | `~/.agents/profile.json` | `kit-setup` answers and rule switches (`settings`) |
 | `~/.agents/profile.md` | Free-form personal context (goals, constraints, preferred hosting); read only for strategic decisions |
 | `sabry-profile` skill on claude.ai | Both of the above in one zip uploaded once: reaches every machine and cloud session. The newer of it and the local file wins |
-| `<project>/.agents/profile.json` | Override for one project |
+| `<project>/.agents/profile.json` | Tuning for one project: `stack`, `language`, `verbosity` and switches only. The file arrives with the repository, so it cannot turn a protection off (secret scan, commit rules, signing, comments) or write instructions in your name |
 
 - **Order:** kit defaults < `~/.agents/profile.json` < project profile < `SABRY_KIT_<KEY>` env vars (for example `SABRY_KIT_SOUNDS=0`).
 - **Switched-off rule:** not injected at all, and its hook stays silent.
@@ -176,6 +176,7 @@ The profile stores **only your choices**; every other switch comes from the defa
 | New switches (such as `lessons`, `long_task_plans`)? | On from the first session. Turn one off in `kit-setup` or with `"settings": {"lessons": false}` |
 | How do I learn what is new? | In the first session after the update the kit tells you once: what is new and which switches were added. On demand: `python3 hooks/kit_update.py status` |
 | The `sabry-profile.zip` uploaded to claude.ai? | Keeps working. Re-upload only after changing settings, adding owner-wide lessons or changing the signing key |
+| The signing key in the zip? | Not included by default. `kit_profile.py bundle --with-signing-key` adds it, and the private key is then uploaded with the zip to claude.ai |
 | Codex · Kimi · OpenCode · Kilo · Cline? | The installed copies are static: run `kit_install.py --target <tool>` again. The notice names the tools whose copy is older |
 | Cloud sessions? | They get the update with the plugin. The "what is new" notice is not shown there (a container cannot remember having said it) |
 

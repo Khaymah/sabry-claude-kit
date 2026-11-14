@@ -27,7 +27,11 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import kit_config
+try:
+    import kit_config
+    import kit_profile
+except Exception:
+    sys.exit(0)
 
 KIT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BEFORE_TRACKING = "0.2.0"
@@ -45,11 +49,13 @@ WHATS_NEW = {
 
 
 def parse(version):
+    """(major, minor, patch, final): a pre-release such as 0.3.0-rc1 sorts before 0.3.0."""
+    core, _, pre = str(version or "").strip().lstrip("vV").partition("-")
     out = []
-    for part in str(version or "").split("."):
+    for part in core.split(".")[:3]:
         digits = "".join(c for c in part if c.isdigit())
         out.append(int(digits) if digits else 0)
-    return tuple(out + [0] * (3 - len(out)))[:3]
+    return tuple(out + [0] * (3 - len(out))) + (0 if pre else 1,)
 
 
 def current_version():
@@ -89,7 +95,8 @@ def status():
     local = read_json(kit_config.user_profile_path())
     seen = local.get("kit_version") or (BEFORE_TRACKING if local else "")
     summary, switches = changes(seen or BEFORE_TRACKING, current)
-    off = [s for s in switches if (local.get("settings") or {}).get(s) is False]
+    chosen = local.get("settings") if isinstance(local.get("settings"), dict) else {}
+    off = [s for s in switches if chosen.get(s) is False]
     return {"kit": current, "profile_saved_with": seen or None, "new": summary,
             "new_switches": switches, "switched_off_by_owner": off, "stale_installs": stale_installs(current)}
 
@@ -97,9 +104,7 @@ def status():
 def stamp(path, data, current):
     data["kit_version"] = current
     try:
-        with open(path, "w", encoding="utf-8", newline="\n") as fh:
-            json.dump(data, fh, indent=2, ensure_ascii=False)
-            fh.write("\n")
+        kit_profile.write_json(path, data)
         return True
     except OSError:
         return False

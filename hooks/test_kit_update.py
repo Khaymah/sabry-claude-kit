@@ -82,6 +82,19 @@ class KitUpdateTest(unittest.TestCase):
             json.dump({"name": "Mona"}, fh)
         self.assertEqual(self.notice(), "")
 
+    def test_pre_release_versions_sort_before_the_release(self):
+        sys.path.insert(0, HERE)
+        import kit_update
+        self.assertLess(kit_update.parse("0.3.0-rc1"), kit_update.parse("0.3.0"))
+        self.assertLess(kit_update.parse("0.3.0-beta.2"), kit_update.parse("0.3.0"))
+        self.assertLess(kit_update.parse("0.2.9"), kit_update.parse("0.3.0-rc1"))
+        self.assertEqual(kit_update.parse("v0.3.0"), kit_update.parse("0.3.0"))
+
+    def test_malformed_profile_shapes_do_not_crash(self):
+        self.write_profile({"name": "Mona", "settings": [1, 2]})
+        json.loads(self.run_script("status"))
+        self.assertIn("sabry-kit is now", self.notice())
+
     def test_stale_installs_are_named(self):
         self.write_profile({"name": "Mona"})
         with open(os.path.join(self.home, ".agents", "sabry-kit-install.json"), "w") as fh:

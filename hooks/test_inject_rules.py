@@ -32,15 +32,24 @@ def ctx_of(out):
 
 
 class InjectRulesTest(unittest.TestCase):
-    def test_native_rules_skip_rules_but_keep_profile(self):
+    def test_native_kit_rules_skip_rules_but_keep_profile_and_kit_path(self):
+        kit_rules = os.path.join(os.path.dirname(os.path.dirname(HOOK)), "rules")
         with tempfile.TemporaryDirectory() as d:
             os.makedirs(os.path.join(d, "rules"))
-            open(os.path.join(d, "rules", "x.md"), "w").close()
+            for name in os.listdir(kit_rules):
+                open(os.path.join(d, "rules", name), "w").close()
             code, out = run(d)
             self.assertEqual(code, 0)
             ctx = ctx_of(out)
             self.assertIn("/sabry-kit:kit-setup", ctx)
             self.assertNotIn("Comment discipline", ctx)
+            self.assertIn("Kit folder", ctx, "the kit path is needed even when the rules load natively")
+
+    def test_owner_rules_of_their_own_do_not_switch_the_kit_rules_off(self):
+        with tempfile.TemporaryDirectory() as d:
+            os.makedirs(os.path.join(d, "rules"))
+            open(os.path.join(d, "rules", "mine.md"), "w").close()
+            self.assertIn("Comment discipline", ctx_of(run(d)[1]))
 
     def test_no_profile_nudges_setup_first(self):
         with tempfile.TemporaryDirectory() as d:
@@ -143,7 +152,8 @@ class InjectRulesTest(unittest.TestCase):
             again = [run(d, args=("--part", str(n)), payload=compact)[1] for n in range(1, 5)]
         self.assertEqual(first, again)
         self.assertIn("Working mode", "".join(again))
-        hooks = json.load(open(os.path.join(os.path.dirname(HOOK), "hooks.json"), encoding="utf-8"))
+        with open(os.path.join(os.path.dirname(HOOK), "hooks.json"), encoding="utf-8") as fh:
+            hooks = json.load(fh)
         for group in hooks["hooks"]["SessionStart"]:
             if any("inject-rules.py" in h["command"] for h in group["hooks"]):
                 self.assertNotIn("matcher", group, "a matcher here would skip the compact source")
@@ -167,7 +177,8 @@ class InjectRulesTest(unittest.TestCase):
         for heading in [l for l in whole.splitlines() if l.startswith("# ")]:
             self.assertIn(heading, joined)
         import json as _json
-        hooks = _json.load(open(os.path.join(os.path.dirname(HOOK), "hooks.json"), encoding="utf-8"))
+        with open(os.path.join(os.path.dirname(HOOK), "hooks.json"), encoding="utf-8") as fh:
+            hooks = _json.load(fh)
         registered = [h["command"] for g in hooks["hooks"]["SessionStart"] for h in g["hooks"] if "inject-rules.py" in h["command"]]
         self.assertGreaterEqual(len(registered), len(parts), "every part must be registered in hooks.json")
 
@@ -179,6 +190,15 @@ class InjectRulesTest(unittest.TestCase):
         self.assertEqual([len(p) for p in packs], [2, 2])
         for p in packs:
             self.assertLess(len(mod.SEPARATOR.join(p)), 10000)
+        big = "\n\n".join("paragraph %d " % i + "x" * 900 for i in range(14))
+        packs = mod.pack(["intro", big, "outro"])
+        self.assertGreater(len(packs), 1)
+        for p in packs:
+            self.assertLess(len(mod.SEPARATOR.join(p)), 10000, "an over-long section is split, never truncated")
+        joined = "".join(mod.SEPARATOR.join(p) for p in packs)
+        for i in range(14):
+            self.assertIn("paragraph %d " % i, joined)
+        self.assertLess(max(len(mod.SEPARATOR.join(p)) for p in mod.pack(["y" * 30000])), 10000)
 
     def test_every_reference_the_rules_name_exists(self):
         kit = os.path.dirname(os.path.dirname(HOOK))

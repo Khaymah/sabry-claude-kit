@@ -41,6 +41,20 @@ Plan: `Plan/2026-11-14-multi-provider-smarter-kit.md`.
 
 - **Existing profiles need no migration**: a profile stores only the owner's choices and new switches come from the defaults. `kit_update.py` tells an owner with an older local profile, once per version, what is new, which switches were added and which installs in other tools are stale. Profiles and installs now record the kit version that wrote them.
 
+### Security and robustness (team review of the 0.3.0 hooks)
+
+Three reviewers (correctness, security, test gaps) read the new hook code; every finding below was reproduced or checked before it was fixed, and each has a regression test. Two findings were refuted: `Stop` does accept `additionalContext`, and the OpenCode `permissions` list is the documented form.
+
+- **A repository can no longer speak for the owner.** `<project>/.agents/profile.json` now contributes only `stack`, `language`, `verbosity` and known switches, cannot turn a protection off, and is not a profile by itself. Lessons in a repository's `lessons.md` are shown as that repository's notes unless the owner recorded them (`~/.agents/lessons-trusted.json`, carried in the bundle). Plan text is labelled as repository content. Symlinked lessons and plan files are ignored.
+- **No regular expressions from a repository.** Lesson command patterns are plain text with `*`, matched on word boundaries; globs are bounded; fields are capped when read. A hostile pattern used to stall every Bash call for the hook's full timeout.
+- **No lost owner text.** `lessons.py add` and `prune` keep lines they cannot parse. `kit_install` leaves a file with a damaged marker untouched, keeps an owner hook that mentions an adapter, preserves bytes that are not UTF-8, never deletes a Kilo config it did not create, removes files from earlier installs that the kit no longer ships, and records what it wrote even when it stops midway.
+- **Lessons:** duplicates need the same words and the same scope (so "tabs" and "spaces", or port 3000 and 3001, are both kept); a lesson that looks like it holds a secret is refused; nothing is promoted to the owner-wide file silently; more than ten general lessons are counted, not hidden.
+- **Plans:** fenced checkboxes are not items; `Status` is read anywhere; odd transcript lines no longer silence the hooks; edits made before the plan existed do not trigger the reminder.
+- **Other hooks:** the team-review baseline is not retaken after a resume or a compaction; sensitive paths are matched as whole words; non-ASCII file names work; the three Stop reminders run side by side; the adapter merges notes across a multi-file patch and marks `--once` only after a successful run; the owner's own files in `~/.claude/rules` no longer switch the kit's rules off; an over-long section is split, not truncated; pre-release versions sort before the release.
+- **Profile bundle:** the private signing key is included only with `--with-signing-key`.
+
+Left as they are, known: state files written by two sessions at once can lose an update (a reminder may show twice); a read-only agent on Kimi can still write through its shell; the same repository cloned twice counts as two projects when a lesson is offered for promotion.
+
 ### Not verified
 
 - No live run inside Codex CLI, Kimi Code CLI, OpenCode, Kilo Code or Cline: formats come from their official docs and the install is tested against a throwaway home.

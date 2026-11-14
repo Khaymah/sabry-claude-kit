@@ -67,6 +67,28 @@ class StopRemindersTest(unittest.TestCase):
         self.assertIn("ONE short addition", text)
         self.assertEqual(self.stop(), "", "neither repeats for the same change")
 
+    def test_all_three_reminders_merge_into_one_note(self):
+        git = lambda *a: subprocess.run(["git", "-C", self.proj] + list(a), capture_output=True, text=True,
+                                        env=self.env, timeout=30)
+        git("config", "user.email", "t@t.t")
+        git("config", "user.name", "t")
+        os.makedirs(os.path.join(self.proj, "src", "auth"))
+        with open(os.path.join(self.proj, "base.ts"), "w") as fh:
+            fh.write("export const b = 1\n")
+        git("add", "-A")
+        git("commit", "-qm", "base")
+        subprocess.run([sys.executable, os.path.join(HERE, "team-review-reminder.py"), "--baseline"],
+                       input="{}", capture_output=True, text=True, env=self.env, cwd=self.proj, timeout=60)
+        self.plan()
+        for name in ("src/auth/login.ts", "src/a.ts", "src/b.ts"):
+            with open(os.path.join(self.proj, name), "w") as fh:
+                fh.write("export const x = 1\n")
+        self.edit("src/auth/login.ts", "src/a.ts", "src/b.ts")
+        text = self.stop()
+        for tag in ("[verify-reminder]", "[plan]", "[team-review]"):
+            self.assertIn(tag, text)
+        self.assertEqual(text.count("ONE short addition"), 1)
+
     def test_single_reminder_passes_through_unchanged(self):
         self.edit("src/a.ts")
         text = self.stop()

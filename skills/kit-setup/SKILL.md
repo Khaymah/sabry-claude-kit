@@ -61,7 +61,7 @@ python3 "<kit>/hooks/kit_profile.py" set '{"name":"…","git_name":"…","git_em
 ```
 
 - Personal context: `python3 "<kit>/hooks/kit_profile.py" context "<markdown>"`. Keep it short, with headings; it is read only for strategic decisions.
-- **Single-project setting** (if requested): same command with `set --project`; written to `<project>/.agents/profile.json`, overrides the global one in that project only.
+- **Single-project setting** (if requested): same command with `set --project`; written to `<project>/.agents/profile.json`. Only `stack`, `language`, `verbosity` and switches are read from it, and it cannot turn a protection off: the file travels with the repository.
 - **Hosting** if mentioned: `"hosting": "…"`. Important extra **notes**: `"notes": ["…"]`.
 
 ## 4b. Make it account-wide (every machine and cloud environment, once)
@@ -71,8 +71,8 @@ python3 "<kit>/hooks/kit_profile.py" set '{"name":"…","git_name":"…","git_em
 1. `python3 "<kit>/hooks/kit_profile.py" bundle` builds `~/.agents/sabry-profile.zip` (the profile + `profile.md` if any). Give the owner the file (or its path) and one line: **claude.ai → Settings → Skills → Upload**, choose the zip. Replacing it later with a rebuilt zip updates every session.
 2. The kit reads the synced `sabry-profile` skill automatically; the newer of it and the local file wins, so edits made here are not lost before the upload.
 3. **Cloud fallback** (only in a cloud session, `CLAUDE_CODE_REMOTE` set): the first session after an upload may start before the sync finishes. If the `update_environment` tool is available, also propose setting `SABRY_KIT_PROFILE_JSON` to the output of `python3 "<kit>/hooks/kit_profile.py" env` on the current environment (plain text, so no secrets in the profile).
-4. **Commit signing key** (optional, travels with the profile): if the owner wants commits signed with their own SSH key everywhere, have them run on their machine `python3 "<kit>/hooks/kit_profile.py" signing-key ~/.ssh/<private key file>` before `bundle`; the zip then carries it to every session. Use a key dedicated to signing (no server access), and its public half goes to GitHub as a Signing Key.
-5. **Per project** (optional): `set --project '<same JSON>'` writes `.agents/profile.json`, committed with the project and winning over everything. Skip it for public repos unless the owner wants the preferences visible.
+4. **Commit signing key** (optional, travels with the profile): if the owner wants commits signed with their own SSH key everywhere, have them run on their machine `python3 "<kit>/hooks/kit_profile.py" signing-key ~/.ssh/<private key file>` before `bundle`; the zip then carries it to every session. Use a key dedicated to signing (no server access), and its public half goes to GitHub as a Signing Key. The key is left out of the zip unless the bundle is built with `kit_profile.py bundle --with-signing-key`; say plainly that the zip, key included, is uploaded to claude.ai, and let the owner choose.
+5. **Per project** (optional): `set --project '<same JSON>'` writes `.agents/profile.json`, committed with the project. It tunes that project (`stack`, `language`, `verbosity`, switches) and cannot turn a protection off or carry free-form instructions. Skip it for public repos unless the owner wants the preferences visible.
 
 ## 5. Close
 

@@ -217,25 +217,34 @@ def main():
     fallback = {"permission": "allow"} if agent == "cursor" and event in CURSOR_PERMISSION_EVENTS else None
 
     try:
-        if once:
-            marker = once_marker(agent, script, payload)
-            if marker:
-                if os.path.exists(marker):
-                    return 0
-                os.makedirs(os.path.dirname(marker), exist_ok=True)
-                open(marker, "w").close()
+        marker = once_marker(agent, script, payload) if once else None
+        if marker and os.path.exists(marker):
+            return 0
         path = resolve(script)
         if not path:
             raise FileNotFoundError(script)
         converted = to_claude(agent, payload)
-        result, plain = None, ""
+        result, plain, notes, plains = None, "", [], []
         for item in converted if isinstance(converted, list) else [converted]:
             out, plain = run_script(path, args, item)
-            result = from_claude(agent, event, out)
             if out and deny_reason(out):
+                result = from_claude(agent, event, out)
+                notes = []
                 break
-        if agent == "codex" and result is None and plain and event != "Stop":
-            result = {"systemMessage": plain}
+            context = ((out or {}).get("hookSpecificOutput") or {}).get("additionalContext") if isinstance(out, dict) else None
+            if context:
+                notes.append(str(context))
+            elif plain and out is None:
+                plains.append(plain)
+            result = from_claude(agent, event, out) or result
+        if len(notes) > 1:
+            merged = {"hookSpecificOutput": {"hookEventName": event, "additionalContext": "\n\n".join(notes)}}
+            result = from_claude(agent, event, merged)
+        if agent == "codex" and result is None and plains and event != "Stop":
+            result = {"systemMessage": "\n".join(plains)}
+        if marker:
+            os.makedirs(os.path.dirname(marker), exist_ok=True)
+            open(marker, "w").close()
     except Exception:
         result = fallback
 

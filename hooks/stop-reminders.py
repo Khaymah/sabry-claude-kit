@@ -14,12 +14,14 @@ file only decides how they reach the model. Separately, each could be answered w
 own short message after the real report. Merged, the model is told to answer all of
 them in one short addition and not to restate the report.
 
+The three run side by side, so one that hangs costs its own 25 seconds and never the others.
 Quiet when none of them has anything to say. Exit 0 on any failure.
 """
 import json
 import os
 import subprocess
 import sys
+from concurrent.futures import ThreadPoolExecutor
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REMINDERS = (("verify-reminder.py",), ("kit_plans.py", "--stop"), ("team-review-reminder.py",))
@@ -46,7 +48,8 @@ def main():
         return 0
     if not isinstance(payload, dict) or payload.get("stop_hook_active"):
         return 0
-    notes = [n for n in (run(parts, raw) for parts in REMINDERS) if n]
+    with ThreadPoolExecutor(max_workers=len(REMINDERS)) as pool:
+        notes = [n for n in pool.map(lambda parts: run(parts, raw), REMINDERS) if n]
     if not notes:
         return 0
     text = notes[0] if len(notes) == 1 else "\n\n".join(notes) + CLOSING

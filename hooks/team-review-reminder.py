@@ -23,6 +23,7 @@ Silent and exit-0 in every failure path — a reminder is never worth breaking a
 import hashlib
 import json
 import os
+import re
 import subprocess
 import sys
 
@@ -51,6 +52,19 @@ CODE_EXT = (
     ".cs", ".php", ".sql", ".css", ".scss",
 )
 TEST_HINTS = (".test.", ".spec.", "__tests__", "/tests/", "/test/")
+RESUMED = ("resume", "compact", "clear")
+
+
+def is_test(path: str) -> bool:
+    return any(h in "/" + path for h in TEST_HINTS)
+
+
+def touches(path: str, needles) -> bool:
+    """A needle counts when it is a whole word of the path (auth in src/auth/login.ts, not
+    role in roleplay.ts); needles with a dot or a slash are matched as written."""
+    words = set(re.split(r"[^a-z0-9]+", path))
+    words |= {w[:-1] for w in words if w.endswith("s")}
+    return any((n in path) if ("." in n or "/" in n) else (n in words) for n in needles)
 MIN_FILES = 3
 MIN_LINES = 150
 
@@ -71,6 +85,8 @@ def sh(*args: str) -> str:
     testing.
     """
     try:
+        if args and args[0] == "git":
+            args = ("git", "-c", "core.quotepath=off", "-c", "core.fsmonitor=") + tuple(args[1:])
         return subprocess.run(
             args, capture_output=True, text=True, timeout=8,
         ).stdout.rstrip()
@@ -176,10 +192,12 @@ def main() -> int:
         return 0
     baseline_mode = "--baseline" in sys.argv
 
+    try:
+        payload = json.load(sys.stdin) if not sys.stdin.isatty() else {}
+    except Exception:
+        payload = None
     if not baseline_mode:
-        try:
-            payload = json.load(sys.stdin)
-        except Exception:
+        if not isinstance(payload, dict):
             return 0
         # Loop protection — mandated by the hook contract.
         if payload.get("stop_hook_active"):
@@ -193,7 +211,11 @@ def main() -> int:
     cur = fingerprints(root)
 
     if baseline_mode:
-        write_state(base_file, json.dumps(cur))
+        # A resume, a compaction or /clear continues the same work: taking a new snapshot
+        # there would hide everything changed so far from the reminder.
+        resumed = isinstance(payload, dict) and payload.get("source") in RESUMED
+        if not (resumed and read_state(base_file) is not None):
+            write_state(base_file, json.dumps(cur))
         return 0
 
     raw = read_state(base_file)
@@ -217,7 +239,7 @@ def main() -> int:
         return 0  # docs/config only — nothing for the team to review
 
     lower = [f.lower() for f in files]
-    sensitive = any(n in f for f in lower for n in ANGLE_RULES[0][1])
+    sensitive = any(touches(f.lower(), ANGLE_RULES[0][1]) for f in code)
     if len(code) < MIN_FILES and not sensitive and changed_lines(root, code) < MIN_LINES:
         return 0  # small and not sensitive: the owner's rule is to re-read the diff, not call a team
 
@@ -233,10 +255,10 @@ def main() -> int:
 
     angles = ["code-reviewer"]
     for agent, needles in ANGLE_RULES:
-        if any(n in f for f in lower for n in needles):
+        if any(touches(f, needles) for f in lower):
             angles.append(agent)
 
-    if not any(h in f for f in lower for h in TEST_HINTS):
+    if not any(is_test(f) for f in lower):
         angles.append("qa-tester")
 
     shown = ", ".join(f"`{a}`" for a in angles)

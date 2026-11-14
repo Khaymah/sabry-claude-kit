@@ -113,6 +113,22 @@ def test_team_reminder():
         open(os.path.join(small, "util.ts"), "w").write("export const a=2\n")
         outs, _ = run_hook("team-review-reminder.py", {}, cwd=small)
         check("تغيير صغير غير حساس → صامت", outs == "", outs[:60])
+        open(os.path.join(small, "roleplay.ts"), "w").write("export const r=1\n")
+        outr, _ = run_hook("team-review-reminder.py", {}, cwd=small)
+        check("roleplay.ts لا يُحسب مسار صلاحيات (role)", outr == "", outr[:60])
+        os.remove(os.path.join(small, "roleplay.ts"))
+        outn, rcn = run_hook("team-review-reminder.py", [], cwd=small)
+        check("payload ليس كائناً → صامت بلا خطأ", rcn == 0 and outn == "", f"rc={rcn}")
+        run_hook("team-review-reminder.py", {"source": "compact"}, cwd=small, args=["--baseline"])
+        open(os.path.join(small, "ملف.ts"), "w").write("export const x=1\n" * 200)
+        outc, _ = run_hook("team-review-reminder.py", {}, cwd=small)
+        try:
+            ctxc = json.loads(outc)["hookSpecificOutput"]["additionalContext"]
+        except Exception:
+            ctxc = ""
+        check("baseline بعد compact لا يمسح عمل الجلسة", "util.ts" in ctxc, ctxc[:160])
+        check("اسم ملف عربي يظهر سليماً", "ملف.ts" in ctxc, ctxc[:160])
+        os.remove(os.path.join(small, "ملف.ts"))
         open(os.path.join(small, "big.ts"), "w").write("export const x=1\n" * 200)
         outb, _ = run_hook("team-review-reminder.py", {}, cwd=small)
         check("تغيير كبير (200 سطر) → ينطلق", outb != "")

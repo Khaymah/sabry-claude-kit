@@ -47,7 +47,7 @@
 |---|---|---|
 | `~/.agents/profile.json` | الإجابات + مفاتيح التشغيل (`settings`) | ✅ ملخص صغير في **أول** الـ context بأولوية قصوى |
 | `~/.agents/profile.md` | سياق شخصي حر (أهداف، قيود، عملاء) | ❌ مسار بس؛ الـ agents بتقراه عند القرارات الاستراتيجية |
-| `<project>/.agents/profile.json` | override لمشروع واحد بنفس الشكل | بيتدمج فوق العام |
+| `<project>/.agents/profile.json` | ضبط لمشروع واحد: `stack` · `language` · `verbosity` و`settings` بس | بيتدمج فوق العام، ومايقدرش يقفل حماية ولا يضيف نص حر (الملف بييجي مع الـ repo) |
 
 - **الترتيب:** `DEFAULTS` < profile المالك < `<project>/.agents/profile.json` < متغيرات `SABRY_KIT_<KEY>`.
 - **profile المالك:** الأحدث (بحقل `updated`) بين `~/.agents/profile.json` والـ skill `sabry-profile` المتزامنة من claude.ai (`kit_profile.py bundle` بيبنيها zip للرفع)، وإلا `SABRY_KIT_PROFILE_JSON` كاحتياطي.

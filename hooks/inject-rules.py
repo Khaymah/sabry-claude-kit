@@ -40,11 +40,18 @@ def strip_frontmatter(text):
 
 
 def native_rules_present():
+    """True when the kit's own rules are already loaded natively from ~/.claude/rules (the
+    symlink install). The owner's unrelated rule files there do not count: they would
+    otherwise switch the kit's rules off."""
     config_dir = os.environ.get("CLAUDE_CONFIG_DIR") or os.path.join(os.path.expanduser("~"), ".claude")
     rules_dir = os.path.join(config_dir, "rules")
-    if not os.path.isdir(rules_dir):
+    kit_rules = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "rules")
+    try:
+        native = {n for n in os.listdir(rules_dir) if n.endswith(".md")}
+        ours = {n for n in os.listdir(kit_rules) if n.endswith(".md")}
+    except OSError:
         return False
-    return any(name.endswith(".md") for name in os.listdir(rules_dir))
+    return len(native & ours) >= 3
 
 
 RULE_SWITCHES = {
@@ -151,10 +158,28 @@ def part_number(argv):
         return 1
 
 
+def split_section(section):
+    """Pieces of one over-long section, cut at paragraph breaks, each under PART_LIMIT."""
+    pieces, current = [], ""
+    for para in section.split("\n\n"):
+        while len(para) > PART_LIMIT - 200:
+            pieces.append(para[:PART_LIMIT - 200])
+            para = para[PART_LIMIT - 200:]
+        if current and len(current) + len(para) + 2 > PART_LIMIT - 200:
+            pieces.append(current)
+            current = para
+        else:
+            current = (current + "\n\n" + para) if current else para
+    if current:
+        pieces.append(current)
+    return pieces
+
+
 def pack(sections):
     """IMPORTANT: Claude Code replaces a hook's additionalContext over 10,000 characters with a
     2,000-character preview and a file path, so the rules are split across several hook
     calls (`--part N`), each under PART_LIMIT."""
+    sections = [piece for s in sections for piece in (split_section(s) if len(s) > PART_LIMIT - 200 else [s])]
     packs, size = [[]], 0
     for section in sections:
         cost = len(section) + len(SEPARATOR)
@@ -212,11 +237,14 @@ def main():
                 except OSError:
                     pass
         sections = [kit_profile.render(profile, found)]
+        chunks = []
         if os.environ.get("SABRY_KIT_FORCE_INJECT") == "1" or not native_rules_present():
             chunks = rule_chunks(profile["settings"])
-            if chunks:
-                chunks[0] = RULES_HEADER.format(kit=kit_location()) + chunks[0]
-                sections += chunks
+        if chunks:
+            chunks[0] = RULES_HEADER.format(kit=kit_location()) + chunks[0]
+            sections += chunks
+        else:
+            sections.append(kit_location())
         part = part_number(sys.argv[1:])
         packs = pack(sections) if part else [sections]
         if part and part > len(packs):
