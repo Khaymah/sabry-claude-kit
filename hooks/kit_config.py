@@ -41,6 +41,7 @@ DEFAULTS = {
     "verify_reminder": True,
     "project_brief": True,
     "lessons": True,
+    "long_task_plans": True,
 }
 
 STORAGE_DIR = ".agents"

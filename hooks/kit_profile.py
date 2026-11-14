@@ -62,6 +62,7 @@ SWITCH_LABELS = {
     "read_budget": "read budget for large files",
     "verify_reminder": "verify-before-done reminder",
     "lessons": "lessons from the owner's corrections",
+    "long_task_plans": "checkbox plans for long tasks",
 }
 
 

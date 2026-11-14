@@ -378,6 +378,7 @@ def main():
     test_suite("📏 حد القراءة + تذكير التحقق", "test_budget_and_verify.py")
     test_suite("🧭 ملخص المشروع", "test_project_brief.py")
     test_suite("🎓 الدروس من التصحيحات", "test_lessons.py")
+    test_suite("🗺  خطط المهام الطويلة", "test_kit_plans.py")
     test_registration()
     test_sounds()
     test_adapter()

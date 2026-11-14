@@ -72,6 +72,7 @@
 | `verify_reminder` | ✅ | `verify-reminder` |
 | `project_brief` | ✅ | ملخص المشروع في أول الجلسة |
 | `lessons` | ✅ | `lessons`: تسجيل تصحيحات المالك وعرضها في الجلسات اللي بعدها |
+| `long_task_plans` | ✅ | `kit_plans`: خطة المهمة الطويلة في الملخص + تذكير الـ checkboxes + حفظ الحالة قبل الـ compaction |
 
 ---
 
@@ -100,6 +101,9 @@
 | `verify-reminder.py` | Stop | لو اتعدّل كود ومفيش test/typecheck/lint/build اشتغل بعد آخر تعديل: يطلب التحقق (بأوامر المشروع نفسه من `package.json`) أو يقول إيه اللي ما اتحققش. مرة لكل change-set | feedback |
 | `lessons.py --prompt` | UserPromptSubmit | أول رسالة في الجلسة: يعرض الدروس العامة. رسالة شكلها تصحيح ("غلط" · "قلتلك" · "مش كده" · "wrong" · "I told you"): يطلب من الـ agent يسجّل درس بـ `lessons.py add` | لا |
 | `lessons.py --match` | PreToolUse · `Bash\|Write\|Edit\|MultiEdit` | يعرض الدروس اللي نمطها (`files` globs · `commands`) مطابق للملف أو الأمر، مرة واحدة لكل درس في الجلسة | لا |
+| `kit_plans.py --stop` | Stop | فيه خطة نشطة في `.agents/plans/<slug>/plan.md` واتعدّلت ملفات بعد آخر تحديث ليها: يطلب تعليم البنود اللي خلصت (مرة لكل تغيير) | لا |
+| `kit_plans.py --precompact` | PreCompact | يحفظ مكان الخطة، الملفات المتعدّلة وغير المتسجّلة، وآخر رسائل المالك في `~/.agents/state/` | لا |
+| `kit_plans.py --start` | SessionStart (بعد compaction بس) | يرجّع الحالة المحفوظة للـ context عشان المهمة تكمّل من مكانها | لا |
 | `usage.py record` | SessionEnd | يسجّل استهلاك الجلسة (input · cache · output · الأدوات · الـ subagents) في `.agents/sessions/usage.jsonl`. العرض: `/sabry-kit:kit-stats` | لا |
 | `run-if-installed.py code-review-graph …` | PreToolUse/PostToolUse | يحدّث الـ code graph لو الأداة متسطّبة | لا |
 | `sounds/play.py <wav>` | SessionStart · AskUserQuestion · Stop · StopFailure · PermissionRequest | صوت إشعار | لا |

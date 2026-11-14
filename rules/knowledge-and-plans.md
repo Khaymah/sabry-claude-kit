@@ -22,6 +22,15 @@ Full decisions with reasons live in `Decisions/` or `Plan/ADR/`; plans in `Plan/
 
 Any plan, analysis or task set is written to a `.md` file, not only shown in chat. Each task is self-contained (doable by a developer or an agent without asking back), edge cases included.
 
+## Long tasks — a checkbox plan in `.agents/plans/`
+
+A task that will take more than one session, or has three or more phases, gets an execution plan before the work starts: `kit_plans.py new "<title>" --goal "…" --phase "<name> :: <acceptance>"` (the script is in the kit's `hooks/` folder) creates `.agents/plans/<slug>/plan.md`. `Plan/` stays for documents the owner reads; this file is the working tracker.
+
+- Each phase has an acceptance line and `- [ ]` tasks small enough to finish and verify one at a time.
+- Tick a box when its task is done **and verified**, in the same turn. Add steps you discover; record decisions and blockers under `## Notes`.
+- The session brief names the active plan and its next item: read the plan and continue from there, don't re-explore finished work.
+- Nothing left → `Status: done`. Owner parks it → `Status: paused`.
+
 ## Lessons — a correction is never needed twice
 
 When the owner corrects you ("غلط" · "قلتلك" · "مش كده" · "wrong" · "I told you"), fix it, then record one lesson with the command the `[lessons]` reminder gives (`lessons.py add --when … --wrong … --right … [--files globs] [--commands text] [--global]`). Lessons live in `.agents/memory/lessons.md` (committed); owner-wide ones in `~/.agents/lessons.md`.

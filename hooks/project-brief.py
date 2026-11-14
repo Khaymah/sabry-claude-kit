@@ -12,7 +12,9 @@ stopped, instead of spending the first turns exploring.
     - memory: .agents/memory/MEMORY.md entries
     - continue from: the last "الجاي/Next" and "مفتوح/Open" lines in Plan/Progress/
 
-No model call, capped at ~1.5KB, the layout cached in .agents/scratch/ by HEAD and
+    - active plan: .agents/plans/<slug>/plan.md, progress and the first unchecked item
+
+No model call, capped at ~1.8KB, the layout cached in .agents/scratch/ by HEAD and
 manifest mtimes. Switch: `"project_brief": false` or SABRY_KIT_PROJECT_BRIEF=0.
 Exit 0 with no output on any failure or outside a project.
 """
@@ -25,8 +27,12 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import kit_config
+try:
+    import kit_plans
+except Exception:
+    kit_plans = None
 
-MAX_CHARS = 1500
+MAX_CHARS = 1800
 SKIP = {"node_modules", ".git", "dist", "build", ".next", "out", "coverage", ".turbo", "vendor",
         "target", "__pycache__", ".venv", "venv", ".agents", ".claude", ".idea", ".vscode"}
 CODE_EXT = (".ts", ".tsx", ".js", ".jsx", ".mjs", ".py", ".go", ".rs", ".php", ".cs", ".java",
@@ -177,6 +183,9 @@ def build(root):
     n = memory_entries(root)
     if n:
         lines.append(f"- Project memory: `.agents/memory/MEMORY.md` has {n} entries; check it before exploring the codebase.")
+    plan = kit_plans.brief_line(root) if kit_plans else ""
+    if plan:
+        lines.append(plan)
     rel, cont = continuation(root)
     if rel and cont and any(cont):
         nxt, opn = cont
