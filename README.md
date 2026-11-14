@@ -80,6 +80,7 @@
 | `/sabry-kit:kit-stats` | فين التوكنز راحت: لكل جلسة، ولكل أداة، وأكبر النتايج، والملفات اللي اتقرت أكتر من مرة، ونصايح للتوفير بالأرقام |
 | `architecture-decision` | بيتحمّل لوحده عند قرار معماري (stack · schema · API · auth): Quality-Gate + ADR |
 | `/sabry-kit:team-review` | مراجعة متوازية للتعديلات (أمان · صحة · اختبارات · UX)، وكل نتيجة بتتراجع قبل ما تتعرض |
+| `/sabry-kit:kit-orchestrate` | تنسيق كذا agent على شغلانة واحدة بـ playbook ثابت (feature · bugfix · فكرة · release · عرض لعميل)، بملف handoff واحد وجدول تغطية للمطلوب في الآخر |
 | `/sabry-kit:project-audit` | تدقيق شامل لمشروع: أمان وجودة وأداء ومعمارية، وتقرير بالعربي |
 | `/sabry-kit:self-maintain` | صيانة الكيت نفسه: بيفتح PR بالتحسينات، ومن غير دمج تلقائي |
 | `/sabry-kit:brag-slim` | فيديو إطلاق قصير لمشروع أو موقع |

@@ -42,14 +42,13 @@ Don't always launch all four. Each angle has an activation condition:
 All calls in **one message** so they truly run in parallel.
 
 ```
-Agent(subagent_type: "<name>", model: "sonnet", run_in_background: true,
+Agent(subagent_type: "<name>", run_in_background: true,
       prompt: "Review this diff from your angle. Scope: <files>.
                Report everything you find, including low-confidence and low-severity,
                with confidence and severity for each finding. Do not filter yourself.")
 ```
 
-**Absolute rule:** explicit `model: "sonnet"` on every call.
-(The `PreToolUse` hook enforces it, but pass it explicitly anyway.)
+Kit agents take their model from their own frontmatter: do not pass `model` to them. Built-in agents (`Explore`) get `model: "sonnet"` explicitly.
 
 Use `SendMessage` to ask a teammate for clarification; it resumes with full context.
 

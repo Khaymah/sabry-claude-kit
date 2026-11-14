@@ -11,6 +11,8 @@ Measures what the kit adds over plain Claude Code. Every case runs **with** the 
 | `read-budget-uses-range` | A question about one function in a 1,600-line file is answered without the whole file entering the context | smoke · cost |
 | `market-research-idea` | "تستاهل أبنيها؟" goes to `market-researcher` and ends in one decision | agents |
 | `mobile-agent-routes` · `ai-agent-routes` · `delivery-agent-routes` · `proposal-agent-routes` | The request reaches the new agent and the answer follows its role (offline handling · eval and cost before a model · evidence-based order · no invented price) | agents |
+| `orchestrate-feature` | A three-ask feature reaches `kit-orchestrate`, agents are launched through one handoff file, and all three asks are closed (concurrency with a real mechanism) | orchestration |
+| `requirement-coverage` | Three asks, one impossible: two are implemented and the third is reported as not done, not dropped or faked | smoke · quality |
 | `kit-setup-fires` · `kit-doctor-fires` | The request reaches the kit's skill, not a built-in or another plugin | smoke · skills |
 | `reply-language` | No profile → replies in Arabic and suggests `kit-setup` | smoke · language |
 

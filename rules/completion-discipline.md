@@ -11,4 +11,21 @@
 - **Verify behaviour, not the file.** A hook/config/endpoint that was written ≠ working. Run it; if you can't, say "not verified".
 - **Scope:** for 3+ files, name every file you will change before starting. Found another file that needs changing → say so first. Don't add files nobody asked for.
 
+## Requirement coverage
+
+A request with more than one ask: number the asks (`R1`, `R2`, …) before starting. The final message lists every number as done, partly done, or not done with the reason. An ask silently dropped is the worst outcome; "not done, because …" is fine.
+
+## Definition of done by task type
+
+| Type | Also true before "done" |
+|---|---|
+| **Feature** | The four states exist (empty · loading · error · success) · input validated at the boundary · authorization checked server-side · a test for the main path and one failure path |
+| **Bugfix** | Root cause named, not the symptom · a test that failed before the fix and passes after · the same mistake searched for elsewhere in the codebase |
+| **Refactor** | Behaviour unchanged: the same tests pass with no edits to their assertions · no drive-by changes outside the stated scope |
+| **Migration** | Runs on a copy of real data shape · rollback written and tried, or expand → migrate → contract · old code works on the new schema during deploy |
+
+## Self-review
+
+Over ~150 changed lines or 5 files, or anything touching auth, payments, migrations or personal data: before "done", `code-reviewer` reviews the diff with a clean context (the diff and the request only, not your reasoning). Smaller changes: re-read your own diff once.
+
 > 🔒 `verify-reminder` flags a stop after code edits with no check run.
