@@ -35,6 +35,8 @@ Plan: `Plan/2026-11-14-multi-provider-smarter-kit.md`.
 
 - **Injected rules cut from about 18,600 to 11,000 characters** (roughly 41% less text at every session start and after every compaction). Behaviour stays in the rules; templates, tables and lists moved to `Reference/` (progress log, definition of done, long-task plans, subagent briefing, stack list, git identity), read only when the rule that names them applies. Smoke evals after the cut, two runs per arm: mean Δ +0.46 (it was +0.38 on one run before), every behavioural case unchanged or better. `requirement-coverage` failed one of two runs and passed two of two on a repeat.
 
+- **One closing note.** The verify, plan and team-review reminders now reach the model through `stop-reminders.py` as a single note with one instruction: answer in one short addition, do not restate the report. The team-review reminder fires only for three or more code files, 150 or more changed lines, or a security-sensitive path; a small change gets a re-read of the diff, as the completion rule already said.
+
 ### Not verified
 
 - No live run inside Codex CLI, Kimi Code CLI, OpenCode, Kilo Code or Cline: formats come from their official docs and the install is tested against a throwaway home.

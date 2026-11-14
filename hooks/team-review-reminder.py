@@ -2,6 +2,10 @@
 """
 Stop hook — deterministic reminder to run a team review when code actually changed.
 
+Fires only when the change is worth a team: three or more code files, 150 or more changed
+lines, or a security-sensitive path (auth, payments, secrets, uploads). Smaller changes get
+a re-read of the diff, per the completion rule, not a reminder.
+
 Non-blocking by design: it injects context, it never forces. CLAUDE.md is advisory and can be
 forgotten; this cannot be. But it also never holds the turn hostage.
 
@@ -47,6 +51,8 @@ CODE_EXT = (
     ".cs", ".php", ".sql", ".css", ".scss",
 )
 TEST_HINTS = (".test.", ".spec.", "__tests__", "/tests/", "/test/")
+MIN_FILES = 3
+MIN_LINES = 150
 
 CONFIG_DIR = os.path.abspath(
     os.environ.get("CLAUDE_CONFIG_DIR") or os.path.join(os.path.expanduser("~"), ".claude")
@@ -125,6 +131,24 @@ def fingerprints(root: str) -> dict:
     return fps
 
 
+def changed_lines(root: str, paths) -> int:
+    """Lines added or removed in `paths`: numstat for tracked files, line count for new ones."""
+    wanted = set(paths)
+    total, seen = 0, set()
+    for line in sh("git", "diff", "HEAD", "--numstat").splitlines():
+        parts = line.split("\t")
+        if len(parts) >= 3 and parts[2].strip().strip('"') in wanted:
+            seen.add(parts[2].strip().strip('"'))
+            total += sum(int(n) for n in parts[:2] if n.isdigit())
+    for path in wanted - seen:
+        try:
+            with open(os.path.join(root, path), encoding="utf-8", errors="replace") as fh:
+                total += sum(1 for _ in fh)
+        except OSError:
+            pass
+    return total
+
+
 def state_path(root: str, suffix: str = "") -> str:
     h = hashlib.sha256(root.encode()).hexdigest()[:16]
     return os.path.join(STATE_DIR, h + suffix)
@@ -192,6 +216,11 @@ def main() -> int:
     if not code:
         return 0  # docs/config only — nothing for the team to review
 
+    lower = [f.lower() for f in files]
+    sensitive = any(n in f for f in lower for n in ANGLE_RULES[0][1])
+    if len(code) < MIN_FILES and not sensitive and changed_lines(root, code) < MIN_LINES:
+        return 0  # small and not sensitive: the owner's rule is to re-read the diff, not call a team
+
     # Fire once per distinct change-set: further edits to the same files change the
     # fingerprints, so they count as a new one.
     key = hashlib.sha256(
@@ -202,7 +231,6 @@ def main() -> int:
         return 0
     write_state(last, key)
 
-    lower = [f.lower() for f in files]
     angles = ["code-reviewer"]
     for agent, needles in ANGLE_RULES:
         if any(n in f for f in lower for n in needles):

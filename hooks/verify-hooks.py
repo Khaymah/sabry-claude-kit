@@ -103,6 +103,21 @@ def test_team_reminder():
             check("اختار ui-ux (ملف .tsx)", "ui-ux" in ctx)
             check("اختار qa-tester (لا اختبارات مسّت)", "qa-tester" in ctx)
 
+        # تغيير صغير غير حساس في مستودع آخر → صامت (قاعدة: أعد قراءة الـ diff، لا فريق)
+        small = tempfile.mkdtemp(prefix="hookverify-small-")
+        gs = lambda *a: subprocess.run(["git"] + list(a), cwd=small, capture_output=True, text=True, timeout=30)
+        gs("init", "-q", "."); gs("config", "user.email", "t@t.t"); gs("config", "user.name", "t")
+        open(os.path.join(small, "util.ts"), "w").write("export const a=1\n")
+        gs("add", "-A"); gs("commit", "-qm", "base")
+        run_hook("team-review-reminder.py", {}, cwd=small, args=["--baseline"])
+        open(os.path.join(small, "util.ts"), "w").write("export const a=2\n")
+        outs, _ = run_hook("team-review-reminder.py", {}, cwd=small)
+        check("تغيير صغير غير حساس → صامت", outs == "", outs[:60])
+        open(os.path.join(small, "big.ts"), "w").write("export const x=1\n" * 200)
+        outb, _ = run_hook("team-review-reminder.py", {}, cwd=small)
+        check("تغيير كبير (200 سطر) → ينطلق", outb != "")
+        shutil.rmtree(small, ignore_errors=True)
+
         # نفس التغيير مرة أخرى → يجب ألا يُلحّ
         out2, _ = run_hook("team-review-reminder.py", {}, cwd=tmp)
         check("نفس التغيير → لا يتكرّر", out2 == "", out2[:60])
@@ -171,7 +186,9 @@ def test_registration():
     check("usage record مسجَّل (SessionEnd)", "usage.py" in blob and " record" in blob)
     check("project-brief مسجَّل (SessionStart)", "project-brief.py" in blob)
     check("read-budget مسجَّل (PreToolUse · Read)", "read-budget.py" in blob)
-    check("verify-reminder مسجَّل (Stop)", "verify-reminder.py" in blob)
+    check("stop-reminders مسجَّل (Stop: التحقق + الخطة + المراجعة في تنبيه واحد)", "stop-reminders.py" in blob)
+    check("التذكيرات الثلاثة غير مسجَّلة منفردة على Stop",
+          "verify-reminder.py" not in blob and "kit_plans.py\" --stop" not in blob)
     check("doctor brief مسجَّل (SessionStart)", "doctor.py" in blob and " brief" in blob)
     check("لا hook يفرض موديل على الـ subagents", "enforce-opus" not in blob
           and "enforce-sonnet" not in blob, "الموديل يأتي من frontmatter كل agent")
@@ -379,6 +396,7 @@ def main():
     test_suite("🧭 ملخص المشروع", "test_project_brief.py")
     test_suite("🎓 الدروس من التصحيحات", "test_lessons.py")
     test_suite("🗺  خطط المهام الطويلة", "test_kit_plans.py")
+    test_suite("🔔 تذكيرات آخر الدور في تنبيه واحد", "test_stop_reminders.py")
     test_registration()
     test_sounds()
     test_adapter()

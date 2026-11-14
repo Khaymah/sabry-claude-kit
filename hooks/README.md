@@ -92,18 +92,19 @@
 | `inject-rules.py --part 1..4` | SessionStart | يحقن الـ profile و `rules/*.md` في السياق (لو مش محمّلة أصلاً من `~/.claude/rules`). متقسّم على 4 نداءات لأن Claude Code بيقصّ أي ناتج hook فوق 10,000 حرف لأول 2,000 بس | لا |
 | `maintain-note.py` | SessionStart | تذكير مرة في اليوم بالصيانة الأسبوعية | لا |
 | `team-review-reminder.py --baseline` | SessionStart | يصوّر حالة الشجرة عشان يفرّق بين شغل الجلسة والتعديلات القديمة | لا |
-| `team-review-reminder.py` | Stop | لو كود اتغيّر في الجلسة: يقترح `/team-review` بالـ reviewers المناسبين، مرة واحدة لكل change-set | لا |
+| `team-review-reminder.py` | عن طريق `stop-reminders` | لو اتغيّر في الجلسة 3 ملفات كود أو أكتر، أو 150 سطر، أو مسار حساس (auth · دفع · أسرار): يقترح `/team-review` بالـ reviewers المناسبين، مرة واحدة لكل change-set | لا |
 | `enforce-commit-style.py` | PreToolUse · `Bash` + أدوات GitHub/GitLab في الـ MCP | يرفض أي نسبة لـ AI في الـ commits والـ tags والـ PRs والـ issues والتعليقات والـ reviews والـ releases (`Co-Authored-By` لأي أداة AI · `Generated with/by …` بأي صيغة · روابط `claude.ai/code/session_` · `Claude-Session:` · 🤖)، عبر `git` و`gh` و`gh api` و`glab` والـ MCP. ويرفض العربي في رسائل الـ commit وعناوين ووصف الـ PR، **أو commit صاحبه أو الـ committer بتاعه Claude/Anthropic** (`--author` · `GIT_AUTHOR_*` · `git -c user.*` · `git config` · `--amend` من غير `--reset-author`) | ✅ |
 | `scan-secrets.py` | PreToolUse · `Bash` + git pre-commit | يمنع commit فيه مفتاح أو token أو private key أو `.env` (قسم 6) | ✅ |
 | `enforce-comment-discipline.py` | PreToolUse · `Write\|Edit\|MultiEdit` | يرفض إضافة كومنت لملف كود (الاستثناءات: build directives و`IMPORTANT:`) | ✅ |
 | `enforce-nextjs-structure.py` | PreToolUse · `Write\|Edit\|MultiEdit` | مشاريع Next.js بس: حد 600 سطر (و300 لـ PageContent)، PascalCase للجديد تحت `src/`، وحالة الحروف متطابقة مع الموجود على القرص | ✅ |
 | `warn-duplication.py` | PostToolUse · `Write\|Edit\|MultiEdit` | مشاريع Next.js بس: يرجّع للـ agent كود مكرر عشان يوحّده | يرجّع feedback |
 | `read-budget.py` | PreToolUse · `Read` | يرفض قراءة ملف نصي أكبر من 800 سطر كله من غير `offset`/`limit`، ويوجّه لـ Grep + مدى محدد. `limit` صريح = مسموح | ✅ |
-| `verify-reminder.py` | Stop | لو اتعدّل كود ومفيش test/typecheck/lint/build اشتغل بعد آخر تعديل: يطلب التحقق (بأوامر المشروع نفسه من `package.json`) أو يقول إيه اللي ما اتحققش. مرة لكل change-set | feedback |
+| `stop-reminders.py` | Stop | بيشغّل التذكيرات التلاتة (التحقق · الخطة · المراجعة) ويبعت اللي عنده حاجة منهم كتنبيه **واحد**، مع تعليمة إن الرد عليهم يبقى إضافة قصيرة واحدة مش تكرار للتقرير | لا |
+| `verify-reminder.py` | عن طريق `stop-reminders` | لو اتعدّل كود ومفيش test/typecheck/lint/build اشتغل بعد آخر تعديل: يطلب التحقق (بأوامر المشروع نفسه من `package.json`) أو يقول إيه اللي ما اتحققش. مرة لكل change-set | feedback |
 | `lessons.py --prompt` | UserPromptSubmit | أول رسالة في الجلسة: يعرض الدروس العامة. رسالة شكلها تصحيح ("غلط" · "قلتلك" · "مش كده" · "wrong" · "I told you"): يطلب من الـ agent يسجّل درس بـ `lessons.py add` | لا |
 | `lessons.py --start` | SessionStart | يعرض الدروس العامة أول الجلسة. بعد compact أو `/clear` بينسى اللي عرضه قبل كده، فالدروس العامة ترجع فوراً والمحددة بملف أو أمر تظهر تاني عند أول تطابق | لا |
 | `lessons.py --match` | PreToolUse · `Bash\|Write\|Edit\|MultiEdit` | يعرض الدروس اللي نمطها (`files` globs · `commands`) مطابق للملف أو الأمر، مرة واحدة لكل درس في الجلسة | لا |
-| `kit_plans.py --stop` | Stop | فيه خطة نشطة في `.agents/plans/<slug>/plan.md` واتعدّلت ملفات بعد آخر تحديث ليها: يطلب تعليم البنود اللي خلصت (مرة لكل تغيير) | لا |
+| `kit_plans.py --stop` | عن طريق `stop-reminders` | فيه خطة نشطة في `.agents/plans/<slug>/plan.md` واتعدّلت ملفات بعد آخر تحديث ليها: يطلب تعليم البنود اللي خلصت (مرة لكل تغيير) | لا |
 | `kit_plans.py --precompact` | PreCompact | يحفظ مكان الخطة، الملفات المتعدّلة وغير المتسجّلة، وآخر رسائل المالك في `~/.agents/state/` | لا |
 | `kit_plans.py --start` | SessionStart (بعد compaction بس) | يرجّع الحالة المحفوظة للـ context عشان المهمة تكمّل من مكانها | لا |
 | `usage.py record` | SessionEnd | يسجّل استهلاك الجلسة (input · cache · output · الأدوات · الـ subagents) في `.agents/sessions/usage.jsonl`. العرض: `/sabry-kit:kit-stats` | لا |
