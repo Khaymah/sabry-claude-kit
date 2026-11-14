@@ -61,6 +61,7 @@ SWITCH_LABELS = {
     "project_storage": "project storage in .agents/",
     "read_budget": "read budget for large files",
     "verify_reminder": "verify-before-done reminder",
+    "lessons": "lessons from the owner's corrections",
 }
 
 
@@ -116,7 +117,7 @@ description: Owner profile data read by the sabry-kit hooks at session start. No
 
 # sabry-profile
 
-Data only: `profile.json` (settings from /sabry-kit:kit-setup) and optional `profile.md` (personal context).
+Data only: `profile.json` (settings from /sabry-kit:kit-setup), optional `profile.md` (personal context) and `lessons.md` (owner-wide lessons).
 Rebuild with `kit_profile.py bundle` and re-upload on claude.ai (Settings → Skills) to change it.
 """
 
@@ -135,6 +136,9 @@ def bundle(out=None):
         ctx = existing_context_path()
         if ctx:
             z.write(ctx, "sabry-profile/profile.md")
+        lessons = os.path.join(user_dir(), "lessons.md")
+        if os.path.isfile(lessons):
+            z.write(lessons, "sabry-profile/lessons.md")
         key = os.path.join(user_dir(), "signing_key")
         if os.path.isfile(key):
             z.write(key, "sabry-profile/signing_key")

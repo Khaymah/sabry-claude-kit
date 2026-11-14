@@ -71,6 +71,7 @@
 | `read_budget` · `read_budget_lines` | ✅ · `800` | `read-budget` وحدّه بالسطور |
 | `verify_reminder` | ✅ | `verify-reminder` |
 | `project_brief` | ✅ | ملخص المشروع في أول الجلسة |
+| `lessons` | ✅ | `lessons`: تسجيل تصحيحات المالك وعرضها في الجلسات اللي بعدها |
 
 ---
 
@@ -97,6 +98,8 @@
 | `warn-duplication.py` | PostToolUse · `Write\|Edit\|MultiEdit` | مشاريع Next.js بس: يرجّع للـ agent كود مكرر عشان يوحّده | يرجّع feedback |
 | `read-budget.py` | PreToolUse · `Read` | يرفض قراءة ملف نصي أكبر من 800 سطر كله من غير `offset`/`limit`، ويوجّه لـ Grep + مدى محدد. `limit` صريح = مسموح | ✅ |
 | `verify-reminder.py` | Stop | لو اتعدّل كود ومفيش test/typecheck/lint/build اشتغل بعد آخر تعديل: يطلب التحقق (بأوامر المشروع نفسه من `package.json`) أو يقول إيه اللي ما اتحققش. مرة لكل change-set | feedback |
+| `lessons.py --prompt` | UserPromptSubmit | أول رسالة في الجلسة: يعرض الدروس العامة. رسالة شكلها تصحيح ("غلط" · "قلتلك" · "مش كده" · "wrong" · "I told you"): يطلب من الـ agent يسجّل درس بـ `lessons.py add` | لا |
+| `lessons.py --match` | PreToolUse · `Bash\|Write\|Edit\|MultiEdit` | يعرض الدروس اللي نمطها (`files` globs · `commands`) مطابق للملف أو الأمر، مرة واحدة لكل درس في الجلسة | لا |
 | `usage.py record` | SessionEnd | يسجّل استهلاك الجلسة (input · cache · output · الأدوات · الـ subagents) في `.agents/sessions/usage.jsonl`. العرض: `/sabry-kit:kit-stats` | لا |
 | `run-if-installed.py code-review-graph …` | PreToolUse/PostToolUse | يحدّث الـ code graph لو الأداة متسطّبة | لا |
 | `sounds/play.py <wav>` | SessionStart · AskUserQuestion · Stop · StopFailure · PermissionRequest | صوت إشعار | لا |

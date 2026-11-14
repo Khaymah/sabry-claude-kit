@@ -40,6 +40,7 @@ DEFAULTS = {
     "read_budget": True,
     "verify_reminder": True,
     "project_brief": True,
+    "lessons": True,
 }
 
 STORAGE_DIR = ".agents"

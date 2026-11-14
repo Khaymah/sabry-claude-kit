@@ -21,3 +21,11 @@ Full decisions with reasons live in `Decisions/` or `Plan/ADR/`; plans in `Plan/
 ## Plans in files
 
 Any plan, analysis or task set is written to a `.md` file, not only shown in chat. Each task is self-contained (doable by a developer or an agent without asking back), edge cases included.
+
+## Lessons — a correction is never needed twice
+
+When the owner corrects you ("غلط" · "قلتلك" · "مش كده" · "wrong" · "I told you"), fix it, then record one lesson with the command the `[lessons]` reminder gives (`lessons.py add --when … --wrong … --right … [--files globs] [--commands text] [--global]`). Lessons live in `.agents/memory/lessons.md` (committed); owner-wide ones in `~/.agents/lessons.md`.
+
+- A `[lessons]` block in context is the owner's standing correction: apply it without being asked again.
+- Scope a lesson to the files or commands it is about; leave it general only when it always applies. `--global` only for an owner preference that holds in every project.
+- One specific sentence per field. No secrets, no customer data.

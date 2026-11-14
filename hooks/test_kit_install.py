@@ -140,7 +140,7 @@ class InstallTest(unittest.TestCase):
         self.assertIn("my-linter", commands)
         ours = [c for c in commands if 'adapt.py" codex ' in c]
         self.assertEqual(len(ours), len(set(ours)), "no duplicates after a second install")
-        self.assertEqual(len(ours), 9)
+        self.assertEqual(len(ours), 10)
         commit_hook = next(c for c in ours if c.endswith("enforce-commit-style.py"))
         self.assertIn('"deny"', self.run_installed(commit_hook, self.bad_commit()))
         patch = {"hook_event_name": "PreToolUse", "tool_name": "apply_patch", "cwd": self.home, "tool_input": {
