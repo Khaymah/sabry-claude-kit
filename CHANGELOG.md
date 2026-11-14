@@ -28,13 +28,14 @@ Plan: `Plan/2026-11-14-multi-provider-smarter-kit.md`.
 - `team-review` no longer tells kit agents to override the model in their frontmatter.
 
 - **The model was never told where the kit is.** As a plugin the kit lives outside the project, but the rules said `Roles/` and the agents said `.claude/Roles/<name>.md`, so role files, Stacks and the Quality-Gate were not read, in the main session or in subagents. The injected rules now open with the kit's real path, and a `SubagentStart` hook gives the same line to every subagent.
+- **`kit-orchestrate` on plan-only work.** At most two agents, each with one narrow question, and the closing message states the decision for every numbered ask instead of pointing at a file.
 - **Lessons survive compaction.** Rules, the profile, the project brief and the active plan were already injected again after every compaction (`SessionStart` with source `compact`); lessons were shown once per session and lost. `lessons.py --start` now forgets what it showed when the context is compacted or cleared, so they come back.
 
 ### Not verified
 
 - No live run inside Codex CLI, Kimi Code CLI, OpenCode, Kilo Code or Cline: formats come from their official docs and the install is tested against a throwaway home.
 - Smoke evals were run once (2026-11-14): `implement-runs-checks` +0.50, `kit-setup-fires` and `kit-doctor-fires` +1.00, `cto-mode-plans` +0.67 after the fix above, `read-budget-uses-range` and `requirement-coverage` pass in both arms (no measured difference). `commit-without-attribution` could not commit in the root sandbox; its hook did block the AI trailer. 
-- Agent and orchestration evals, one run per arm, so treat them as indicative: mean Δ went from −0.15 to +0.15 after the kit-location fix (`ai-agent-routes` and `support-agent-routes` +1.00, `market-research-idea` +0.50, five cases pass in both arms, `delivery-agent-routes` fails in both). No case launched the named agent: the model reads the role and answers directly. `orchestrate-feature` is worse with the kit (0.00 vs 1.00): it timed out at 300 s once and, in the other run, put the detail in the plan file and a short summary in the reply.
+- Agent and orchestration evals, one run per arm, so treat them as indicative: mean Δ went from −0.15 to +0.15 after the kit-location fix (`ai-agent-routes` and `support-agent-routes` +1.00, `market-research-idea` +0.50, five cases pass in both arms, `delivery-agent-routes` fails in both). No case launched the named agent: the model reads the role and answers directly. `orchestrate-feature` was worse with the kit (0.00 vs 1.00, $0.47 to $0.65 a run): it timed out once and otherwise ended on a short message that pointed at the plan file. After the skill change below it scores 1.00 in two runs at $0.19. A run where the skill launches a real team is still unmeasured.
 
 ## 0.2.0
 

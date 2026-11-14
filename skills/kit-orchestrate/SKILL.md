@@ -16,6 +16,7 @@ Each agent rebuilds its context, so a team costs several times a single pass.
 
 - **One or two files, one role, or a question:** do it directly. Say in one line that you skipped the team and why.
 - **Three or more roles, or independent tracks:** continue.
+- **Plan-only job** (no "نفّذ" / "implement", or little code to read): at most **two** agents, and only for decisions that are really contested (say a concurrency design, a schema, a security boundary). Write the rest yourself. A full sequence on a planning question costs several times more and rarely changes the answer.
 - Job unclear (which playbook, what "done" means, what is out of scope): ask once with `AskUserQuestion`, options with a trade-off each, before launching anything.
 
 ## 1. Number the request
@@ -65,10 +66,12 @@ Agent(subagent_type: "<agent>", prompt:
    Scope: <files or area>. May edit: <yes: which files | no>.
    Serve R<n>, R<m>.
    When finished, append your section to the handoff (format in the file).
-   Reply with at most 150 words: what you decided, what you changed, what is open.")
+   Reply with at most 150 words: what you decided, what you changed, what is open.",
+  run_in_background: false)
 ```
 
 - Do not pass `model`; each kit agent's frontmatter sets it.
+- Give each agent one narrow question. An agent asked to "design the feature" explores everything; one asked "how does the usage limit hold under two concurrent orders, in this schema?" answers in a minute.
 - Independent steps go in **one message** so they run in parallel. Two agents never edit the same file in the same step.
 - A step reports an `Open` question for the owner → ask it with `AskUserQuestion` before the steps that depend on it; continue the ones that do not.
 - A step fails or contradicts an earlier decision → stop the sequence, show the conflict, ask.
@@ -93,7 +96,13 @@ Between implementation and "done", in this order:
 **مفتوح:** <قرار مستني المالك، أو "لا شيء">
 ```
 
-Every `R` appears, including the ones not done, with the reason. Tick the plan's boxes and add the usual `Plan/Progress/` section. Then ask the owner what is next with `AskUserQuestion`.
+Every `R` appears, including the ones not done, with the reason. Tick the plan's boxes and add the usual `Plan/Progress/` section.
+
+**The closing message stands on its own.** The owner reads the reply, not the files:
+
+- For each `R`, state the decision itself in one or two lines (the mechanism, the shape, the rule), not only a pointer to a phase or a file. "R3: an atomic conditional `UPDATE … WHERE used < limit` inside the order transaction, plus a unique `(coupon, order)` row" tells the owner something; "R3: see Phase 4" does not.
+- Files hold the detail; link them after the decisions.
+- The closing table is the **last text** of the turn. Ask what is next with `AskUserQuestion` in the same turn; if that tool is unavailable, append the question to the same message. Never follow the table with a second, shorter message that replaces it.
 
 ## When not to use this skill
 

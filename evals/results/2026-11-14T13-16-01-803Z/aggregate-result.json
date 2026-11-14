@@ -1,0 +1,230 @@
+{
+  "schemaVersion": 1,
+  "claudeVersion": "2.1.325",
+  "startedAt": "2026-11-14T13:16:01.803Z",
+  "durationSeconds": 60,
+  "costUsd": 0.5354504999999999,
+  "partial": false,
+  "suite": {
+    "root": "/home/user/sabry-claude-kit",
+    "ablation": "with-without",
+    "caseFilter": "orchestrate-feature",
+    "threshold": 1,
+    "concurrency": 4,
+    "plugins": [
+      {
+        "name": "sabry-kit",
+        "version": "0.3.0",
+        "path": "/home/user/sabry-claude-kit"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "orchestrate-feature",
+      "dir": "evals/orchestrate-feature",
+      "source": "prose",
+      "promptMarkdown": "نسّق الفريق على feature كاملة: نظام كوبونات خصم لمتجر إلكتروني (Hono + Drizzle + Next.js). المطلوب: 1) الأدمن ينشئ كوبون بنسبة أو مبلغ ثابت وتاريخ انتهاء، 2) العميل يطبّق الكوبون في صفحة الدفع، 3) الكوبون مايتستخدمش أكتر من الحد بتاعه حتى مع طلبين في نفس اللحظة. عايز خطة وتاسكات بس، من غير كود.",
+      "runsPerCase": 3,
+      "timeoutSeconds": 600,
+      "maxTurns": 30,
+      "graders": [
+        {
+          "name": "agents-launched",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Agent",
+            "input_match": "handoff",
+            "min": 2,
+            "arm": "with-only"
+          }
+        },
+        {
+          "name": "coverage",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "PASS if the final reply accounts for all three asks separately (admin creates a coupon, customer applies it at checkout, usage limit holds under concurrent orders), states for each whether it is covered, and addresses the concurrency ask with a concrete mechanism (transaction with row lock, atomic conditional update, or unique constraint).\nFAIL if any of the three asks is missing from the final reply, or the concurrency ask is answered only with \"check the count before applying\".",
+          "config": {
+            "criteria": "PASS if the final reply accounts for all three asks separately (admin creates a coupon, customer applies it at checkout, usage limit holds under concurrent orders), states for each whether it is covered, and addresses the concurrency ask with a concrete mechanism (transaction with row lock, atomic conditional update, or unique constraint).\nFAIL if any of the three asks is missing from the final reply, or the concurrency ask is answered only with \"check the count before applying\".",
+            "focus": "last_message"
+          }
+        },
+        {
+          "name": "skill-fired",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Skill",
+            "input_match": "\"skill\"\\s*:\\s*\"(?:[\\w-]+:)?kit-orchestrate\"",
+            "arm": "with-only"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 5,
+            "costUsd": 0.19155039999999998,
+            "judgeCostUsd": 0.000728299999999999,
+            "durationSeconds": 60,
+            "startedAt": "2026-11-14T13:16:01.881Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-MCmsyc/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "agents-launched",
+                "passed": false,
+                "weight": 1,
+                "explanation": "Agent called 0x (expected 2..∞)",
+                "withOnly": true,
+                "scored": false
+              },
+              {
+                "name": "coverage",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "💡 شغّل `/sabry-kit:kit-setup` (دقيقتين) عشان تحفظ إعداداتك. لحد ما تعمل كده بستخدم الافتراضيات.\n\n**ما شغّلتش الفريق.** الشغلة خطة بس والمشروع فاضي، فكتبتها بنفسي. القرار الوحيد المتنازع عليه هو التزامن، وحله معروف. الخطة الكاملة في `.agents/plans/coupons/plan.md`، وفيها 5 phases وتاسكات جاهزة للتنفيذ.\n\n## ✅ نظام الكوبونات: النتيجة\n\n| # | المطلوب | القرار | الحالة |\n|---|---|---|---|\n| R1 | الأدمن ينشئ كوبون (نسبة أو مبلغ ثابت + انتهاء) | جدول `coupons` فيه `type` (`percent` أو `fixed`) و`value` كـ integer (basis points للنسبة، قروش للمبلغ) و`expires_at` بـ UTC. فيه كمان `max_uses` و`min_order_amount` وسقف للخصم و`is_active`. القيم الغلط بتترفض بقيود CHECK وZod. الأدمن يعمل إنشاء/تعديل/تعطيل بدل الحذف عشان سجل الاستخدامات يفضل موجود. الـ endpoints محمية بدور admin على السيرفر. | اتخطّط (Phase 1) |\n| R2 | العميل يطبّق الكوبون في الدفع | `POST /checkout/coupon/validate` للعرض فقط، ويرجّع الخصم أو سبب الرفض. حساب الخصم في دالة pure واحدة بتخدم الـ preview وإنشاء الطلب بنفس النتيجة. السعر النهائي بيتحسب على السيرفر ومش بيجي من الـ client. الصفحة فيها الحالات الأربع (فاضي/تحميل/خطأ/نجاح) وإزالة الكوبون وRTL، وفي الـ validate rate limit. | اتخطّط (Phase 2 + 4) |\n| R3 | مايتعدّاش الحد حتى مع طلبين متزامنين | حجز ذرّي واحد جوه transaction إنشاء الطلب: `UPDATE coupons SET used_count = used_count + 1 WHERE … AND used_count < max_uses RETURNING`. لو رجع صفر صفوف يبقى الكوبون استُنفد والطلب يفشل. مفيش \"اقرأ ثم حدّث\". جدول `coupon_redemptions` فيه unique على `(coupon_id, order_id)`. إلغاء الطلب بيرجّع الاستخدام مرة واحدة (idempotent). الدليل المطلوب: اختبار 50 طلب متزامن على Postgres حقيقي لكوبون `max_uses=10`، والنتيجة المتوقعة 10 redemptions بالظبط. | اتخطّط (Phase 3 + T5.1) |\n\n**اتحقق منه:** ملف الخطة اتكتب. مفيش كود ولا اختبارات اتشغّلت، لأن المطلوب خطة بس والمشروع فاضي.\n**ما اتحققش منه:** كل التصميم ما اتجرّبش على الداتابيز فعلياً. اختبار التزامن T5.1 هو اللي هيثبته.\n\n**مفتوح (5 أسئلة بافتراضات في الخطة، عدّلها لو مش مناسبة):**\n1. الخصم على المنتجات بس ولا مع الشحن؟ الافتراض: المنتجات بس.\n2. حد الاستخدام لكل عميل؟ الافتراض: مرة واحدة، وقابل للتعديل لكل كوبون.\n3. الكوبون يتجمع مع خصومات تانية؟ الافتراض: لا.\n4. العميل الضيف (guest) يقدر يستخدمه؟ الافتراض: أيوه، والحد لكل إيميل.\n5. الانتهاء بلحظة محددة ولا نهاية اليوم؟ الافتراض: نهاية اليوم بتوقيت القاهرة، ويتخزن UTC.\n\nنبدأ بإيه؟ توصيتي: ترد على الأسئلة الخمسة، وبعدها تقول \"نفّذ\" وأبدأ Phase 1 و2. بدائل تانية: أخلّي `security-reviewer` يراجع التصميم قبل التنفيذ، أو أوزّعه على الفريق (backend + frontend بالتوازي بعد تثبيت عقد T2.2)."
+              },
+              {
+                "name": "skill-fired",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Skill called 1x (expected 1..∞)",
+                "withOnly": true,
+                "scored": false
+              }
+            ]
+          },
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 5,
+            "costUsd": 0.1866441,
+            "judgeCostUsd": 0.0004586999999999998,
+            "durationSeconds": 56,
+            "startedAt": "2026-11-14T13:16:01.881Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-trctv9/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "agents-launched",
+                "passed": false,
+                "weight": 1,
+                "explanation": "Agent called 0x (expected 2..∞)",
+                "withOnly": true,
+                "scored": false
+              },
+              {
+                "name": "coverage",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "## ✅ نظام الكوبونات: النتيجة\n\nالخطة الكاملة في `.agents/plans/coupons/plan.md`. ما شغّلتش agents، لأن المطلوب خطة بس والقرار الصعب الوحيد (التزامن) له حل معروف. المشروع فاضي، فالخطة مبنية على الـ stack المذكور من غير كود موجود أقرأه.\n\n| # | المطلوب | الحالة | القرار |\n|---|---|---|---|\n| R1 | الأدمن ينشئ كوبون (نسبة أو ثابت + انتهاء) | اتخطّط (T1، T5، T8) | جدول `coupons` فيه `type` (percent/fixed) و`value` و`expires_at` بـ timestamptz و`max_uses`. القيم المالية integer، وقيود CHECK في الـ DB (النسبة 1 إلى 100، والقيمة أكبر من صفر). endpoints الأدمن محمية بفحص صلاحيات في السيرفر، وفيه audit log. |\n| R2 | العميل يطبّق الكوبون في صفحة الدفع | اتخطّط (T4، T6، T7، T9) | العميل يبعت `code` بس، والسيرفر هو اللي يحسب الخصم. فيه endpoint معاينة بيرجّع الخصم من غير حجز، مع rate limit ضد تخمين الأكواد. الخصم مايزيدش عن إجمالي الطلب، ورسائل الرفض متمايزة (منتهي، مستنفد، أقل من الحد الأدنى). |\n| R3 | ماتتخطاش حد الاستخدام مع طلبين متزامنين | اتخطّط (T3، T7، T11) | الحجز بـ `UPDATE … SET used_count = used_count + 1 WHERE used_count < max_uses AND expires_at > now() RETURNING` جوه transaction إنشاء الطلب. لو رجّع صفر صفوف يبقى الكوبون خلص والطلب يفشل. وصف الاستخدام (`coupon_redemptions`) عليه unique على `(coupon_id, order_id)`. فشل الطلب يعمل rollback للعداد. الاختبار الأساسي: 20 طلب متوازي على كوبون `max_uses=1` لازم ينجح منهم واحد بس. |\n\n**اتحقق منه:** مفيش حاجة اتشغّلت. ده تخطيط بس، والمشروع مفيهوش كود.\n**مفتوح (محتاج قرارك):**\n- Q1: إلغاء الطلب يرجّع استخدام الكوبون؟ توصيتي: يرجّع لو الإلغاء قبل الشحن.\n- Q2: كوبون واحد لكل طلب ولا يتجمّع مع غيره؟ توصيتي: واحد في الإصدار الأول.\n- Q3: الكوبون يتحدد بمنتجات أو تصنيفات؟ توصيتي: لأ دلوقتي.\n- Q4: العملة واحدة ولا أكتر؟\n- Q5: الخصم على الشحن والضريبة ولا على المنتجات بس؟\n\n**الخطوة الجاية؟**\n1. تجاوب على Q1 إلى Q5 وأثبّتها في الخطة (توصيتي).\n2. تقول \"نفّذ\" وأبدأ Phase 1 (schema والـ services).\n3. أشغّل `security-reviewer` على الخطة قبل التنفيذ، لأن الموضوع يخص الدفع."
+              },
+              {
+                "name": "skill-fired",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Skill called 1x (expected 1..∞)",
+                "withOnly": true,
+                "scored": false
+              }
+            ]
+          }
+        ],
+        "without": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 2,
+            "costUsd": 0.08523489999999999,
+            "judgeCostUsd": 0.0019163,
+            "durationSeconds": 48,
+            "startedAt": "2026-11-14T13:16:01.881Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-MMEpQo/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "coverage",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "الريبو فاضي (مفيش غير `.claude`)، فالخطة مبنية على افتراضات عامة للستاك، ولازم تتطابق مع الهيكل الفعلي أول ما يتوفر.\n\n# خطة نظام كوبونات الخصم\n\n## قرارات لازم تتحسم قبل البداية\n1. **تراكم الكوبونات:** كوبون واحد بس للطلب (افتراضي مقترح).\n2. **سقف الاستخدام:** إجمالي (`max_uses`) ويُضاف حد لكل عميل (`max_uses_per_user`)؟ المقترح: الاتنين، والحد لكل عميل اختياري.\n3. **الخصم الثابت أكبر من الإجمالي:** الإجمالي ما ينزلش عن صفر.\n4. **حد أدنى للطلب وسقف للخصم النسبي:** خارج النطاق الأول، أو حقول اختيارية.\n5. **المبالغ:** تتخزن كأعداد صحيحة بأصغر وحدة (قروش/سنتات)، والنسبة كعدد صحيح (مثلاً 1–100).\n6. **الطلب الملغي أو الدفع الفاشل:** هل الاستخدام يترجع؟ المقترح: يترجع.\n\n## المبدأ الأساسي للتزامن (الطلب الثالث)\nالفحص ثم الزيادة على مرحلتين غلط، لأن طلبين في نفس اللحظة هيعدّوا الفحص مع بعض. الحل إن الاستهلاك يتم كعملية ذرية واحدة في الداتابيز:\n- تحديث شرطي واحد بيزوّد العداد بشرط إنه لسه تحت الحد، وبشرط الكوبون فعّال وما انتهاش.\n- لو عدد الصفوف المتأثرة صفر، يبقى الكوبون مرفوض.\n- الاستهلاك يحصل **داخل نفس transaction إنشاء الطلب**، فلو الطلب فشل العداد يتراجع تلقائياً.\n- سجل استخدام (redemptions) بقيد unique على (كوبون، طلب)، وعلى (كوبون، عميل) لو فيه حد لكل عميل. ده بيمنع التكرار حتى لو الـ retry جه مرتين.\n- تحقق الكوبون في صفحة الدفع **للعرض فقط**. القرار النهائي بيحصل وقت إنشاء الطلب.\n\n## المهام حسب المسار\n\n### 0. التصميم (قبل أي تنفيذ)\n- **T0.1** توثيق القرارات أعلاه والاتفاق على عقد الـ API (الـ endpoints، شكل الطلب والرد، أكواد الأخطاء).\n- **T0.2** تحديد أكواد رفض موحدة: غير موجود، منتهي، غير فعّال، استُنفد، استُخدم قبل كده، لا يحقق الحد الأدنى. الفرونت يعرض رسالة مناسبة لكل كود.\n\n### 1. الداتابيز (Drizzle)\n- **T1.1** جدول `coupons`: الكود (unique، بدون حساسية لحالة الحروف)، النوع (نسبة/ثابت)، القيمة، `expires_at`، `max_uses`، `used_count`، `is_active`، تواريخ الإنشاء.\n- **T1.2** جدول `coupon_redemptions`: الكوبون، الطلب، العميل، الخصم المطبّق، التاريخ، مع القيود الـ unique.\n- **T1.3** إضافة أعمدة على الطلب: الكوبون المستخدم، قيمة الخصم، الإجمالي قبل وبعد.\n- **T1.4** قيود CHECK على مستوى الداتابيز: النسبة بين 1 و100، القيمة موجبة، `used_count <= max_uses`. ده خط دفاع أخير ضد أي ثغرة في الكود.\n- **T1.5** migration قابلة للتراجع، وتتجرب على نسخة بيانات حقيقية.\n\n### 2. الباك إند (Hono)\n- **T2.1** خدمة حساب الخصم كدالة نقية (pure): نسبة/ثابت، تقريب محدد، حد أدنى صفر. تتغطى باختبارات وحدة كاملة.\n- **T2.2** endpoints الأدمن (CRUD): إنشاء، تعديل، تعطيل، قائمة، مع التحقق من المدخلات (zod أو مكافئه).\n- **T2.3** حماية endpoints الأدمن بصلاحية، وتسجيل مين أنشأ/عدّل.\n- **T2.4** endpoint تحقق للعميل (`validate`): بيرجع الخصم المتوقع والإجمالي الجديد بدون أي استهلاك. عليه rate limiting عشان ما يتحولش لأداة تخمين أكواد.\n- **T2.5** دمج الكوبون في إنشاء الطلب: إعادة التحقق + الاستهلاك الذري + حساب الإجمالي كله من السيرفر، ولا يُقبل أي مبلغ جاي من العميل.\n- **T2.6** معالجة إلغاء الطلب أو فشل الدفع حسب القرار رقم 6 (إرجاع الاستخدام بشكل ذري ومرة واحدة).\n- **T2.7** رسائل أخطاء موحدة حسب T0.2.\n\n### 3. الفرونت إند (Next.js)\n- **T3.1** صفحات الأدمن: قائمة الكوبونات، نموذج إنشاء/تعديل (النوع، القيمة، تاريخ الانتهاء، الحد)، تعطيل. مع التحقق على جهة العميل بنفس قواعد السيرفر.\n- **T3.2** صفحة الدفع: حقل كود، زر تطبيق، عرض الخصم والإجمالي الجديد، زر إزالة الكوبون.\n- **T3.3** حالات الواجهة: تحميل، خطأ لكل كود رفض، نجاح. ويتعامل مع حالة إن الكوبون يتقبل وقت التحقق ثم يترفض وقت إنشاء الطلب (استُنفد في الأثناء) برسالة واضحة وتحديث الإجمالي.\n- **T3.4** منع الضغط المزدوج على زر الدفع، وإرسال معرّف idempotency مع الطلب.\n- **T3.5** إتاحة الواجهة (a11y) ودعم RTL لو المتجر عربي.\n\n### 4. الاختبارات (أهم جزء للمتطلب الثالث)\n- **T4.1** اختبارات وحدة لحساب الخصم (حدود، تقريب، خصم أكبر من الإجمالي).\n- **T4.2** اختبارات تكامل على الـ API: كل أكواد الرفض، تاريخ الانتهاء عند الحد بالظبط، كوبون معطّل.\n- **T4.3** **اختبار التزامن:** كوبون `max_uses = 1`، ونطلق N طلب متوازي (مثلاً 20–50) على داتابيز حقيقية مش mock. النتيجة المقبولة: طلب واحد ناجح بالظبط، والباقي مرفوض، و`used_count = 1`، وصف واحد في `redemptions`. نكرره عدة مرات عشان نمسك الـ flakiness.\n- **T4.4** اختبار تزامن لحالة `max_uses = 5` مع 50 طلب، وحالة الـ retry بنفس idempotency key.\n- **T4.5** اختبار إرجاع الاستخدام عند الإلغاء.\n- **T4.6** اختبار E2E لمسار كامل: الأدمن ينشئ، العميل يطبّق ويدفع.\n\n### 5. الأمان والمراجعة\n- **T5.1** مراجعة إن السيرفر هو المرجع الوحيد للأسعار والخصم.\n- **T5.2** مراجعة الـ rate limiting وعدم تسريب معلومات عن أكواد موجودة بالفعل.\n- **T5.3** مراجعة صلاحيات الأدمن (IDOR وتصعيد صلاحيات).\n- **T5.4** مراجعة كود نهائية للـ transaction ومستوى العزل.\n\n## ترتيب التنفيذ والتوازي\n1. **أولاً:** T0 كله، ثم T1 (الأساس لكل حاجة).\n2. **بالتوازي بعد T1:**\n   - مسار الباك إند: T2.1 ثم T2.2/T2.3 ثم T2.4 ثم T2.5.\n   - مسار الفرونت: صفحات الأدمن (T3.1) بعد ما عقد الـ API يتثبت، وتقدر تشتغل على mock لحد ما الباك يجهز.\n3. **بعد T2.5:** T3.2–T3.4 وT2.6.\n4. **T4** يتكتب جنب كل مسار، واختبار التزامن (T4.3) يتكتب بدري ويفشل على تنفيذ ساذج عشان نتأكد إنه فعلاً بيمسك المشكلة.\n5. **أخيراً:** T4.6 وT5.\n\n## أدوار الفريق المقترحة\n- **باك إند/داتا:** T1، T2.\n- **فرونت:** T3.\n- **QA/اختبارات:** T4 (خصوصاً التزامن).\n- **مراجع أمان:** T5.\n\n## معايير القبول\n- الأدمن ينشئ كوبون نسبة أو ثابت بتاريخ انتهاء، ويقدر يعطّله.\n- العميل يطبّق كوبون صالح، ويشوف الخصم والإجمالي الجديد قبل الدفع.\n- كوبون منتهي أو معطّل أو مستنفد يترفض برسالة واضحة.\n- 50 طلب متوازي على كوبون `max_uses = 1` ينتج عنهم استخدام واحد فقط، بشكل متكرر وثابت.\n- الإجمالي النهائي دايماً محسوب من السيرفر وما ينزلش عن صفر.\n\n## مخاطر\n- **الأعلى:** تنفيذ فحص-ثم-زيادة غير ذري. ده اللي T4.3 مصمم يكشفه.\n- **اختلاف السعر** بين وقت التحقق ووقت الطلب. نعالجه بإعادة الحساب في السيرفر.\n- **تقريب العملة** في الخصم النسبي. لازم يتحدد ويتختبر بقاعدة واحدة.\n- **عزل الـ transaction:** لازم نتأكد من إعدادات الداتابيز المستخدمة. بعض الأنظمة (مثل SQLite) سلوكها في التزامن مختلف عن Postgres.\n\nلو عايز، أحوّل الخطة دي لتيكتات جاهزة بتقدير وقت لكل مهمة، أو أبدأ أقسّمها على agents فعلية لما الكود يتوفر."
+              }
+            ]
+          },
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 1,
+            "costUsd": 0.07202109999999999,
+            "judgeCostUsd": 0.0015697,
+            "durationSeconds": 39,
+            "startedAt": "2026-11-14T13:16:01.881Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-mhBK7s/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "coverage",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "# خطة نظام كوبونات الخصم\n\nلم أفتح الريبو. الخطة مبنية على الـ stack اللي ذكرته، وفي أسئلة مفتوحة في الآخر لازم تتحسم قبل البدء.\n\n## قرارات معمارية (تتثبت قبل أي تاسك)\n\n1. **الفلوس**: كل المبالغ integer بأصغر وحدة (قروش/سنت). النسبة تتخزن كـ basis points أو integer، ومفيش floats.\n2. **السيرفر هو مصدر الحقيقة**: الفرونت يعرض بس. حساب الخصم والإجمالي يتم في الـ API، ولا نثق في أي رقم جاي من العميل.\n3. **منع تجاوز الحد (المتطلب 3)**:\n   - الحل الأساسي: `UPDATE` شرطي واحد وذري على صف الكوبون (`used_count = used_count + 1 WHERE used_count < max_uses AND active AND not expired`).\n   - لو الـ UPDATE ما عدّل أي صف، يبقى الكوبون خلص أو انتهى، والطلب يترفض.\n   - الـ UPDATE وإنشاء سجل الاستخدام والطلب كلهم في **transaction واحدة**.\n   - ممنوع نمط \"اقرأ العدد ثم قارن ثم اكتب\"، لأنه بيفشل مع طلبين متزامنين.\n4. **منع الاستخدام المزدوج**: جدول `coupon_redemptions` فيه unique constraint على `order_id`. ولو في حد لكل عميل، يتضاف unique/check على `(coupon_id, user_id)`.\n5. **التحقق مرتين**:\n   - `validate` في صفحة الدفع: للعرض فقط، ومش بيحجز حاجة.\n   - `redeem` جوه transaction إنشاء الطلب: هو اللي بيحجز فعلاً.\n6. **كود الكوبون**: يتخزن normalized (uppercase) مع unique index.\n\n## التاسكات\n\n### المرحلة 0 — العقد (قبل أي تنفيذ، ½ يوم)\n- **T0**: اتفاق على الـ API contract والـ error codes (`COUPON_NOT_FOUND`، `EXPIRED`، `EXHAUSTED`، `MIN_ORDER_NOT_MET`، `ALREADY_USED`). يتشارك في package للـ types أو Zod schemas بين Hono والـ Next.js.\n\n### المرحلة 1 — الداتا (Drizzle)\n- **T1**: جدول `coupons`: id، code (unique)، type (percent/fixed)، value، max_uses، used_count، expires_at، min_order_amount (اختياري)، active، created_at.\n- **T2**: جدول `coupon_redemptions`: coupon_id، order_id (unique)، user_id، discount_amount، created_at. وتعديل `orders` لإضافة coupon_id وdiscount_amount وسعر ما قبل الخصم.\n- **T3**: check constraints: `used_count <= max_uses`، والنسبة بين 1 و100، والقيمة > 0. الـ migration لازم يتراجع عنه بسهولة.\n\n### المرحلة 2 — الـ API (Hono)، بعد T0 وT1 وT2\n- **T4**: `POST /admin/coupons` (إنشاء) و`GET` و`PATCH` للتعطيل أو التعديل، خلف auth وrole check للأدمن. فيه validation: ممنوع تاريخ انتهاء في الماضي، والنسبة ≤ 100.\n- **T5**: `POST /checkout/coupon/validate`. بياخد الكود والسلة ويرجّع الخصم والإجمالي الجديد أو error code. للعرض فقط. ومحتاج rate limiting عشان نمنع تخمين الأكواد.\n- **T6**: دمج الـ redeem في إنشاء الطلب: transaction واحدة (إعادة حساب السلة، ثم UPDATE الذري، ثم تسجيل الاستخدام، ثم إنشاء الطلب). تعريف سياسة الخصم: الخصم الثابت ما يخليش الإجمالي سالب، والتقريب في اتجاه ثابت.\n- **T7**: سياسة الإلغاء أو فشل الدفع: إرجاع الاستخدام (decrement ذري ومسجّل) أو انتهاء الحجز بعد مهلة. الاختيار يعتمد على سؤال مفتوح تحت.\n\n### المرحلة 3 — الواجهات (Next.js)، بالتوازي مع المرحلة 2 بعد T0\n- **T8**: صفحة الأدمن: قائمة الكوبونات (الاستخدام، الحالة، الانتهاء) وفورم الإنشاء. بتتحقق على العميل من نوع الخصم والتاريخ، لكن الحقيقة عند السيرفر.\n- **T9**: صفحة الدفع: حقل الكوبون وزرار تطبيق، وعرض الخصم والإجمالي الجديد، وزرار إزالة، ورسائل خطأ واضحة لكل error code. لو الـ redeem فشل وقت تأكيد الطلب (الكوبون خلص في اللحظة الأخيرة)، المستخدم يشوف الإجمالي المحدّث ويقرر يكمل ولا لأ.\n\n### المرحلة 4 — الجودة\n- **T10: اختبار التزامن (الأهم)**: كوبون `max_uses=1` وN طلبات متزامنة (مثلاً 20) ضد DB حقيقية مش mock. المتوقع نجاح واحد بالظبط، و`used_count=1`، وredemption واحد. نكرر الاختبار بـ `max_uses=5` وطلبات أكتر.\n- **T11**: اختبارات وحدة لحساب الخصم: حدود التقريب، الخصم الثابت أكبر من السلة، 100%، الانتهاء عند الحدود الزمنية (الـ timezone بـ UTC).\n- **T12**: اختبار e2e للمسار الكامل: الأدمن ينشئ الكوبون، العميل يطبقه، الطلب يتم، والاستخدام يتسجل.\n- **T13**: مراجعة أمنية: صلاحيات الأدمن، rate limit، عدم تسريب تفاصيل الكوبونات غير الفعالة (رسالة موحدة لـ \"غير صالح\").\n\n## الترتيب والتوازي\n\n```\nT0 → T1,T2,T3 → T4,T5,T6,T7 (API)\n  ↘ T8,T9 (UI بالتوازي على mock للـ contract)\nT6 → T10 (الأهم) → T11,T12 → T13\n```\n\nلو التقسيم على فريق: واحد على الداتا والـ transaction (T1 وT2 وT3 وT6 وT10)، لأنه الجزء الحساس. وواحد على API الأدمن والـ validate. وواحد على الواجهتين.\n\n## المخاطر\n\n- **race condition**: لو حد نفّذ check-then-update في الكود بدل الـ UPDATE الشرطي، T10 هو اللي يكشفه.\n- **اختلاف السعر بين العرض والتنفيذ**: بيتعالج بإعادة الحساب في T6.\n- **تخمين الأكواد**: بيتعالج بـ rate limit في T5.\n\n## أسئلة محتاجة قرارك قبل T6 وT7\n\n1. الحد هو إجمالي استخدامات الكوبون فقط، ولا في كمان حد لكل عميل؟\n2. الحجز بيتم عند إنشاء الطلب ولا عند نجاح الدفع؟ ولو الدفع فشل أو اتلغى، الاستخدام يرجع؟\n3. الكوبون ينطبق على السلة كلها ولا على منتجات أو تصنيفات معينة؟ وفي حد أدنى للطلب؟\n4. ينفع كوبونين مع بعض، أو كوبون مع منتجات مخفضة أصلاً؟\n5. الخصم الثابت لو أكبر من الإجمالي: نخلّي الإجمالي صفر، ولا نرفض الكوبون؟\n\nلو تحب، أحوّل الخطة دي لتيكتس بصيغة معينة، أو أبدأ في T0 لتثبيت الـ contract."
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 1,
+        "passRate": 1,
+        "scoreWithout": 1,
+        "passRateWithout": 1,
+        "delta": 0
+      }
+    }
+  ],
+  "aggregates": {
+    "casesTotal": 1,
+    "casesPassed": 1,
+    "overallScore": 1,
+    "overallPassRate": 1,
+    "meanDelta": 0
+  }
+}

@@ -1,0 +1,557 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Eval report — sabry-kit v0.3.0</title>
+</head>
+<body>
+<style>
+:root{--plane:#f9f9f7;--surface:#fcfcfb;--ink:#0b0b0b;--ink-2:#52514e;--ink-3:#6b6a64;--hairline:rgba(11,11,11,.10);--grid:#e1e0d9;--inset:rgba(11,11,11,.04);--accent:#2a78d6;--base-fill:#6b6a64;--delta-good:#006300;--good:#067d06;--warning:#8a6100;--critical:#d03b3b;
+  color-scheme:light dark;
+}
+@media (prefers-color-scheme:dark){:root{--plane:#0d0d0d;--surface:#1a1a19;--ink:#ffffff;--ink-2:#c3c2b7;--ink-3:#898781;--hairline:rgba(255,255,255,.10);--grid:#2c2c2a;--inset:rgba(255,255,255,.05);--accent:#3987e5;--base-fill:#898781;--delta-good:#0ca30c;--good:#0ca30c;--warning:#fab219;--critical:#e06c6c;color-scheme:dark}}
+:root[data-theme="dark"]{--plane:#0d0d0d;--surface:#1a1a19;--ink:#ffffff;--ink-2:#c3c2b7;--ink-3:#898781;--hairline:rgba(255,255,255,.10);--grid:#2c2c2a;--inset:rgba(255,255,255,.05);--accent:#3987e5;--base-fill:#898781;--delta-good:#0ca30c;--good:#0ca30c;--warning:#fab219;--critical:#e06c6c;color-scheme:dark}
+:root[data-theme="light"]{--plane:#f9f9f7;--surface:#fcfcfb;--ink:#0b0b0b;--ink-2:#52514e;--ink-3:#6b6a64;--hairline:rgba(11,11,11,.10);--grid:#e1e0d9;--inset:rgba(11,11,11,.04);--accent:#2a78d6;--base-fill:#6b6a64;--delta-good:#006300;--good:#067d06;--warning:#8a6100;--critical:#d03b3b;color-scheme:light}
+*{box-sizing:border-box}
+body{margin:0;background:var(--plane);color:var(--ink);
+  font:14px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif;
+  -webkit-text-size-adjust:100%}
+.wrap{max-width:880px;margin:0 auto;padding:40px 24px 64px;display:flex;flex-direction:column;gap:20px}
+.eyebrow{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+header h1{margin:2px 0 0;font-size:24px;font-weight:600;line-height:1.25;text-wrap:balance}
+.meta{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:8px;color:var(--ink-2);font-size:13px}
+.meta .num{font-variant-numeric:tabular-nums lining-nums}
+.banner{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:8px;
+  border:1px solid var(--hairline);background:var(--surface);font-size:13px}
+.banner .chip-warn{color:var(--warning);font-weight:600}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.tile{background:var(--surface);border:1px solid var(--hairline);border-radius:10px;padding:14px 16px;
+  display:flex;flex-direction:column;gap:4px}
+.tile .label{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
+.tile .value{font-size:26px;font-weight:600;font-variant-numeric:tabular-nums lining-nums;line-height:1.1}
+.tile.hero .value{font-family:Georgia,"Times New Roman",serif;font-weight:400;font-size:48px}
+.tile .sub{font-size:12px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.tile .value.delta-pos{color:var(--delta-good)}
+.tile .value.delta-neg{color:var(--critical)}
+.toolbar{display:flex;gap:8px;justify-content:flex-end}
+.toolbar button{font:12px system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink-2);
+  background:var(--surface);border:1px solid var(--hairline);border-radius:6px;padding:4px 10px;cursor:pointer}
+.toolbar button:hover{color:var(--ink)}
+.toolbar button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.case{background:var(--surface);border:1px solid var(--hairline);border-radius:10px;padding:18px 20px;
+  display:flex;flex-direction:column;gap:10px}
+.case-regressed{border-left:3px solid var(--critical)}
+.verdict{margin:6px 0 0;font-size:15px}
+.verdict .delta{font-size:15px}
+.flag{font-size:11px;font-weight:600;color:var(--warning);white-space:nowrap}
+.star{color:var(--warning);font-size:.45em;vertical-align:super;line-height:0;cursor:help}
+.legend summary{cursor:pointer;font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-2)}
+.legend-list{margin:8px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:5px;font-size:13px;color:var(--ink-2)}
+.case-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.case-head h2{margin:0;font-size:16px;font-weight:600}
+.case-head .spacer{flex:1}
+.case-score{font-size:15px;font-weight:600}
+.mono{font:12px "SF Mono",ui-monospace,Menlo,Consolas,monospace}
+.num{font-variant-numeric:tabular-nums lining-nums}
+.muted{color:var(--ink-3);font-size:12px}
+.meter{display:inline-block;position:relative;width:120px;height:6px;border-radius:4px;background:var(--grid);
+  vertical-align:middle}
+.meter>span{display:block;height:100%;border-radius:4px;max-width:100%}
+.meter .tick{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--ink-3);border-radius:1px}
+.m-accent>span{background:var(--accent)}
+.m-base>span{background:var(--base-fill)}
+.delta{font-size:12px;font-weight:600;font-variant-numeric:tabular-nums}
+.delta-pos{color:var(--delta-good)}
+.delta-neg{color:var(--critical)}
+.delta-zero{color:var(--ink-3)}
+details.section{border-top:1px solid var(--grid);padding-top:10px}
+details.section>summary{cursor:pointer;font-size:12px;font-weight:600;letter-spacing:.04em;
+  text-transform:uppercase;color:var(--ink-2);list-style-position:outside;margin-left:2px}
+details.section>summary:hover{color:var(--ink)}
+details.section[open]>summary{margin-bottom:8px}
+.md{display:flex;flex-direction:column;gap:8px;background:var(--inset);border-radius:8px;
+  padding:12px 14px;overflow-wrap:break-word}
+.md>:first-child{margin-top:0}
+.md h1,.md h2,.md h3,.md h4,.md h5,.md h6{margin:4px 0 0;font-size:1em;font-weight:600;line-height:1.3}
+.md p,.md ul,.md ol,.md blockquote,.md table,.md pre,.md hr{margin:0}
+.md ul,.md ol{display:flex;flex-direction:column;gap:4px;padding-left:20px}
+.md blockquote{border-left:2px solid var(--hairline);padding-left:10px;color:var(--ink-2)}
+.md :not(pre)>code{background:var(--inset);padding:1px 4px;border-radius:4px;
+  font:.92em "SF Mono",ui-monospace,Menlo,Consolas,monospace}
+.md pre{background:var(--inset);border:1px solid var(--hairline);padding:10px 12px;border-radius:6px;
+  overflow-x:auto;font:12px/1.5 "SF Mono",ui-monospace,Menlo,Consolas,monospace}
+.md pre code{background:none;padding:0;font:inherit}
+.md table{width:100%;border-collapse:collapse}
+.md th,.md td{padding:5px 8px;text-align:left;vertical-align:top;border-bottom:1px solid var(--grid)}
+.md th{font-weight:600;color:var(--ink-2)}
+.md a{color:var(--accent);text-decoration:none}
+.md a:hover{text-decoration:underline}
+.grader-def{display:flex;flex-direction:column;gap:6px;padding:8px 0}
+.grader-def+.grader-def{border-top:1px solid var(--grid)}
+.grader-def-head{display:flex;align-items:baseline;gap:8px}
+.grader-name{font:13px "SF Mono",ui-monospace,Menlo,Consolas,monospace;font-weight:600}
+.badge{font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-2);
+  border:1px solid var(--hairline);border-radius:999px;padding:1px 8px}
+.config{display:flex;flex-direction:column;gap:2px;background:var(--inset);border-radius:8px;padding:10px 14px}
+.config code{font:12px "SF Mono",ui-monospace,Menlo,Consolas,monospace;overflow-wrap:anywhere}
+.arm{display:flex;flex-direction:column;gap:8px;padding:6px 0}
+.arm+.arm{border-top:1px dashed var(--grid);margin-top:4px;padding-top:12px}
+.arm-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.arm-label{font-size:13px;font-weight:600}
+.run{border:1px solid var(--grid);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+.run-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.run-title{font-size:12px;font-weight:600;color:var(--ink-2)}
+.run-error .explanation{color:var(--ink-2)}
+.note{font-size:12px;color:var(--ink-2)}
+.graders{display:flex;flex-direction:column;gap:4px}
+details.grader{border-radius:6px}
+details.grader>summary{cursor:pointer;display:flex;align-items:baseline;gap:8px;padding:3px 4px;
+  border-radius:6px;list-style:none}
+details.grader>summary::-webkit-details-marker{display:none}
+details.grader>summary::before{content:'▸';font-size:10px;color:var(--ink-3);flex:none;
+  transition:transform .12s ease}
+details.grader[open]>summary::before{transform:rotate(90deg)}
+details.grader>summary:hover{background:var(--inset)}
+details.grader>summary:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.grader-body{padding:6px 8px 8px 24px;display:flex;flex-direction:column;gap:6px}
+.chip{font-size:11px;font-weight:600;border-radius:999px;padding:1px 8px;white-space:nowrap}
+.chip-pass{color:var(--good);border:1px solid currentColor}
+.chip-fail{color:var(--critical);border:1px solid currentColor}
+.chip.chip-warn{color:var(--warning);border:1px solid currentColor}
+.explanation{margin:0;font-size:13px;color:var(--ink-2);white-space:pre-wrap;overflow-wrap:break-word}
+.kv{display:flex;gap:8px;font-size:12px;color:var(--ink-3)}
+.votes{font-variant-numeric:tabular-nums;letter-spacing:.1em}
+pre.evidence{margin:0;background:var(--inset);border:1px solid var(--hairline);border-radius:6px;
+  padding:8px 10px;overflow-x:auto;max-height:320px;
+  font:12px/1.5 "SF Mono",ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap;overflow-wrap:break-word}
+footer{color:var(--ink-3);font-size:12px;text-align:center;padding-top:8px}
+@media (prefers-reduced-motion:no-preference){
+  details.grader>summary,.toolbar button{transition:background .12s ease,color .12s ease}
+}
+@media (prefers-reduced-motion:reduce){
+  details.grader>summary::before{transition:none}
+}
+@media print{
+  :root,:root[data-theme="dark"],:root[data-theme="light"]{--plane:#f9f9f7;--surface:#fcfcfb;--ink:#0b0b0b;--ink-2:#52514e;--ink-3:#6b6a64;--hairline:rgba(11,11,11,.10);--grid:#e1e0d9;--inset:rgba(11,11,11,.04);--accent:#2a78d6;--base-fill:#6b6a64;--delta-good:#006300;--good:#067d06;--warning:#8a6100;--critical:#d03b3b;color-scheme:light}
+  body{background:#fff}
+  .toolbar{display:none}
+  .case,.run,.grader-def{break-inside:avoid}
+  pre.evidence{max-height:none}
+}
+</style>
+<div class="wrap">
+<header>
+<div class="eyebrow">Plugin eval report</div>
+<h1>sabry-kit v0.3.0</h1>
+<p class="verdict">Plugin effect: <span class="delta delta-zero">· 0.0 pts</span> vs baseline — improved 0 · flat 1 · regressed 0 of 1 case.</p>
+<div class="meta">
+<span class="mono">.</span>
+<span>Claude Code v2.1.325</span>
+<span class="num">2026-11-14 13:16 UTC</span>
+<span class="num">1m</span>
+<span class="num">$0.54</span>
+<span class="num">4 runs</span>
+<span class="num">4 in flight</span>
+
+
+<span>judge default</span>
+<span class="num">threshold 100%</span>
+<span>filtered: --case orchestrate-feature</span>
+</div>
+</header>
+
+<section class="tiles">
+<div class="tile hero"><span class="label">Suite score · with plugin</span><span class="value">100%</span><span class="sub">mean of per-case scores</span></div>
+<div class="tile"><span class="label">Ablation Δ</span><span class="value num delta-zero">0.0</span><span class="sub">score points vs baseline, 1 of 1 case</span></div>
+<div class="tile"><span class="label">Baseline score</span><span class="value num">100%</span><span class="sub">without the plugin</span></div>
+<div class="tile"><span class="label">Cases</span><span class="value num">1</span><span class="sub">1 of 1 ≥ 100% threshold</span></div>
+<div class="tile"><span class="label">Perfect runs</span><span class="value num">100%</span><span class="sub">runs where every grader passed</span></div>
+</section>
+<details class="section legend">
+<summary>How to read this report</summary>
+<ul class="legend-list">
+<li>A run's score is the weighted fraction of its graders that passed; a "perfect" run passed every grader.</li>
+<li>A case's score is the mean of its runs; a case passes when its score is at or above the 100% threshold (the tick on each case bar).</li>
+<li>The suite score is the mean of the per-case scores.</li>
+<li>Judge votes are independent samples of the LLM judge; the majority decides pass or fail.</li>
+<li>"With plugin" and "Baseline" runs are identical except for the plugin being loaded; Δ is the with-plugin score minus the baseline score.</li>
+
+</ul>
+</details>
+<div class="toolbar"><button type="button" data-act="expand">Expand all</button><button type="button" data-act="collapse">Collapse all</button></div>
+<article class="case" id="case-1">
+<div class="case-head">
+<h2>orchestrate-feature</h2>
+<span class="muted mono">evals/orchestrate-feature</span>
+<span class="spacer"></span>
+
+<span class="delta delta-zero">· 0.0 pts</span>
+<span class="muted">with plugin</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span><i class="tick" style="left:100.0%"></i></span>
+<span class="num case-score">100%</span>
+</div>
+
+<details class="section" open>
+<summary>Results</summary>
+<section class="arm">
+<div class="arm-head">
+<span class="arm-label">With plugin</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">100% of runs perfect</span>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 1</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">5 turns · $0.19 · 13:16:01 UTC</span>
+</div>
+
+<div class="graders"><details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">agents-launched</span>  <span class="badge">plugin-fired indicator</span></summary>
+<div class="grader-body">
+<p class="explanation">Agent called 0x (expected 2..∞)</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">coverage</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">💡 شغّل `/sabry-kit:kit-setup` (دقيقتين) عشان تحفظ إعداداتك. لحد ما تعمل كده بستخدم الافتراضيات.
+
+**ما شغّلتش الفريق.** الشغلة خطة بس والمشروع فاضي، فكتبتها بنفسي. القرار الوحيد المتنازع عليه هو التزامن، وحله معروف. الخطة الكاملة في `.agents/plans/coupons/plan.md`، وفيها 5 phases وتاسكات جاهزة للتنفيذ.
+
+## ✅ نظام الكوبونات: النتيجة
+
+| # | المطلوب | القرار | الحالة |
+|---|---|---|---|
+| R1 | الأدمن ينشئ كوبون (نسبة أو مبلغ ثابت + انتهاء) | جدول `coupons` فيه `type` (`percent` أو `fixed`) و`value` كـ integer (basis points للنسبة، قروش للمبلغ) و`expires_at` بـ UTC. فيه كمان `max_uses` و`min_order_amount` وسقف للخصم و`is_active`. القيم الغلط بتترفض بقيود CHECK وZod. الأدمن يعمل إنشاء/تعديل/تعطيل بدل الحذف عشان سجل الاستخدامات يفضل موجود. الـ endpoints محمية بدور admin على السيرفر. | اتخطّط (Phase 1) |
+| R2 | العميل يطبّق الكوبون في الدفع | `POST /checkout/coupon/validate` للعرض فقط، ويرجّع الخصم أو سبب الرفض. حساب الخصم في دالة pure واحدة بتخدم الـ preview وإنشاء الطلب بنفس النتيجة. السعر النهائي بيتحسب على السيرفر ومش بيجي من الـ client. الصفحة فيها الحالات الأربع (فاضي/تحميل/خطأ/نجاح) وإزالة الكوبون وRTL، وفي الـ validate rate limit. | اتخطّط (Phase 2 + 4) |
+| R3 | مايتعدّاش الحد حتى مع طلبين متزامنين | حجز ذرّي واحد جوه transaction إنشاء الطلب: `UPDATE coupons SET used_count = used_count + 1 WHERE … AND used_count &lt; max_uses RETURNING`. لو رجع صفر صفوف يبقى الكوبون استُنفد والطلب يفشل. مفيش &quot;اقرأ ثم حدّث&quot;. جدول `coupon_redemptions` فيه unique على `(coupon_id, order_id)`. إلغاء الطلب بيرجّع الاستخدام مرة واحدة (idempotent). الدليل المطلوب: اختبار 50 طلب متزامن على Postgres حقيقي لكوبون `max_uses=10`، والنتيجة المتوقعة 10 redemptions بالظبط. | اتخطّط (Phase 3 + T5.1) |
+
+**اتحقق منه:** ملف الخطة اتكتب. مفيش كود ولا اختبارات اتشغّلت، لأن المطلوب خطة بس والمشروع فاضي.
+**ما اتحققش منه:** كل التصميم ما اتجرّبش على الداتابيز فعلياً. اختبار التزامن T5.1 هو اللي هيثبته.
+
+**مفتوح (5 أسئلة بافتراضات في الخطة، عدّلها لو مش مناسبة):**
+1. الخصم على المنتجات بس ولا مع الشحن؟ الافتراض: المنتجات بس.
+2. حد الاستخدام لكل عميل؟ الافتراض: مرة واحدة، وقابل للتعديل لكل كوبون.
+3. الكوبون يتجمع مع خصومات تانية؟ الافتراض: لا.
+4. العميل الضيف (guest) يقدر يستخدمه؟ الافتراض: أيوه، والحد لكل إيميل.
+5. الانتهاء بلحظة محددة ولا نهاية اليوم؟ الافتراض: نهاية اليوم بتوقيت القاهرة، ويتخزن UTC.
+
+نبدأ بإيه؟ توصيتي: ترد على الأسئلة الخمسة، وبعدها تقول &quot;نفّذ&quot; وأبدأ Phase 1 و2. بدائل تانية: أخلّي `security-reviewer` يراجع التصميم قبل التنفيذ، أو أوزّعه على الفريق (backend + frontend بالتوازي بعد تثبيت عقد T2.2).</pre>
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">skill-fired</span>  <span class="badge">plugin-fired indicator</span></summary>
+<div class="grader-body">
+<p class="explanation">Skill called 1x (expected 1..∞)</p>
+
+</div>
+</details></div>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 2</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">5 turns · $0.19 · 13:16:01 UTC</span>
+</div>
+
+<div class="graders"><details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">agents-launched</span>  <span class="badge">plugin-fired indicator</span></summary>
+<div class="grader-body">
+<p class="explanation">Agent called 0x (expected 2..∞)</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">coverage</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">## ✅ نظام الكوبونات: النتيجة
+
+الخطة الكاملة في `.agents/plans/coupons/plan.md`. ما شغّلتش agents، لأن المطلوب خطة بس والقرار الصعب الوحيد (التزامن) له حل معروف. المشروع فاضي، فالخطة مبنية على الـ stack المذكور من غير كود موجود أقرأه.
+
+| # | المطلوب | الحالة | القرار |
+|---|---|---|---|
+| R1 | الأدمن ينشئ كوبون (نسبة أو ثابت + انتهاء) | اتخطّط (T1، T5، T8) | جدول `coupons` فيه `type` (percent/fixed) و`value` و`expires_at` بـ timestamptz و`max_uses`. القيم المالية integer، وقيود CHECK في الـ DB (النسبة 1 إلى 100، والقيمة أكبر من صفر). endpoints الأدمن محمية بفحص صلاحيات في السيرفر، وفيه audit log. |
+| R2 | العميل يطبّق الكوبون في صفحة الدفع | اتخطّط (T4، T6، T7، T9) | العميل يبعت `code` بس، والسيرفر هو اللي يحسب الخصم. فيه endpoint معاينة بيرجّع الخصم من غير حجز، مع rate limit ضد تخمين الأكواد. الخصم مايزيدش عن إجمالي الطلب، ورسائل الرفض متمايزة (منتهي، مستنفد، أقل من الحد الأدنى). |
+| R3 | ماتتخطاش حد الاستخدام مع طلبين متزامنين | اتخطّط (T3، T7، T11) | الحجز بـ `UPDATE … SET used_count = used_count + 1 WHERE used_count &lt; max_uses AND expires_at &gt; now() RETURNING` جوه transaction إنشاء الطلب. لو رجّع صفر صفوف يبقى الكوبون خلص والطلب يفشل. وصف الاستخدام (`coupon_redemptions`) عليه unique على `(coupon_id, order_id)`. فشل الطلب يعمل rollback للعداد. الاختبار الأساسي: 20 طلب متوازي على كوبون `max_uses=1` لازم ينجح منهم واحد بس. |
+
+**اتحقق منه:** مفيش حاجة اتشغّلت. ده تخطيط بس، والمشروع مفيهوش كود.
+**مفتوح (محتاج قرارك):**
+- Q1: إلغاء الطلب يرجّع استخدام الكوبون؟ توصيتي: يرجّع لو الإلغاء قبل الشحن.
+- Q2: كوبون واحد لكل طلب ولا يتجمّع مع غيره؟ توصيتي: واحد في الإصدار الأول.
+- Q3: الكوبون يتحدد بمنتجات أو تصنيفات؟ توصيتي: لأ دلوقتي.
+- Q4: العملة واحدة ولا أكتر؟
+- Q5: الخصم على الشحن والضريبة ولا على المنتجات بس؟
+
+**الخطوة الجاية؟**
+1. تجاوب على Q1 إلى Q5 وأثبّتها في الخطة (توصيتي).
+2. تقول &quot;نفّذ&quot; وأبدأ Phase 1 (schema والـ services).
+3. أشغّل `security-reviewer` على الخطة قبل التنفيذ، لأن الموضوع يخص الدفع.</pre>
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">skill-fired</span>  <span class="badge">plugin-fired indicator</span></summary>
+<div class="grader-body">
+<p class="explanation">Skill called 1x (expected 1..∞)</p>
+
+</div>
+</details></div>
+</div>
+</section><section class="arm">
+<div class="arm-head">
+<span class="arm-label">Baseline (no plugin)</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">100% of runs perfect</span>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 1</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">2 turns · $0.09 · 13:16:01 UTC</span>
+</div>
+
+<div class="graders"><details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">coverage</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">الريبو فاضي (مفيش غير `.claude`)، فالخطة مبنية على افتراضات عامة للستاك، ولازم تتطابق مع الهيكل الفعلي أول ما يتوفر.
+
+# خطة نظام كوبونات الخصم
+
+## قرارات لازم تتحسم قبل البداية
+1. **تراكم الكوبونات:** كوبون واحد بس للطلب (افتراضي مقترح).
+2. **سقف الاستخدام:** إجمالي (`max_uses`) ويُضاف حد لكل عميل (`max_uses_per_user`)؟ المقترح: الاتنين، والحد لكل عميل اختياري.
+3. **الخصم الثابت أكبر من الإجمالي:** الإجمالي ما ينزلش عن صفر.
+4. **حد أدنى للطلب وسقف للخصم النسبي:** خارج النطاق الأول، أو حقول اختيارية.
+5. **المبالغ:** تتخزن كأعداد صحيحة بأصغر وحدة (قروش/سنتات)، والنسبة كعدد صحيح (مثلاً 1–100).
+6. **الطلب الملغي أو الدفع الفاشل:** هل الاستخدام يترجع؟ المقترح: يترجع.
+
+## المبدأ الأساسي للتزامن (الطلب الثالث)
+الفحص ثم الزيادة على مرحلتين غلط، لأن طلبين في نفس اللحظة هيعدّوا الفحص مع بعض. الحل إن الاستهلاك يتم كعملية ذرية واحدة في الداتابيز:
+- تحديث شرطي واحد بيزوّد العداد بشرط إنه لسه تحت الحد، وبشرط الكوبون فعّال وما انتهاش.
+- لو عدد الصفوف المتأثرة صفر، يبقى الكوبون مرفوض.
+- الاستهلاك يحصل **داخل نفس transaction إنشاء الطلب**، فلو الطلب فشل العداد يتراجع تلقائياً.
+- سجل استخدام (redemptions) بقيد unique على (كوبون، طلب)، وعلى (كوبون، عميل) لو فيه حد لكل عميل. ده بيمنع التكرار حتى لو الـ retry جه مرتين.
+- تحقق الكوبون في صفحة الدفع **للعرض فقط**. القرار النهائي بيحصل وقت إنشاء الطلب.
+
+## المهام حسب المسار
+
+### 0. التصميم (قبل أي تنفيذ)
+- **T0.1** توثيق القرارات أعلاه والاتفاق على عقد الـ API (الـ endpoints، شكل الطلب والرد، أكواد الأخطاء).
+- **T0.2** تحديد أكواد رفض موحدة: غير موجود، منتهي، غير فعّال، استُنفد، استُخدم قبل كده، لا يحقق الحد الأدنى. الفرونت يعرض رسالة مناسبة لكل كود.
+
+### 1. الداتابيز (Drizzle)
+- **T1.1** جدول `coupons`: الكود (unique، بدون حساسية لحالة الحروف)، النوع (نسبة/ثابت)، القيمة، `expires_at`، `max_uses`، `used_count`، `is_active`، تواريخ الإنشاء.
+- **T1.2** جدول `coupon_redemptions`: الكوبون، الطلب، العميل، الخصم المطبّق، التاريخ، مع القيود الـ unique.
+- **T1.3** إضافة أعمدة على الطلب: الكوبون المستخدم، قيمة الخصم، الإجمالي قبل وبعد.
+- **T1.4** قيود CHECK على مستوى الداتابيز: النسبة بين 1 و100، القيمة موجبة، `used_count &lt;= max_uses`. ده خط دفاع أخير ضد أي ثغرة في الكود.
+- **T1.5** migration قابلة للتراجع، وتتجرب على نسخة بيانات حقيقية.
+
+### 2. الباك إند (Hono)
+- **T2.1** خدمة حساب الخصم كدالة نقية (pure): نسبة/ثابت، تقريب محدد، حد أدنى صفر. تتغطى باختبارات وحدة كاملة.
+- **T2.2** endpoints الأدمن (CRUD): إنشاء، تعديل، تعطيل، قائمة، مع التحقق من المدخلات (zod أو مكافئه).
+- **T2.3** حماية endpoints الأدمن بصلاحية، وتسجيل مين أنشأ/عدّل.
+- **T2.4** endpoint تحقق للعميل (`validate`): بيرجع الخصم المتوقع والإجمالي الجديد بدون أي استهلاك. عليه rate limiting عشان ما يتحولش لأداة تخمين أكواد.
+- **T2.5** دمج الكوبون في إنشاء الطلب: إعادة التحقق + الاستهلاك الذري + حساب الإجمالي كله من السيرفر، ولا يُقبل أي مبلغ جاي من العميل.
+- **T2.6** معالجة إلغاء الطلب أو فشل الدفع حسب القرار رقم 6 (إرجاع الاستخدام بشكل ذري ومرة واحدة).
+- **T2.7** رسائل أخطاء موحدة حسب T0.2.
+
+### 3. الفرونت إند (Next.js)
+- **T3.1** صفحات الأدمن: قائمة الكوبونات، نموذج إنشاء/تعديل (النوع، القيمة، تاريخ الانتهاء، الحد)، تعطيل. مع التحقق على جهة العميل بنفس قواعد السيرفر.
+- **T3.2** صفحة الدفع: حقل كود، زر تطبيق، عرض الخصم والإجمالي الجديد، زر إزالة الكوبون.
+- **T3.3** حالات الواجهة: تحميل، خطأ لكل كود رفض، نجاح. ويتعامل مع حالة إن الكوبون يتقبل وقت التحقق ثم يترفض وقت إنشاء الطلب (استُنفد في الأثناء) برسالة واضحة وتحديث الإجمالي.
+- **T3.4** منع الضغط المزدوج على زر الدفع، وإرسال معرّف idempotency مع الطلب.
+- **T3.5** إتاحة الواجهة (a11y) ودعم RTL لو المتجر عربي.
+
+### 4. الاختبارات (أهم جزء للمتطلب الثالث)
+- **T4.1** اختبارات وحدة لحساب الخصم (حدود، تقريب، خصم أكبر من الإجمالي).
+- **T4.2** اختبارات تكامل على الـ API: كل أكواد الرفض، تاريخ الانتهاء عند الحد بالظبط، كوبون معطّل.
+- **T4.3** **اختبار التزامن:** كوبون `max_uses = 1`، ونطلق N طلب متوازي (مثلاً 20–50) على داتابيز حقيقية مش mock. النتيجة المقبولة: طلب واحد ناجح بالظبط، والباقي مرفوض، و`used_count = 1`، وصف واحد في `redemptions`. نكرره عدة مرات عشان نمسك الـ flakiness.
+- **T4.4** اختبار تزامن لحالة `max_uses = 5` مع 50 طلب، وحالة الـ retry بنفس idempotency key.
+- **T4.5** اختبار إرجاع الاستخدام عند الإلغاء.
+- **T4.6** اختبار E2E لمسار كامل: الأدمن ينشئ، العميل يطبّق ويدفع.
+
+### 5. الأمان والمراجعة
+- **T5.1** مراجعة إن السيرفر هو المرجع الوحيد للأسعار والخصم.
+- **T5.2** مراجعة الـ rate limiting وعدم تسريب معلومات عن أكواد موجودة بالفعل.
+- **T5.3** مراجعة صلاحيات الأدمن (IDOR وتصعيد صلاحيات).
+- **T5.4** مراجعة كود نهائية للـ transaction ومستوى العزل.
+
+## ترتيب التنفيذ والتوازي
+1. **أولاً:** T0 كله، ثم T1 (الأساس لكل حاجة).
+2. **بالتوازي بعد T1:**
+   - مسار الباك إند: T2.1 ثم T2.2/T2.3 ثم T2.4 ثم T2.5.
+   - مسار الفرونت: صفحات الأدمن (T3.1) بعد ما عقد الـ API يتثبت، وتقدر تشتغل على mock لحد ما الباك يجهز.
+3. **بعد T2.5:** T3.2–T3.4 وT2.6.
+4. **T4** يتكتب جنب كل مسار، واختبار التزامن (T4.3) يتكتب بدري ويفشل على تنفيذ ساذج عشان نتأكد إنه فعلاً بيمسك المشكلة.
+5. **أخيراً:** T4.6 وT5.
+
+## أدوار الفريق المقترحة
+- **باك إند/داتا:** T1، T2.
+- **فرونت:** T3.
+- **QA/اختبارات:** T4 (خصوصاً التزامن).
+- **مراجع أمان:** T5.
+
+## معايير القبول
+- الأدمن ينشئ كوبون نسبة أو ثابت بتاريخ انتهاء، ويقدر يعطّله.
+- العميل يطبّق كوبون صالح، ويشوف الخصم والإجمالي الجديد قبل الدفع.
+- كوبون منتهي أو معطّل أو مستنفد يترفض برسالة واضحة.
+- 50 طلب متوازي على كوبون `max_uses = 1` ينتج عنهم استخدام واحد فقط، بشكل متكرر وثابت.
+- الإجمالي النهائي دايماً محسوب من السيرفر وما ينزلش عن صفر.
+
+## مخاطر
+- **الأعلى:** تنفيذ فحص-ثم-زيادة غير ذري. ده اللي T4.3 مصمم يكشفه.
+- **اختلاف السعر** بين وقت التحقق ووقت الطلب. نعالجه بإعادة الحساب في السيرفر.
+- **تقريب العملة** في الخصم النسبي. لازم يتحدد ويتختبر بقاعدة واحدة.
+- **عزل الـ transaction:** لازم نتأكد من إعدادات الداتابيز المستخدمة. بعض الأنظمة (مثل SQLite) سلوكها في التزامن مختلف عن Postgres.
+
+لو عايز، أحوّل الخطة دي لتيكتات جاهزة بتقدير وقت لكل مهمة، أو أبدأ أقسّمها على agents فعلية لما الكود يتوفر.</pre>
+</div>
+</details></div>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 2</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">1 turns · $0.07 · 13:16:01 UTC</span>
+</div>
+
+<div class="graders"><details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">coverage</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence"># خطة نظام كوبونات الخصم
+
+لم أفتح الريبو. الخطة مبنية على الـ stack اللي ذكرته، وفي أسئلة مفتوحة في الآخر لازم تتحسم قبل البدء.
+
+## قرارات معمارية (تتثبت قبل أي تاسك)
+
+1. **الفلوس**: كل المبالغ integer بأصغر وحدة (قروش/سنت). النسبة تتخزن كـ basis points أو integer، ومفيش floats.
+2. **السيرفر هو مصدر الحقيقة**: الفرونت يعرض بس. حساب الخصم والإجمالي يتم في الـ API، ولا نثق في أي رقم جاي من العميل.
+3. **منع تجاوز الحد (المتطلب 3)**:
+   - الحل الأساسي: `UPDATE` شرطي واحد وذري على صف الكوبون (`used_count = used_count + 1 WHERE used_count &lt; max_uses AND active AND not expired`).
+   - لو الـ UPDATE ما عدّل أي صف، يبقى الكوبون خلص أو انتهى، والطلب يترفض.
+   - الـ UPDATE وإنشاء سجل الاستخدام والطلب كلهم في **transaction واحدة**.
+   - ممنوع نمط &quot;اقرأ العدد ثم قارن ثم اكتب&quot;، لأنه بيفشل مع طلبين متزامنين.
+4. **منع الاستخدام المزدوج**: جدول `coupon_redemptions` فيه unique constraint على `order_id`. ولو في حد لكل عميل، يتضاف unique/check على `(coupon_id, user_id)`.
+5. **التحقق مرتين**:
+   - `validate` في صفحة الدفع: للعرض فقط، ومش بيحجز حاجة.
+   - `redeem` جوه transaction إنشاء الطلب: هو اللي بيحجز فعلاً.
+6. **كود الكوبون**: يتخزن normalized (uppercase) مع unique index.
+
+## التاسكات
+
+### المرحلة 0 — العقد (قبل أي تنفيذ، ½ يوم)
+- **T0**: اتفاق على الـ API contract والـ error codes (`COUPON_NOT_FOUND`، `EXPIRED`، `EXHAUSTED`، `MIN_ORDER_NOT_MET`، `ALREADY_USED`). يتشارك في package للـ types أو Zod schemas بين Hono والـ Next.js.
+
+### المرحلة 1 — الداتا (Drizzle)
+- **T1**: جدول `coupons`: id، code (unique)، type (percent/fixed)، value، max_uses، used_count، expires_at، min_order_amount (اختياري)، active، created_at.
+- **T2**: جدول `coupon_redemptions`: coupon_id، order_id (unique)، user_id، discount_amount، created_at. وتعديل `orders` لإضافة coupon_id وdiscount_amount وسعر ما قبل الخصم.
+- **T3**: check constraints: `used_count &lt;= max_uses`، والنسبة بين 1 و100، والقيمة &gt; 0. الـ migration لازم يتراجع عنه بسهولة.
+
+### المرحلة 2 — الـ API (Hono)، بعد T0 وT1 وT2
+- **T4**: `POST /admin/coupons` (إنشاء) و`GET` و`PATCH` للتعطيل أو التعديل، خلف auth وrole check للأدمن. فيه validation: ممنوع تاريخ انتهاء في الماضي، والنسبة ≤ 100.
+- **T5**: `POST /checkout/coupon/validate`. بياخد الكود والسلة ويرجّع الخصم والإجمالي الجديد أو error code. للعرض فقط. ومحتاج rate limiting عشان نمنع تخمين الأكواد.
+- **T6**: دمج الـ redeem في إنشاء الطلب: transaction واحدة (إعادة حساب السلة، ثم UPDATE الذري، ثم تسجيل الاستخدام، ثم إنشاء الطلب). تعريف سياسة الخصم: الخصم الثابت ما يخليش الإجمالي سالب، والتقريب في اتجاه ثابت.
+- **T7**: سياسة الإلغاء أو فشل الدفع: إرجاع الاستخدام (decrement ذري ومسجّل) أو انتهاء الحجز بعد مهلة. الاختيار يعتمد على سؤال مفتوح تحت.
+
+### المرحلة 3 — الواجهات (Next.js)، بالتوازي مع المرحلة 2 بعد T0
+- **T8**: صفحة الأدمن: قائمة الكوبونات (الاستخدام، الحالة، الانتهاء) وفورم الإنشاء. بتتحقق على العميل من نوع الخصم والتاريخ، لكن الحقيقة عند السيرفر.
+- **T9**: صفحة الدفع: حقل الكوبون وزرار تطبيق، وعرض الخصم والإجمالي الجديد، وزرار إزالة، ورسائل خطأ واضحة لكل error code. لو الـ redeem فشل وقت تأكيد الطلب (الكوبون خلص في اللحظة الأخيرة)، المستخدم يشوف الإجمالي المحدّث ويقرر يكمل ولا لأ.
+
+### المرحلة 4 — الجودة
+- **T10: اختبار التزامن (الأهم)**: كوبون `max_uses=1` وN طلبات متزامنة (مثلاً 20) ضد DB حقيقية مش mock. المتوقع نجاح واحد بالظبط، و`used_count=1`، وredemption واحد. نكرر الاختبار بـ `max_uses=5` وطلبات أكتر.
+- **T11**: اختبارات وحدة لحساب الخصم: حدود التقريب، الخصم الثابت أكبر من السلة، 100%، الانتهاء عند الحدود الزمنية (الـ timezone بـ UTC).
+- **T12**: اختبار e2e للمسار الكامل: الأدمن ينشئ الكوبون، العميل يطبقه، الطلب يتم، والاستخدام يتسجل.
+- **T13**: مراجعة أمنية: صلاحيات الأدمن، rate limit، عدم تسريب تفاصيل الكوبونات غير الفعالة (رسالة موحدة لـ &quot;غير صالح&quot;).
+
+## الترتيب والتوازي
+
+```
+T0 → T1,T2,T3 → T4,T5,T6,T7 (API)
+  ↘ T8,T9 (UI بالتوازي على mock للـ contract)
+T6 → T10 (الأهم) → T11,T12 → T13
+```
+
+لو التقسيم على فريق: واحد على الداتا والـ transaction (T1 وT2 وT3 وT6 وT10)، لأنه الجزء الحساس. وواحد على API الأدمن والـ validate. وواحد على الواجهتين.
+
+## المخاطر
+
+- **race condition**: لو حد نفّذ check-then-update في الكود بدل الـ UPDATE الشرطي، T10 هو اللي يكشفه.
+- **اختلاف السعر بين العرض والتنفيذ**: بيتعالج بإعادة الحساب في T6.
+- **تخمين الأكواد**: بيتعالج بـ rate limit في T5.
+
+## أسئلة محتاجة قرارك قبل T6 وT7
+
+1. الحد هو إجمالي استخدامات الكوبون فقط، ولا في كمان حد لكل عميل؟
+2. الحجز بيتم عند إنشاء الطلب ولا عند نجاح الدفع؟ ولو الدفع فشل أو اتلغى، الاستخدام يرجع؟
+3. الكوبون ينطبق على السلة كلها ولا على منتجات أو تصنيفات معينة؟ وفي حد أدنى للطلب؟
+4. ينفع كوبونين مع بعض، أو كوبون مع منتجات مخفضة أصلاً؟
+5. الخصم الثابت لو أكبر من الإجمالي: نخلّي الإجمالي صفر، ولا نرفض الكوبون؟
+
+لو تحب، أحوّل الخطة دي لتيكتس بصيغة معينة، أو أبدأ في T0 لتثبيت الـ contract.</pre>
+</div>
+</details></div>
+</div>
+</section>
+</details>
+<details class="section" open>
+<summary>Prompt</summary>
+<div class="md"><p>نسّق الفريق على feature كاملة: نظام كوبونات خصم لمتجر إلكتروني (Hono + Drizzle + Next.js). المطلوب: 1) الأدمن ينشئ كوبون بنسبة أو مبلغ ثابت وتاريخ انتهاء، 2) العميل يطبّق الكوبون في صفحة الدفع، 3) الكوبون مايتستخدمش أكتر من الحد بتاعه حتى مع طلبين في نفس اللحظة. عايز خطة وتاسكات بس، من غير كود.</p>
+</div>
+</details>
+<details class="section" open>
+<summary>Graders — what "good" means for this case</summary>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">agents-launched</span><span class="badge">tool_used</span></div>
+<div class="config"><div class="kv"><span>tool</span><code>&quot;Agent&quot;</code></div><div class="kv"><span>input_match</span><code>&quot;handoff&quot;</code></div><div class="kv"><span>min</span><code>2</code></div><div class="kv"><span>arm</span><code>&quot;with-only&quot;</code></div></div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">coverage</span><span class="badge">llm</span></div>
+<div class="md"><p>PASS if the final reply accounts for all three asks separately (admin creates a coupon, customer applies it at checkout, usage limit holds under concurrent orders), states for each whether it is covered, and addresses the concurrency ask with a concrete mechanism (transaction with row lock, atomic conditional update, or unique constraint).
+FAIL if any of the three asks is missing from the final reply, or the concurrency ask is answered only with "check the count before applying".</p>
+</div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">skill-fired</span><span class="badge">tool_used</span></div>
+<div class="config"><div class="kv"><span>tool</span><code>&quot;Skill&quot;</code></div><div class="kv"><span>input_match</span><code>&quot;\&quot;skill\&quot;\\s*:\\s*\&quot;(?:[\\w-]+:)?kit-orchestrate\&quot;&quot;</code></div><div class="kv"><span>arm</span><code>&quot;with-only&quot;</code></div></div>
+</div>
+</details>
+</article>
+<footer>Generated by <code>claude plugin eval</code> · schema v1 · scores are not comparable across different suites</footer>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+  var bar=document.querySelector('.toolbar');
+  if(!bar)return;
+  bar.addEventListener('click',function(e){
+    var b=e.target&&e.target.closest('button');
+    if(!b)return;
+    var open=b.dataset.act==='expand';
+    document.querySelectorAll('details.section, details.grader').forEach(function(d){d.open=open});
+  });
+});
+// Collapsed details vanish from print/PDF; these pages are share artifacts.
+window.addEventListener('beforeprint',function(){
+  document.querySelectorAll('details').forEach(function(d){
+    if(!d.open){d.dataset.printOpened='1';d.open=true}
+  });
+});
+window.addEventListener('afterprint',function(){
+  document.querySelectorAll('details[data-print-opened]').forEach(function(d){
+    d.open=false;delete d.dataset.printOpened;
+  });
+});
+</script>
+</body>
+</html>
