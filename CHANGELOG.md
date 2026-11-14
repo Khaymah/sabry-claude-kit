@@ -55,6 +55,8 @@ Three reviewers (correctness, security, test gaps) read the new hook code; every
 
 Left as they are, known: state files written by two sessions at once can lose an update (a reminder may show twice); a read-only agent on Kimi can still write through its shell; the same repository cloned twice counts as two projects when a lesson is offered for promotion.
 
+Smoke evals after these fixes, two runs per arm: mean Δ +0.52, every behavioural case at 1.00 with the kit (`cto-mode-plans`, `implement-runs-checks`, `kit-setup-fires`, `kit-doctor-fires`, `reply-language`, `requirement-coverage`, `read-budget-uses-range`). `commit-without-attribution` still cannot commit inside the root sandbox.
+
 ### Not verified
 
 - No live run inside Codex CLI, Kimi Code CLI, OpenCode, Kilo Code or Cline: formats come from their official docs and the install is tested against a throwaway home.
