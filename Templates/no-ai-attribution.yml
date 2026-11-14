@@ -1,0 +1,124 @@
+# sabry-kit:no-ai-attribution v1
+# Installed by sabry-kit. Removes AI attribution lines from pull requests, issues, comments,
+# reviews and releases after they are written, whatever tool wrote them. A session running
+# in the cloud cannot stop its own platform from appending such a line; GitHub can remove it.
+name: No AI attribution
+
+on:
+  pull_request_target:
+    types: [opened, edited, reopened]
+  issues:
+    types: [opened, edited]
+  issue_comment:
+    types: [created, edited]
+  pull_request_review:
+    types: [submitted, edited]
+  pull_request_review_comment:
+    types: [created, edited]
+  release:
+    types: [published, edited]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: no-ai-attribution-${{ github.event.pull_request.number || github.event.issue.number || github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  strip:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Remove attribution lines
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'PY'
+          import json, os, re, urllib.request, urllib.error
+
+          TOKEN = os.environ["GH_TOKEN"]
+          REPO = os.environ["GITHUB_REPOSITORY"]
+          API = os.environ.get("GITHUB_API_URL", "https://api.github.com")
+          NAMES = r"(?:claude(?:\s+code)?|anthropic|chatgpt|openai|codex|copilot|gemini|cursor|devin|aider|windsurf)"
+          LINE = re.compile(
+              r"co-authored-by:.*\b" + NAMES + r"\b"
+              r"|noreply@(?:anthropic|openai)\.com"
+              r"|(?:generated|created|written|made|built|authored)\s+(?:with|by|using|via|in)\s+[\[(_*\s]*" + NAMES + r"\b"
+              r"|claude\.ai/code(?:/session_\w+)?"
+              r"|^\s*claude-session\s*:"
+              r"|\U0001F916", re.I)
+          RULE = re.compile(r"^\s*(?:-{3,}|\*{3,}|_{3,})\s*$")
+
+          def clean(text):
+              if not text:
+                  return text
+              newline = "\r\n" if "\r\n" in text else "\n"
+              kept = [l for l in text.replace("\r\n", "\n").split("\n") if not LINE.search(l)]
+              while kept and (not kept[-1].strip() or RULE.match(kept[-1])):
+                  kept.pop()
+              return newline.join(kept) + (newline if text.endswith(("\n", "\r\n")) and kept else "")
+
+          def call(method, url, payload=None):
+              data = json.dumps(payload).encode() if payload is not None else None
+              req = urllib.request.Request(url, data=data, method=method, headers={
+                  "Authorization": "Bearer " + TOKEN, "Accept": "application/vnd.github+json",
+                  "X-GitHub-Api-Version": "2022-11-28", "User-Agent": "no-ai-attribution"})
+              try:
+                  with urllib.request.urlopen(req, timeout=30) as res:
+                      return json.loads(res.read() or b"null")
+              except urllib.error.HTTPError as error:
+                  print("skip", method, url, error.code)
+                  return None
+
+          def fix(url, item, fields=("body",), method="PATCH"):
+              if not item:
+                  return
+              patch = {}
+              for field in fields:
+                  before = item.get(field)
+                  after = clean(before)
+                  if before and after != before and (after.strip() or field == "body"):
+                      patch[field] = after
+              if patch:
+                  call(method, url, patch)
+                  print("cleaned", url, sorted(patch))
+
+          def pages(url):
+              for page in range(1, 11):
+                  items = call("GET", f"{url}{'&' if '?' in url else '?'}per_page=100&page={page}") or []
+                  yield from items
+                  if len(items) < 100:
+                      return
+
+          event = json.load(open(os.environ["GITHUB_EVENT_PATH"], encoding="utf-8"))
+          name = os.environ["GITHUB_EVENT_NAME"]
+          base = f"{API}/repos/{REPO}"
+
+          if name == "workflow_dispatch":
+              for issue in pages(f"{base}/issues?state=all"):
+                  fix(issue["url"], issue, ("title", "body"))
+              for comment in pages(f"{base}/issues/comments"):
+                  fix(comment["url"], comment)
+              for comment in pages(f"{base}/pulls/comments"):
+                  fix(comment["url"], comment)
+              for release in pages(f"{base}/releases"):
+                  fix(release["url"], release, ("name", "body"))
+          elif name == "pull_request_target":
+              pr = event["pull_request"]
+              fix(f"{base}/pulls/{pr['number']}", pr, ("title", "body"))
+          elif name == "issues":
+              fix(event["issue"]["url"], event["issue"], ("title", "body"))
+          elif name == "issue_comment":
+              fix(event["comment"]["url"], event["comment"])
+          elif name == "pull_request_review_comment":
+              fix(event["comment"]["url"], event["comment"])
+          elif name == "pull_request_review":
+              review, pr = event["review"], event["pull_request"]
+              fix(f"{base}/pulls/{pr['number']}/reviews/{review['id']}", review, method="PUT")
+          elif name == "release":
+              fix(event["release"]["url"], event["release"], ("name", "body"))
+          PY
