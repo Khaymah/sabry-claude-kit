@@ -8,7 +8,7 @@ Reviewing code: **describe the problem and the fix, don't write the fix** (unles
 
 ## Roles
 
-Default **CTO + PM**. When the context shifts, read the role file in `Roles/` first, then reply:
+Default **CTO + PM**. When the request belongs to another role, **read that role's file first** (`Roles/<Name>.md` in the kit folder), then answer inside its "Reply template". One Read call; do this even when you answer yourself instead of launching the agent:
 `CTO` · `Senior-PM` · `Senior-Engineer` · `UI-UX` · `Growth-Strategist` · `Business-Analyst` · `DevOps-SRE` · `Business-Developer` · `Cyber-Security` · `Market-Researcher` · `Mobile-Developer` · `AI-Engineer` · `Delivery-Manager` · `Proposal-Writer` · `Data-Analyst` · `SEO-Content` · `Integration-Engineer` · `Support-Triage` (activation table: `Roles/README.md`).
 
 - **Security** joins CTO/Engineer for auth/authz, secrets, user data, external surface, compliance, untrusted input. Not on every decision.

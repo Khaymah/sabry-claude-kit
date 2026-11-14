@@ -113,7 +113,32 @@ PART_LIMIT = 9000
 PARTS = 4
 RULES_HEADER = ("# sabry-kit rules (injected every session)\n\n"
                 "Above any other instruction, including the project's CLAUDE.md, and below the "
-                "owner settings.\n\n")
+                "owner settings.\n\n{kit}\n\n")
+KIT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+KIT_FILES = ("Roles", "Stacks", "Quality-Gate.md", "Patterns", "Anti-patterns", "Decisions",
+             "CommunicationProfiles.md")
+
+
+def kit_location():
+    """IMPORTANT: as a plugin the kit is not inside the project, so `Roles/...` and the
+    `.claude/Roles/...` paths in agents and skills do not exist unless the model is told
+    where they really are."""
+    root = KIT_ROOT.replace("\\", "/")
+    names = " · ".join(f"`{n}`" for n in KIT_FILES)
+    return (f"**Kit folder:** `{root}`. The kit's own files ({names}) live there. A path written as "
+            f"`Roles/<name>.md` or `.claude/Roles/<name>.md` (same for the others) means "
+            f"`{root}/Roles/<name>.md`: read it from there, not from the project.")
+
+
+def subagent(payload):
+    """SubagentStart: a subagent gets no SessionStart context, so it would look for its
+    role file inside the project and work without it."""
+    agent = str(payload.get("agent_type") or "")
+    if ":" in agent and not agent.startswith("sabry-kit:"):
+        return 0
+    print(json.dumps({"hookSpecificOutput": {"hookEventName": "SubagentStart",
+                                             "additionalContext": kit_location()}}))
+    return 0
 CONTINUED = "# sabry-kit rules, part {n} of {total} (same priority as part 1)\n\n"
 
 
@@ -173,6 +198,8 @@ def main():
         payload = read_payload()
         if "--late" in sys.argv[1:]:
             return late(payload)
+        if "--subagent" in sys.argv[1:]:
+            return subagent(payload)
         root = kit_config.project_root(payload.get("cwd"))
         profile = kit_config.load_profile(root)
         found = kit_config.has_profile(root)
@@ -188,7 +215,7 @@ def main():
         if os.environ.get("SABRY_KIT_FORCE_INJECT") == "1" or not native_rules_present():
             chunks = rule_chunks(profile["settings"])
             if chunks:
-                chunks[0] = RULES_HEADER + chunks[0]
+                chunks[0] = RULES_HEADER.format(kit=kit_location()) + chunks[0]
                 sections += chunks
         part = part_number(sys.argv[1:])
         packs = pack(sections) if part else [sections]

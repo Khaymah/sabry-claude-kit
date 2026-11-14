@@ -1,0 +1,106 @@
+{
+  "schemaVersion": 1,
+  "claudeVersion": "2.1.325",
+  "startedAt": "2026-11-14T13:05:38.028Z",
+  "durationSeconds": 30,
+  "costUsd": 0.1035812,
+  "partial": false,
+  "suite": {
+    "root": "/home/user/sabry-claude-kit",
+    "ablation": "none",
+    "caseFilter": "support-agent-routes",
+    "threshold": 1,
+    "concurrency": 1,
+    "plugins": [
+      {
+        "name": "sabry-kit",
+        "version": "0.3.0",
+        "path": "/home/user/sabry-claude-kit"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "support-agent-routes",
+      "dir": "evals/support-agent-routes",
+      "source": "prose",
+      "promptMarkdown": "العميل بعتلي: \"السيستم بايظ ومفيش حد عارف يعمل فواتير من الصبح!!\" اعمل إيه؟",
+      "runsPerCase": 3,
+      "timeoutSeconds": 300,
+      "maxTurns": 15,
+      "graders": [
+        {
+          "name": "agent-used",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Agent",
+            "input_match": "support-triage",
+            "min": 1,
+            "arm": "with-only"
+          }
+        },
+        {
+          "name": "quality",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "PASS if the reply separates what was reported from what is known, lists the specific information or evidence needed to reproduce (which user, what they see, since when, recent deploys or logs), assigns a severity with its reason, and includes a ready reply to the client that states next steps without promising a fix time or blaming anyone.\nFAIL if it jumps to a fix or a cause with no evidence, or the client reply promises a specific fix time.",
+          "config": {
+            "criteria": "PASS if the reply separates what was reported from what is known, lists the specific information or evidence needed to reproduce (which user, what they see, since when, recent deploys or logs), assigns a severity with its reason, and includes a ready reply to the client that states next steps without promising a fix time or blaming anyone.\nFAIL if it jumps to a fix or a cause with no evidence, or the client reply promises a specific fix time.",
+            "focus": "last_message"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 0,
+            "passed": false,
+            "turns": 1,
+            "costUsd": 0.1035812,
+            "judgeCostUsd": 0.0010498,
+            "durationSeconds": 30,
+            "startedAt": "2026-11-14T13:05:38.100Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-4xP7Ai/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "agent-used",
+                "passed": false,
+                "weight": 1,
+                "explanation": "Agent called 0x (expected 1..∞)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "quality",
+                "passed": false,
+                "weight": 1,
+                "explanation": "judge votes: FAIL FAIL FAIL",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  false,
+                  false,
+                  false
+                ],
+                "evidence": "💡 قبل أي حاجة: شغّل `/sabry-kit:kit-setup` مرة واحدة (دقيقتين) عشان أظبط الإعدادات على أسلوبك.\n\nدي حادثة بتوقّف إيراد العميل، يعني **Severity 1**. ترتيب الشغل:\n\n## 1. رد على العميل خلال دقايق\nمتقولش \"هنشوف\". قوله إنك استلمت المشكلة وإنك شغال عليها. ماتدّيش ETA قبل ما تعرف السبب.\n\n> \"وصلتني المشكلة وبنراجعها حالاً كأولوية قصوى. هبلّغك بأي تحديث خلال 30 دقيقة. ممكن تبعتلي: الساعة اللي بدأت فيها، وصورة أو نص رسالة الخطأ، وهل المشكلة عند كل المستخدمين ولا عند حد معيّن؟\"\n\n## 2. حدّد النطاق (5 دقايق)\n- **عند الكل ولا واحد بس؟** الكل يعني السيستم أو السيرفر. واحد بس يعني صلاحيات أو بيانات.\n- **بدأت إمتى بالظبط؟** قارن الوقت بآخر deploy أو تغيير.\n- **الخطأ إيه؟** شاشة بيضا، 500، timeout، ولا رفض من جهة خارجية؟\n\n## 3. افحص المشتبه فيهم بالترتيب\n1. **آخر deploy أو تغيير في الـ env/config.** لو لقيت تغيير قبل الأعطال بقليل، اعمل **rollback الأول** وحلّل بعدين.\n2. **الموارد:** السيرفر شغال؟ الـ disk ممتلي؟ الـ DB بترد؟ الـ connections خلصت؟\n3. **الـ Logs وSentry** من وقت بداية المشكلة.\n4. **شهادات SSL أو الـ tokens المنتهية.** بتنتهي من غير إنذار وبتقع الصبح.\n5. **التكامل الخارجي** (بوابة الفاتورة الإلكترونية، الدفع، ERP). لو الخدمة الخارجية واقعة أو غيّرت الـ API، الغلط مش عندك. شوف صفحة الـ status بتاعتها.\n\n## 4. حل مؤقت للعميل\nلو الإصلاح هياخد وقت، اتفق معاه على فواتير ورقي أو يدوي، وتتسجّل في السيستم بعد الإصلاح. كده الشغل ما يقفش.\n\n## 5. بعد الإصلاح\n- أكّد مع العميل إن الفواتير اتعملت فعلاً، مش بس إن الخطأ اختفى.\n- اكتب له السبب في سطرين.\n- افتح task لمنع التكرار: monitoring أو alert على مسار الفواتير، عشان تعرف قبل العميل.\n\nلو عايز، أشغّل agent الـ `support-triage` أو `devops-sre` على المشروع. هيفحصوا الكود والـ logs ويطلعولك السبب المحتمل. ابعتلي رسالة الخطأ أو مكان المشروع وأبدأ."
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 0,
+        "passRate": 0
+      }
+    }
+  ],
+  "aggregates": {
+    "casesTotal": 1,
+    "casesPassed": 0,
+    "overallScore": 0,
+    "overallPassRate": 0
+  }
+}

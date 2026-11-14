@@ -1,0 +1,124 @@
+{
+  "schemaVersion": 1,
+  "claudeVersion": "2.1.325",
+  "startedAt": "2026-11-14T13:04:29.296Z",
+  "durationSeconds": 68,
+  "costUsd": 0.20873350000000002,
+  "partial": false,
+  "suite": {
+    "root": "/home/user/sabry-claude-kit",
+    "ablation": "none",
+    "caseFilter": "orchestrate-feature",
+    "threshold": 1,
+    "concurrency": 1,
+    "plugins": [
+      {
+        "name": "sabry-kit",
+        "version": "0.3.0",
+        "path": "/home/user/sabry-claude-kit"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "orchestrate-feature",
+      "dir": "evals/orchestrate-feature",
+      "source": "prose",
+      "promptMarkdown": "نسّق الفريق على feature كاملة: نظام كوبونات خصم لمتجر إلكتروني (Hono + Drizzle + Next.js). المطلوب: 1) الأدمن ينشئ كوبون بنسبة أو مبلغ ثابت وتاريخ انتهاء، 2) العميل يطبّق الكوبون في صفحة الدفع، 3) الكوبون مايتستخدمش أكتر من الحد بتاعه حتى مع طلبين في نفس اللحظة. عايز خطة وتاسكات بس، من غير كود.",
+      "runsPerCase": 3,
+      "timeoutSeconds": 300,
+      "maxTurns": 30,
+      "graders": [
+        {
+          "name": "agents-launched",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Agent",
+            "input_match": "handoff",
+            "min": 2,
+            "arm": "with-only"
+          }
+        },
+        {
+          "name": "coverage",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "PASS if the final reply accounts for all three asks separately (admin creates a coupon, customer applies it at checkout, usage limit holds under concurrent orders), states for each whether it is covered, and addresses the concurrency ask with a concrete mechanism (transaction with row lock, atomic conditional update, or unique constraint).\nFAIL if any of the three asks is missing from the final reply, or the concurrency ask is answered only with \"check the count before applying\".",
+          "config": {
+            "criteria": "PASS if the final reply accounts for all three asks separately (admin creates a coupon, customer applies it at checkout, usage limit holds under concurrent orders), states for each whether it is covered, and addresses the concurrency ask with a concrete mechanism (transaction with row lock, atomic conditional update, or unique constraint).\nFAIL if any of the three asks is missing from the final reply, or the concurrency ask is answered only with \"check the count before applying\".",
+            "focus": "last_message"
+          }
+        },
+        {
+          "name": "skill-fired",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Skill",
+            "input_match": "\"skill\"\\s*:\\s*\"(?:[\\w-]+:)?kit-orchestrate\"",
+            "arm": "with-only"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 0.3333333333333333,
+            "passed": false,
+            "turns": 6,
+            "costUsd": 0.20873350000000002,
+            "judgeCostUsd": 0.0002279,
+            "durationSeconds": 68,
+            "startedAt": "2026-11-14T13:04:29.388Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-ieJEW1/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "agents-launched",
+                "passed": false,
+                "weight": 1,
+                "explanation": "Agent called 0x (expected 2..∞)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "coverage",
+                "passed": false,
+                "weight": 1,
+                "explanation": "judge votes: FAIL FAIL FAIL",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  false,
+                  false,
+                  false
+                ],
+                "evidence": "الخطة جاهزة في `.agents/plans/coupons/plan.md`، ومفيش كود اتكتب. أداة الأسئلة معطّلة في الجلسة دي، فهسألك هنا.\n\n**توصيتي:** جاوب الأسئلة الأربعة المفتوحة الأول (الحد كلي ولا لكل عميل، الدفع قبل الطلب ولا بعده، الخصم على إيه، التوقيت). بعدها قولّي \"نفّذ\" وأبدأ من Phase 1.\n\nالبدائل:\n- **\"نفّذ\" على الافتراضات الحالية:** الحد كلي فقط والخصم على المنتجات.\n- **مراجعة بـ `cto` و`security-reviewer` قبل التنفيذ:** تكلفتها أعلى، لكنها تكشف ثغرات التصميم بدري."
+              },
+              {
+                "name": "skill-fired",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Skill called 1x (expected 1..∞)",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 0.3333333333333333,
+        "passRate": 0
+      }
+    }
+  ],
+  "aggregates": {
+    "casesTotal": 1,
+    "casesPassed": 0,
+    "overallScore": 0.3333333333333333,
+    "overallPassRate": 0
+  }
+}

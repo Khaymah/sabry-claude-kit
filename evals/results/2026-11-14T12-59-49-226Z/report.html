@@ -1,0 +1,1992 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Eval report — sabry-kit v0.3.0</title>
+</head>
+<body>
+<style>
+:root{--plane:#f9f9f7;--surface:#fcfcfb;--ink:#0b0b0b;--ink-2:#52514e;--ink-3:#6b6a64;--hairline:rgba(11,11,11,.10);--grid:#e1e0d9;--inset:rgba(11,11,11,.04);--accent:#2a78d6;--base-fill:#6b6a64;--delta-good:#006300;--good:#067d06;--warning:#8a6100;--critical:#d03b3b;
+  color-scheme:light dark;
+}
+@media (prefers-color-scheme:dark){:root{--plane:#0d0d0d;--surface:#1a1a19;--ink:#ffffff;--ink-2:#c3c2b7;--ink-3:#898781;--hairline:rgba(255,255,255,.10);--grid:#2c2c2a;--inset:rgba(255,255,255,.05);--accent:#3987e5;--base-fill:#898781;--delta-good:#0ca30c;--good:#0ca30c;--warning:#fab219;--critical:#e06c6c;color-scheme:dark}}
+:root[data-theme="dark"]{--plane:#0d0d0d;--surface:#1a1a19;--ink:#ffffff;--ink-2:#c3c2b7;--ink-3:#898781;--hairline:rgba(255,255,255,.10);--grid:#2c2c2a;--inset:rgba(255,255,255,.05);--accent:#3987e5;--base-fill:#898781;--delta-good:#0ca30c;--good:#0ca30c;--warning:#fab219;--critical:#e06c6c;color-scheme:dark}
+:root[data-theme="light"]{--plane:#f9f9f7;--surface:#fcfcfb;--ink:#0b0b0b;--ink-2:#52514e;--ink-3:#6b6a64;--hairline:rgba(11,11,11,.10);--grid:#e1e0d9;--inset:rgba(11,11,11,.04);--accent:#2a78d6;--base-fill:#6b6a64;--delta-good:#006300;--good:#067d06;--warning:#8a6100;--critical:#d03b3b;color-scheme:light}
+*{box-sizing:border-box}
+body{margin:0;background:var(--plane);color:var(--ink);
+  font:14px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif;
+  -webkit-text-size-adjust:100%}
+.wrap{max-width:880px;margin:0 auto;padding:40px 24px 64px;display:flex;flex-direction:column;gap:20px}
+.eyebrow{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+header h1{margin:2px 0 0;font-size:24px;font-weight:600;line-height:1.25;text-wrap:balance}
+.meta{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:8px;color:var(--ink-2);font-size:13px}
+.meta .num{font-variant-numeric:tabular-nums lining-nums}
+.banner{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:8px;
+  border:1px solid var(--hairline);background:var(--surface);font-size:13px}
+.banner .chip-warn{color:var(--warning);font-weight:600}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.tile{background:var(--surface);border:1px solid var(--hairline);border-radius:10px;padding:14px 16px;
+  display:flex;flex-direction:column;gap:4px}
+.tile .label{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
+.tile .value{font-size:26px;font-weight:600;font-variant-numeric:tabular-nums lining-nums;line-height:1.1}
+.tile.hero .value{font-family:Georgia,"Times New Roman",serif;font-weight:400;font-size:48px}
+.tile .sub{font-size:12px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.tile .value.delta-pos{color:var(--delta-good)}
+.tile .value.delta-neg{color:var(--critical)}
+.toolbar{display:flex;gap:8px;justify-content:flex-end}
+.toolbar button{font:12px system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink-2);
+  background:var(--surface);border:1px solid var(--hairline);border-radius:6px;padding:4px 10px;cursor:pointer}
+.toolbar button:hover{color:var(--ink)}
+.toolbar button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.case{background:var(--surface);border:1px solid var(--hairline);border-radius:10px;padding:18px 20px;
+  display:flex;flex-direction:column;gap:10px}
+.case-regressed{border-left:3px solid var(--critical)}
+.verdict{margin:6px 0 0;font-size:15px}
+.verdict .delta{font-size:15px}
+.flag{font-size:11px;font-weight:600;color:var(--warning);white-space:nowrap}
+.star{color:var(--warning);font-size:.45em;vertical-align:super;line-height:0;cursor:help}
+.legend summary{cursor:pointer;font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-2)}
+.legend-list{margin:8px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:5px;font-size:13px;color:var(--ink-2)}
+.case-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.case-head h2{margin:0;font-size:16px;font-weight:600}
+.case-head .spacer{flex:1}
+.case-score{font-size:15px;font-weight:600}
+.mono{font:12px "SF Mono",ui-monospace,Menlo,Consolas,monospace}
+.num{font-variant-numeric:tabular-nums lining-nums}
+.muted{color:var(--ink-3);font-size:12px}
+.meter{display:inline-block;position:relative;width:120px;height:6px;border-radius:4px;background:var(--grid);
+  vertical-align:middle}
+.meter>span{display:block;height:100%;border-radius:4px;max-width:100%}
+.meter .tick{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--ink-3);border-radius:1px}
+.m-accent>span{background:var(--accent)}
+.m-base>span{background:var(--base-fill)}
+.delta{font-size:12px;font-weight:600;font-variant-numeric:tabular-nums}
+.delta-pos{color:var(--delta-good)}
+.delta-neg{color:var(--critical)}
+.delta-zero{color:var(--ink-3)}
+details.section{border-top:1px solid var(--grid);padding-top:10px}
+details.section>summary{cursor:pointer;font-size:12px;font-weight:600;letter-spacing:.04em;
+  text-transform:uppercase;color:var(--ink-2);list-style-position:outside;margin-left:2px}
+details.section>summary:hover{color:var(--ink)}
+details.section[open]>summary{margin-bottom:8px}
+.md{display:flex;flex-direction:column;gap:8px;background:var(--inset);border-radius:8px;
+  padding:12px 14px;overflow-wrap:break-word}
+.md>:first-child{margin-top:0}
+.md h1,.md h2,.md h3,.md h4,.md h5,.md h6{margin:4px 0 0;font-size:1em;font-weight:600;line-height:1.3}
+.md p,.md ul,.md ol,.md blockquote,.md table,.md pre,.md hr{margin:0}
+.md ul,.md ol{display:flex;flex-direction:column;gap:4px;padding-left:20px}
+.md blockquote{border-left:2px solid var(--hairline);padding-left:10px;color:var(--ink-2)}
+.md :not(pre)>code{background:var(--inset);padding:1px 4px;border-radius:4px;
+  font:.92em "SF Mono",ui-monospace,Menlo,Consolas,monospace}
+.md pre{background:var(--inset);border:1px solid var(--hairline);padding:10px 12px;border-radius:6px;
+  overflow-x:auto;font:12px/1.5 "SF Mono",ui-monospace,Menlo,Consolas,monospace}
+.md pre code{background:none;padding:0;font:inherit}
+.md table{width:100%;border-collapse:collapse}
+.md th,.md td{padding:5px 8px;text-align:left;vertical-align:top;border-bottom:1px solid var(--grid)}
+.md th{font-weight:600;color:var(--ink-2)}
+.md a{color:var(--accent);text-decoration:none}
+.md a:hover{text-decoration:underline}
+.grader-def{display:flex;flex-direction:column;gap:6px;padding:8px 0}
+.grader-def+.grader-def{border-top:1px solid var(--grid)}
+.grader-def-head{display:flex;align-items:baseline;gap:8px}
+.grader-name{font:13px "SF Mono",ui-monospace,Menlo,Consolas,monospace;font-weight:600}
+.badge{font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-2);
+  border:1px solid var(--hairline);border-radius:999px;padding:1px 8px}
+.config{display:flex;flex-direction:column;gap:2px;background:var(--inset);border-radius:8px;padding:10px 14px}
+.config code{font:12px "SF Mono",ui-monospace,Menlo,Consolas,monospace;overflow-wrap:anywhere}
+.arm{display:flex;flex-direction:column;gap:8px;padding:6px 0}
+.arm+.arm{border-top:1px dashed var(--grid);margin-top:4px;padding-top:12px}
+.arm-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.arm-label{font-size:13px;font-weight:600}
+.run{border:1px solid var(--grid);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+.run-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.run-title{font-size:12px;font-weight:600;color:var(--ink-2)}
+.run-error .explanation{color:var(--ink-2)}
+.note{font-size:12px;color:var(--ink-2)}
+.graders{display:flex;flex-direction:column;gap:4px}
+details.grader{border-radius:6px}
+details.grader>summary{cursor:pointer;display:flex;align-items:baseline;gap:8px;padding:3px 4px;
+  border-radius:6px;list-style:none}
+details.grader>summary::-webkit-details-marker{display:none}
+details.grader>summary::before{content:'▸';font-size:10px;color:var(--ink-3);flex:none;
+  transition:transform .12s ease}
+details.grader[open]>summary::before{transform:rotate(90deg)}
+details.grader>summary:hover{background:var(--inset)}
+details.grader>summary:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.grader-body{padding:6px 8px 8px 24px;display:flex;flex-direction:column;gap:6px}
+.chip{font-size:11px;font-weight:600;border-radius:999px;padding:1px 8px;white-space:nowrap}
+.chip-pass{color:var(--good);border:1px solid currentColor}
+.chip-fail{color:var(--critical);border:1px solid currentColor}
+.chip.chip-warn{color:var(--warning);border:1px solid currentColor}
+.explanation{margin:0;font-size:13px;color:var(--ink-2);white-space:pre-wrap;overflow-wrap:break-word}
+.kv{display:flex;gap:8px;font-size:12px;color:var(--ink-3)}
+.votes{font-variant-numeric:tabular-nums;letter-spacing:.1em}
+pre.evidence{margin:0;background:var(--inset);border:1px solid var(--hairline);border-radius:6px;
+  padding:8px 10px;overflow-x:auto;max-height:320px;
+  font:12px/1.5 "SF Mono",ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap;overflow-wrap:break-word}
+footer{color:var(--ink-3);font-size:12px;text-align:center;padding-top:8px}
+@media (prefers-reduced-motion:no-preference){
+  details.grader>summary,.toolbar button{transition:background .12s ease,color .12s ease}
+}
+@media (prefers-reduced-motion:reduce){
+  details.grader>summary::before{transition:none}
+}
+@media print{
+  :root,:root[data-theme="dark"],:root[data-theme="light"]{--plane:#f9f9f7;--surface:#fcfcfb;--ink:#0b0b0b;--ink-2:#52514e;--ink-3:#6b6a64;--hairline:rgba(11,11,11,.10);--grid:#e1e0d9;--inset:rgba(11,11,11,.04);--accent:#2a78d6;--base-fill:#6b6a64;--delta-good:#006300;--good:#067d06;--warning:#8a6100;--critical:#d03b3b;color-scheme:light}
+  body{background:#fff}
+  .toolbar{display:none}
+  .case,.run,.grader-def{break-inside:avoid}
+  pre.evidence{max-height:none}
+}
+</style>
+<div class="wrap">
+<header>
+<div class="eyebrow">Plugin eval report</div>
+<h1>sabry-kit v0.3.0</h1>
+<p class="verdict">Plugin effect: <span class="delta delta-neg">↓ -15.0 pts</span> vs baseline — improved 1 · flat 7 · regressed 2 of 10 cases.</p>
+<div class="meta">
+<span class="mono">.</span>
+<span>Claude Code v2.1.325</span>
+<span class="num">2026-11-14 12:59 UTC</span>
+<span class="num">3m 54s</span>
+<span class="num">$2.05</span>
+<span class="num">20 runs</span>
+<span class="num">4 in flight</span>
+
+
+<span>judge default</span>
+<span class="num">threshold 100%</span>
+<span>filtered: --tag agents --tag orchestration</span>
+</div>
+</header>
+
+<section class="tiles">
+<div class="tile hero"><span class="label">Suite score · with plugin</span><span class="value">55%</span><span class="sub">mean of per-case scores</span></div>
+<div class="tile"><span class="label">Ablation Δ</span><span class="value num delta-neg">↓ -15.0</span><span class="sub">score points vs baseline, 10 of 10 cases</span></div>
+<div class="tile"><span class="label">Baseline score</span><span class="value num">70%</span><span class="sub">without the plugin</span></div>
+<div class="tile"><span class="label">Cases</span><span class="value num">10</span><span class="sub">5 of 10 ≥ 100% threshold</span></div>
+<div class="tile"><span class="label">Perfect runs</span><span class="value num">50%</span><span class="sub">runs where every grader passed</span></div>
+</section>
+<details class="section legend">
+<summary>How to read this report</summary>
+<ul class="legend-list">
+<li>A run's score is the weighted fraction of its graders that passed; a "perfect" run passed every grader.</li>
+<li>A case's score is the mean of its runs; a case passes when its score is at or above the 100% threshold (the tick on each case bar).</li>
+<li>The suite score is the mean of the per-case scores.</li>
+<li>Judge votes are independent samples of the LLM judge; the majority decides pass or fail.</li>
+<li>"With plugin" and "Baseline" runs are identical except for the plugin being loaded; Δ is the with-plugin score minus the baseline score.</li>
+
+</ul>
+</details>
+<div class="toolbar"><button type="button" data-act="expand">Expand all</button><button type="button" data-act="collapse">Collapse all</button></div>
+<article class="case" id="case-1">
+<div class="case-head">
+<h2>ai-agent-routes</h2>
+<span class="muted mono">evals/ai-agent-routes</span>
+<span class="spacer"></span>
+
+<span class="delta delta-zero">· 0.0 pts</span>
+<span class="muted">with plugin</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span><i class="tick" style="left:100.0%"></i></span>
+<span class="num case-score">100%</span>
+</div>
+
+<details class="section" open>
+<summary>Results</summary>
+<section class="arm">
+<div class="arm-head">
+<span class="arm-label">With plugin</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">100% of runs perfect</span>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 1</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">2 turns · $0.12 · 12:59:49 UTC</span>
+</div>
+
+<div class="graders"><details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">agent-used</span>  <span class="badge">plugin-fired indicator</span></summary>
+<div class="grader-body">
+<p class="explanation">Agent called 0x (expected 1..∞)</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">quality</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">💡 شغّل `/sabry-kit:kit-setup` (دقيقتين أسئلة) عشان أظبط الإعدادات على تفضيلاتك.
+
+مقدرتش أفتح مرجع الـ API الرسمي في الجلسة دي، فمش هقول أسعار أو حدود بأرقام. اتأكد منها من صفحة التسعير قبل ما تقرر.
+
+## أبدأ إزاي: RAG
+
+ابدأ بـ **RAG** (Retrieval-Augmented Generation). مش fine-tuning. الموديل بيجيب المقاطع المناسبة من مستنداتك وقت السؤال ويجاوب منها. مستنداتك بتتغير، وده بيسمح لك تحدّثها من غير ما تدرّب الموديل تاني. وكمان تقدر تعرض المصدر للعميل.
+
+1. **جهّز المستندات:** حوّلها لنص نضيف (PDF وصفحات الموقع وFAQ). قسّمها chunks حوالي 300–800 token، واحتفظ بالعنوان والمصدر مع كل chunk. جودة المستندات بتأثر في النتيجة أكتر من اختيار الموديل.
+2. **الفهرسة:** embeddings في قاعدة vector. لو عندك PostgreSQL، `pgvector` كفاية في البداية ومحتاجش خدمة منفصلة.
+3. **الاسترجاع:** hybrid search (keyword + vector). ده أحسن مع أسماء المنتجات وأرقام الموديلات.
+4. **التوليد:** الـ system prompt يقول للموديل:
+   - جاوب من المقاطع المسترجعة بس.
+   - لو الإجابة مش موجودة، قول &quot;معنديش معلومة مؤكدة&quot; وحوّل لموظف.
+   - اذكر المصدر.
+5. **التحويل لبشري:** زرار واضح، وتلقائي لو الثقة قليلة أو العميل زعلان.
+6. **الأمان:** النص المسترجع والرسائل بيتعاملوا كبيانات مش أوامر (prompt injection). متديش الموديل صلاحية تنفيذ حاجة (استرجاع فلوس مثلًا) من غير تأكيد سيرفر. ولو في بيانات عملاء، افصل الصلاحيات.
+7. **Evals قبل الإطلاق:** اعمل 50–100 سؤال حقيقي من تذاكر الدعم القديمة مع الإجابة الصح. قس عليهم قبل الإطلاق وبعد أي تغيير.
+
+## أختار أنهي موديل
+
+**توصيتي: ابدأ بموديل متوسط، Sonnet 5.5 (`claude-sonnet-5-5`).** شات الدعم المبني على RAG مش محتاج أقوى موديل. محتاج التزام بالمستندات، وعربي كويس، وسرعة، وتكلفة معقولة.
+
+| الحالة | الاختيار |
+|---|---|
+| الافتراضي | Sonnet 5.5 |
+| حجم كبير وأسئلة بسيطة (ساعات العمل، الشحن) والتكلفة أهم | Haiku 5.5 (`claude-haiku-5-5`) |
+| أسئلة معقدة أو متعددة الخطوات، أو حالات حساسة | Opus 5.5 (`claude-opus-5-5`)، ويفضّل كتصعيد مش كافتراضي |
+
+الأحسن عمليًا هو **routing**: Haiku للأسئلة البسيطة، وتصعيد لـ Sonnet أو Opus لما السؤال يتعقد. بس ابدأ بموديل واحد وخلّي الـ evals هي اللي تقول لك لو محتاج تغيّر. الأرقام بتحسم أحسن من الانطباع.
+
+وفّر في التكلفة بـ **prompt caching** للـ system prompt الثابت، واعمل streaming للرد عشان الإحساس يبقى أسرع.
+
+## أسئلة محتاج إجابتها عشان أحدد الخطة
+
+1. **المستندات:** إيه نوعها وحجمها تقريبًا (عدد الصفحات)، وبتتحدّث كل قد إيه؟
+2. **اللغة:** العملاء بيكتبوا عربي (فصحى ولا عامية) ولا إنجليزي ولا الاتنين؟
+3. **الـ stack:** الموقع على إيه؟ لو مفيش قيد، هرشّح Next.js + Hono + PostgreSQL/pgvector.
+4. **الحجم:** تقريبًا كام محادثة في اليوم؟
+5. **الصلاحيات:** هل البوت يجاوب بس، ولا يعمل حاجة كمان (يتتبع طلب مثلًا)؟
+
+جاوبني على دول وأكتب لك خطة تنفيذ في ملف، فيها المراحل والـ evals ومعايير القبول. ومش هكتب كود غير لما تقول &quot;نفّذ&quot;.</pre>
+</div>
+</details></div>
+</div>
+</section><section class="arm">
+<div class="arm-head">
+<span class="arm-label">Baseline (no plugin)</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">100% of runs perfect</span>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 1</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">2 turns · $0.06 · 12:59:49 UTC</span>
+</div>
+
+<div class="graders"><details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">quality</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">ما قدرتش أحمّل مرجع Claude API (الصلاحية اترفضت)، فمش هديك أسعار أو حدود دقيقة. راجعها من صفحة التسعير الرسمية قبل ما تقرر. الباقي كلام عام عن البنية.
+
+## الفكرة: RAG
+الموديل مش بيحفظ مستندات الشركة. بتدوّر عن الأجزاء المناسبة وقت السؤال وتبعتها له مع السؤال:
+
+1. **تجهيز المستندات:** حوّل PDF/Word/صفحات المساعدة لنص، وقسّمه أجزاء (chunks) حوالي 300–800 كلمة، مع الحفاظ على العناوين.
+2. **الفهرسة:** اعمل embeddings لكل جزء وخزنها في vector DB. لو عدد المستندات صغير، pgvector على PostgreSQL كفاية. تقدر كمان تضيف بحث بالكلمات المفتاحية (hybrid)، لأنه بيفيد في أسماء المنتجات وأرقام الطلبات.
+3. **وقت السؤال:** هات أفضل 5–10 أجزاء، وابعتها للموديل مع تعليمات صارمة: &quot;جاوب من المستندات فقط، ولو الإجابة مش موجودة قول إنك مش عارف وحوّل لموظف&quot;.
+4. **عرض الإجابة:** اعرض مصدر كل إجابة. ده بيبني الثقة وبيسهّل اكتشاف الأخطاء.
+5. **التسليم لموظف:** لازم يبقى فيه زرار &quot;كلم موظف&quot;، وتحويل تلقائي لما الثقة تقل أو العميل يتضايق.
+
+لو المستندات قليلة (مثلاً أقل من حوالي 100 صفحة)، ممكن تحطها كلها في الـ prompt مع prompt caching من غير vector DB. ده أبسط بكتير كبداية.
+
+## أختار أنهي موديل؟
+الموديلات المتاحة حالياً من Anthropic:
+
+| الموديل | ID | يناسب |
+|---|---|---|
+| Haiku 5.5 | `claude-haiku-5-5` | الأسرع والأرخص، ومناسب لأغلب أسئلة الدعم |
+| Sonnet 5.5 | `claude-sonnet-5-5` | توازن جودة/سعر، وده اختياري الافتراضي |
+| Opus 5.5 | `claude-opus-5-5` | الحالات المعقدة أو الحساسة |
+| Fable 5.2 | `claude-fable-5-2` | الأقوى، ونادراً هتحتاجه للدعم |
+
+**توصيتي:** ابدأ بـ **Sonnet 5.5**. جرّب بعدها Haiku 5.5 على نفس مجموعة الأسئلة، ولو الجودة مقبولة انقل له عشان توفر في التكلفة وزمن الرد. استخدم Opus بس للتصعيدات أو الأسئلة المركبة.
+
+## خطوات البداية
+1. اجمع من 50 إلى 100 سؤال حقيقي من تذاكر الدعم القديمة مع الإجابة الصحيحة. دي مجموعة التقييم بتاعتك.
+2. ابني النموذج الأولي: chunking ثم embeddings ثم استرجاع ثم Claude API.
+3. قيّم على الأسئلة دي بالنقط دي:
+   - هل الإجابة صح؟
+   - هل رفض يجاوب لما المعلومة مش موجودة؟
+   - هل ذكر المصدر؟
+4. قارن بين الموديلات على نفس المجموعة، وماتختارش بالانطباع.
+5. شغّله داخلياً الأول، وبعدها على نسبة صغيرة من العملاء.
+6. بعد الإطلاق، راجع المحادثات اللي فشلت وحسّن المستندات والـ prompt.
+
+## نقط مهمة
+- **اللغة:** لو العملاء بيكتبوا بالعامية المصرية، جرّب ده في التقييم من الأول. مستندات عربي مع embeddings ضعيفة هتأثر على الاسترجاع.
+- **الخصوصية:** ماتبعتش بيانات حساسة للعملاء (بطاقات، كلمات سر) في الـ prompt من غير داعي.
+- **الإجراءات:** لو عايز البوت يتحقق من حالة طلب أو يلغي حجز، ضيف tool use بصلاحيات محدودة. الاسترجاع من المستندات لوحده مش كفاية لده.
+- **Prompt injection:** افترض إن أي نص من المستخدم أو من مستند ممكن يحتوي تعليمات خبيثة. ماتدّيش البوت صلاحيات خطيرة.
+
+لو قلتلي إيه حجم المستندات وبتستخدم إيه في الباك إند (Node/Python/WordPress...)، أقدر أقترح لك بنية محددة وأكتب لك نموذج أولي.</pre>
+</div>
+</details></div>
+</div>
+</section>
+</details>
+<details class="section" open>
+<summary>Prompt</summary>
+<div class="md"><p>عايز أضيف chatbot لخدمة العملاء في الموقع يرد من مستندات الشركة. أبدأ إزاي وأختار أنهي موديل؟</p>
+</div>
+</details>
+<details class="section" open>
+<summary>Graders — what "good" means for this case</summary>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">agent-used</span><span class="badge">tool_used</span></div>
+<div class="config"><div class="kv"><span>tool</span><code>&quot;Agent&quot;</code></div><div class="kv"><span>input_match</span><code>&quot;ai-engineer&quot;</code></div><div class="kv"><span>min</span><code>1</code></div><div class="kv"><span>arm</span><code>&quot;with-only&quot;</code></div></div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">quality</span><span class="badge">llm</span></div>
+<div class="md"><p>PASS if the reply asks for or defines an eval set before choosing, addresses cost per request or the smallest model that passes, covers retrieval from the documents, and treats retrieved or user text as untrusted (prompt injection).
+FAIL if it just names a model from memory with no eval and no cost.</p>
+</div>
+</div>
+</details>
+</article>
+<article class="case" id="case-2">
+<div class="case-head">
+<h2>data-agent-routes</h2>
+<span class="muted mono">evals/data-agent-routes</span>
+<span class="spacer"></span>
+
+<span class="delta delta-zero">· 0.0 pts</span>
+<span class="muted">with plugin</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span><i class="tick" style="left:100.0%"></i></span>
+<span class="num case-score">100%</span>
+</div>
+
+<details class="section" open>
+<summary>Results</summary>
+<section class="arm">
+<div class="arm-head">
+<span class="arm-label">With plugin</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">100% of runs perfect</span>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 1</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">1 turns · $0.11 · 12:59:49 UTC</span>
+</div>
+
+<div class="graders"><details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">agent-used</span>  <span class="badge">plugin-fired indicator</span></summary>
+<div class="grader-body">
+<p class="explanation">Agent called 0x (expected 1..∞)</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">quality</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">تقترح عدّة sabry-kit تشغيل `/sabry-kit:kit-setup` (دقيقتين أسئلة) عشان تتحفظ إعداداتك. لحد ما تعملها هكمل بالافتراضي.
+
+## التعريف
+
+الأشهر هو **30-day repeat rate** على مستوى الـ cohort:
+
+&gt; من العملاء اللي عملوا **أول طلب** ليهم، كام % منهم عملوا **طلب تاني خلال 30 يوم** من أول طلب؟
+
+## الاستعلام (PostgreSQL)
+
+```sql
+WITH valid_orders AS (
+  SELECT customer_id, created_at
+  FROM orders
+  WHERE status NOT IN (&apos;cancelled&apos;, &apos;failed&apos;, &apos;refunded&apos;)
+),
+first_orders AS (
+  SELECT customer_id, MIN(created_at) AS first_at
+  FROM valid_orders
+  GROUP BY customer_id
+)
+SELECT
+  COUNT(*) AS customers,
+  COUNT(*) FILTER (
+    WHERE EXISTS (
+      SELECT 1
+      FROM valid_orders v
+      WHERE v.customer_id = f.customer_id
+        AND v.created_at &gt; f.first_at
+        AND v.created_at &lt;= f.first_at + INTERVAL &apos;30 days&apos;
+    )
+  ) AS repeaters,
+  ROUND(
+    100.0 * COUNT(*) FILTER (
+      WHERE EXISTS (
+        SELECT 1
+        FROM valid_orders v
+        WHERE v.customer_id = f.customer_id
+          AND v.created_at &gt; f.first_at
+          AND v.created_at &lt;= f.first_at + INTERVAL &apos;30 days&apos;
+      )
+    ) / NULLIF(COUNT(*), 0),
+    1
+  ) AS repeat_rate_pct
+FROM first_orders f
+WHERE f.first_at &lt;= now() - INTERVAL &apos;30 days&apos;;
+```
+
+## نقاط لازم تنتبه لها
+
+1. **الـ status:** أنا استبعدت `cancelled / failed / refunded`. عدّل القائمة حسب القيم الفعلية عندك، وشوفها الأول بـ `SELECT DISTINCT status FROM orders`.
+2. **شرط `first_at &lt;= now() - 30 days`:** من غيره العملاء الجداد هيقلّلوا النسبة ظلم، لأن الـ 30 يوم بتاعتهم لسه ما خلصتش.
+3. **الضيوف (guest checkout):** لو `customer_id` فاضي لبعض الطلبات، العميل ده مش هيتحسب. اتأكد إن الـ id ثابت لنفس الشخص، أو استخدم الإيميل أو التليفون كبديل.
+4. **طلبات في نفس اللحظة:** لو العميل بيقسّم سلة واحدة على أكتر من order، ممكن تتحسب تكرار غلط. وقتها خلّي الشرط `created_at &gt; first_at + INTERVAL &apos;1 day&apos;` أو جمّع الطلبات حسب اليوم.
+
+## لو عايز تطوّره
+
+- **حسب الشهر:** اعمل `GROUP BY date_trunc(&apos;month&apos;, first_at)` عشان تشوف الاتجاه، هل النسبة بتتحسن ولا لأ.
+- **المقياس البديل:** لو منتجاتك استهلاكية، جرّب 60 أو 90 يوم. الـ 30 يوم ممكن تكون قصيرة على المنتجات اللي بتخلص ببطء.
+
+لو بعتلي شكل الـ `status` عندك، أظبطلك الاستعلام على القيم الحقيقية.</pre>
+</div>
+</details></div>
+</div>
+</section><section class="arm">
+<div class="arm-head">
+<span class="arm-label">Baseline (no plugin)</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">100% of runs perfect</span>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 1</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">1 turns · $0.05 · 12:59:49 UTC</span>
+</div>
+
+<div class="graders"><details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">quality</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence"># نسبة العملاء اللي رجعوا اشتروا خلال 30 يوم
+
+التعريف اللي هستخدمه: العميل &quot;رجع&quot; لو عنده طلب تاني خلال 30 يوم من **أول طلب** له.
+
+## الاستعلام (PostgreSQL)
+
+```sql
+WITH valid_orders AS (
+    SELECT customer_id, created_at
+    FROM orders
+    WHERE status NOT IN (&apos;cancelled&apos;, &apos;failed&apos;, &apos;refunded&apos;)  -- عدّلها حسب قيم الـ status عندك
+),
+first_orders AS (
+    SELECT customer_id, MIN(created_at) AS first_order_at
+    FROM valid_orders
+    GROUP BY customer_id
+),
+repeaters AS (
+    SELECT DISTINCT f.customer_id
+    FROM first_orders f
+    JOIN valid_orders o
+      ON o.customer_id = f.customer_id
+     AND o.created_at &gt;  f.first_order_at
+     AND o.created_at &lt;= f.first_order_at + INTERVAL &apos;30 days&apos;
+)
+SELECT
+    COUNT(*)                                        AS total_customers,
+    COUNT(r.customer_id)                            AS repeat_customers,
+    ROUND(100.0 * COUNT(r.customer_id) / COUNT(*), 2) AS repeat_rate_pct
+FROM first_orders f
+LEFT JOIN repeaters r USING (customer_id)
+WHERE f.first_order_at &lt;= NOW() - INTERVAL &apos;30 days&apos;;  -- عشان العملاء الجداد ما يقلّلوش النسبة
+```
+
+## نقاط مهمة
+
+1. **فلتر الـ status:** استبعد الطلبات الملغية أو الفاشلة، وإلا هتحسب عميل &quot;رجع&quot; وهو في الحقيقة لغى الطلب. شوف القيم الفعلية عندك بـ `SELECT DISTINCT status FROM orders`.
+2. **شرط آخر سطر مهم:** العميل اللي أول طلب له من 10 أيام لسه معندوش فرصة كاملة 30 يوم. لو دخّلته في الحساب، النسبة هتطلع أقل من الحقيقة.
+3. **`o.created_at &gt; f.first_order_at`:** بيمنع إن أول طلب نفسه يتحسب كأنه عودة. لو العميل عمل طلبين في نفس اللحظة بالضبط، الطلب التاني مش هيتحسب. ده نادر، بس لو طلبك يحتمل تقسيم الطلب لسجلين، استخدم `ROW_NUMBER()` بدل المقارنة بالوقت.
+4. **لو عندك guest checkout:** `customer_id` لو NULL لازم تستبعده بـ `AND customer_id IS NOT NULL`.
+
+## لو بتستخدم MySQL
+
+غيّر الجزء الخاص بالتواريخ:
+
+```sql
+AND o.created_at &lt;= DATE_ADD(f.first_order_at, INTERVAL 30 DAY)
+...
+WHERE f.first_order_at &lt;= NOW() - INTERVAL 30 DAY
+```
+
+## تحليل شهري (Cohort)
+
+لو عايز تشوف النسبة لكل شهر عشان تتابع التحسن:
+
+```sql
+SELECT
+    DATE_TRUNC(&apos;month&apos;, f.first_order_at) AS cohort_month,
+    COUNT(*)                              AS customers,
+    COUNT(r.customer_id)                  AS repeaters,
+    ROUND(100.0 * COUNT(r.customer_id) / COUNT(*), 2) AS repeat_rate_pct
+FROM first_orders f
+LEFT JOIN repeaters r USING (customer_id)
+WHERE f.first_order_at &lt;= NOW() - INTERVAL &apos;30 days&apos;
+GROUP BY 1
+ORDER BY 1;
+```
+
+لو قلتلي نوع قاعدة البيانات وقيم الـ `status` عندك، أظبطلك الاستعلام بالظبط.</pre>
+</div>
+</details></div>
+</div>
+</section>
+</details>
+<details class="section" open>
+<summary>Prompt</summary>
+<div class="md"><p>عندي متجر وعايز أعرف نسبة العملاء اللي بيرجعوا يشتروا تاني خلال 30 يوم. عندي جدول orders فيه customer_id و created_at و status. أحسبها إزاي؟</p>
+</div>
+</details>
+<details class="section" open>
+<summary>Graders — what "good" means for this case</summary>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">agent-used</span><span class="badge">tool_used</span></div>
+<div class="config"><div class="kv"><span>tool</span><code>&quot;Agent&quot;</code></div><div class="kv"><span>input_match</span><code>&quot;data-analyst&quot;</code></div><div class="kv"><span>min</span><code>1</code></div><div class="kv"><span>arm</span><code>&quot;with-only&quot;</code></div></div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">quality</span><span class="badge">llm</span></div>
+<div class="md"><p>PASS if the reply defines the metric before the query (who counts as a customer, the 30-day window measured from the first order, which order statuses are excluded), gives SQL that counts distinct customers rather than orders, and states a caveat such as customers whose 30-day window has not finished yet.
+FAIL if it gives a query with no metric definition, or counts orders instead of customers.</p>
+</div>
+</div>
+</details>
+</article>
+<article class="case" id="case-3">
+<div class="case-head">
+<h2>delivery-agent-routes</h2>
+<span class="muted mono">evals/delivery-agent-routes</span>
+<span class="spacer"></span>
+
+<span class="delta delta-zero">· 0.0 pts</span>
+<span class="muted">with plugin</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:0.0%"></span><i class="tick" style="left:100.0%"></i></span>
+<span class="num case-score">0%</span>
+</div>
+
+<details class="section" open>
+<summary>Results</summary>
+<section class="arm">
+<div class="arm-head">
+<span class="arm-label">With plugin</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:0.0%"></span></span>
+<span class="num">0%</span>
+<span class="muted num">0% of runs perfect</span>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 1</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:0.0%"></span></span>
+<span class="num">0%</span>
+<span class="muted num">1 turns · $0.10 · 13:00:07 UTC</span>
+</div>
+
+<div class="graders"><details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">agent-used</span>  <span class="badge">plugin-fired indicator</span></summary>
+<div class="grader-body">
+<p class="explanation">Agent called 0x (expected 1..∞)</p>
+
+</div>
+</details>
+<details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">quality</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: FAIL FAIL FAIL</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✗ ✗ ✗</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">جرّب `/sabry-kit:kit-setup` لما تفضى (دقيقتين أسئلة وبتتحفظ كإعدادات ثابتة).
+
+مقدرش أرتّب المشاريع من غير ما أعرفها، ومفيش في المجلد الحالي ملفات خطة أو progress أبني عليها. ابعتلي عن كل مشروع:
+
+1. **الاسم وهو إيه** في جملة.
+2. **الـ deadline أو الالتزام الخارجي** (عميل مستني؟ تاريخ تسليم؟).
+3. **العائد**: فلوس قريبة، عميل حالي، ولا استثمار طويل المدى؟
+4. **حالته**: فكرة، نص شغل، ولا قريب من التسليم؟
+5. **الجهد المتبقي** تقريباً بالأيام.
+
+لو المشاريع ليها ريبوهات أو ملفات `Plan/` على الجهاز، قولي المسارات وأنا أقرأ الحالة منها بدل ما تكتب.
+
+أول ما توصلني الإجابات هديك ترتيب واحد واضح، ومعاه إيه اللي يتأجل ولماذا.</pre>
+</div>
+</details></div>
+</div>
+</section><section class="arm">
+<div class="arm-head">
+<span class="arm-label">Baseline (no plugin)</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:0.0%"></span></span>
+<span class="num">0%</span>
+<span class="muted num">0% of runs perfect</span>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 1</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:0.0%"></span></span>
+<span class="num">0%</span>
+<span class="muted num">1 turns · $0.04 · 13:00:16 UTC</span>
+</div>
+
+<div class="graders"><details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">quality</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: FAIL FAIL FAIL</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✗ ✗ ✗</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">محتاج منك شوية معلومات الأول، لأني معنديش أي تفاصيل عن المشاريع. ابعتلي لكل مشروع:
+
+1. **الاسم وفكرته في جملة**.
+2. **الديدلاين**، لو فيه واحد، وهل هو ثابت ولا ممكن يتأجل.
+3. **اللي باقي فيه**، وتقدير تقريبي للوقت.
+4. **الأثر لو اتأخر**: عميل مستني، فلوس داخلة، أو حاجة تانية متعلقة بيه.
+5. **هل فيه مشروع معتمد على التاني**، أو حاجة معطلاك فيه.
+
+لو كتبتلي حتى سطرين عن كل واحد، هرتبهم وأقولك أبدأ بأنهي واحد وليه. وكمان أقسملك الأسبوع، يعني كام ساعة أو يوم لكل مشروع.
+
+لو المشاريع موجودة كفولدرات على الجهاز، قولي مكانها وأنا أبص عليها وأطلع الحالة بنفسي.</pre>
+</div>
+</details></div>
+</div>
+</section>
+</details>
+<details class="section" open>
+<summary>Prompt</summary>
+<div class="md"><p>عندي 3 مشاريع شغال عليهم مع بعض ومش عارف أبدأ بأنهي واحد الأسبوع ده. رتّبلي.</p>
+</div>
+</details>
+<details class="section" open>
+<summary>Graders — what "good" means for this case</summary>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">agent-used</span><span class="badge">tool_used</span></div>
+<div class="config"><div class="kv"><span>tool</span><code>&quot;Agent&quot;</code></div><div class="kv"><span>input_match</span><code>&quot;delivery-manager&quot;</code></div><div class="kv"><span>min</span><code>1</code></div><div class="kv"><span>arm</span><code>&quot;with-only&quot;</code></div></div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">quality</span><span class="badge">llm</span></div>
+<div class="md"><p>PASS if the reply bases the order on evidence it looked for or asks for (deadlines, blockers, state of each project) and gives an ordered list with a reason per project and the decisions needed from the owner.
+FAIL if it gives generic time-management advice with no per-project order.</p>
+</div>
+</div>
+</details>
+</article>
+<article class="case" id="case-4">
+<div class="case-head">
+<h2>integration-agent-routes</h2>
+<span class="muted mono">evals/integration-agent-routes</span>
+<span class="spacer"></span>
+
+<span class="delta delta-zero">· 0.0 pts</span>
+<span class="muted">with plugin</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span><i class="tick" style="left:100.0%"></i></span>
+<span class="num case-score">100%</span>
+</div>
+
+<details class="section" open>
+<summary>Results</summary>
+<section class="arm">
+<div class="arm-head">
+<span class="arm-label">With plugin</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">100% of runs perfect</span>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 1</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">1 turns · $0.10 · 13:00:18 UTC</span>
+</div>
+
+<div class="graders"><details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">agent-used</span>  <span class="badge">plugin-fired indicator</span></summary>
+<div class="grader-body">
+<p class="explanation">Agent called 0x (expected 1..∞)</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">quality</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">أولاً: شغّل `/sabry-kit:kit-setup` (دقيقتين) عشان الإعدادات تتحفظ. لحد ما تعمله هشتغل بالافتراضي.
+
+## الإجابة المختصرة
+
+**ماتعلّمش الطلب مدفوع لما العميل يرجع للموقع.** علّمه مدفوع من **الـ webhook** اللي البوابة بتبعته لسيرفرك، بعد ما تتأكد من توقيعه. صفحة الرجوع للعرض بس.
+
+## ليه
+
+- العميل ممكن يقفل المتصفح قبل ما يرجع، فالطلب يفضل &quot;معلّق&quot; رغم إنه دفع.
+- رابط الرجوع ممكن أي حد يفتحه أو يعدّل الـ query string بتاعه. لو علّمت الطلب منه، يبقى أي حد يعمل طلب مدفوع من غير ما يدفع.
+- الـ webhook بيجي من البوابة لسيرفرك مباشرة، ومعاه توقيع تقدر تتحقق منه.
+
+## التدفق المقترح
+
+1. **إنشاء الطلب:** الحالة `pending_payment`. تحفظ مرجع البوابة (session/intent id) مربوط بالطلب.
+2. **تحويل العميل للبوابة:** مع `order_id` أو مرجعك في الـ metadata.
+3. **صفحة الرجوع:** ماتغيّرش حاجة في الـ DB. تعرض &quot;جاري تأكيد الدفع&quot; وتعمل polling خفيف على حالة الطلب من الـ API. أول ما الحالة تتغير تعرض النجاح.
+4. **الـ webhook (المكان الوحيد اللي بيعلّم مدفوع):**
+   - تتحقق من التوقيع على الـ raw body قبل ما تعمل parse.
+   - تتأكد إن المبلغ والعملة والمرجع مطابقين للطلب عندك.
+   - تعمل التحديث في transaction واحدة في Drizzle. التحديث مشروط بإن الحالة `pending_payment`.
+   - تحفظ `event_id` بقيد unique، فلو البوابة بعتت نفس الحدث مرتين (وده بيحصل) الثاني يتتجاهل.
+   - ترجع 200 بسرعة، وأي شغل تقيل (إيميل، مخزون) يتعمل في background job.
+5. **Reconciliation job:** كل 10–15 دقيقة تسأل البوابة عن الطلبات المعلّقة اللي عدّى عليها وقت. ده بيغطي webhook ضاع أو وقع السيرفر وقتها.
+
+## نقاط لازم تتأكد منها
+
+- الحالات الفاشلة والملغية والمستردة (`failed`، `expired`، `refunded`) تتعامل معها في نفس الـ endpoint.
+- الـ webhook secret في env، ومايتسجلش في اللوج.
+- الـ endpoint عام، فاعمل له rate limit وماتثقش في أي حقل قبل التحقق من التوقيع.
+- جرّب بـ sandbox الأول: دفع ناجح، دفع فاشل، العميل يقفل الصفحة، وحدث متكرر.
+
+## توصيتي
+
+الـ webhook هو مصدر الحقيقة، والـ reconciliation شبكة أمان، وصفحة الرجوع للعرض بس.
+
+عشان أحدد الـ adapter بالظبط محتاج أعرف **أنهي بوابة** (Paymob / Fawry / Stripe / غيرها)، لأن شكل التوقيع والأحداث بيختلف. قولي وأكتبلك خطة المهام في ملف، ولو عايز تنفيذ قول &quot;نفّذ&quot;.</pre>
+</div>
+</details></div>
+</div>
+</section><section class="arm">
+<div class="arm-head">
+<span class="arm-label">Baseline (no plugin)</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">100% of runs perfect</span>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 1</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">1 turns · $0.05 · 13:00:18 UTC</span>
+</div>
+
+<div class="graders"><details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">quality</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">**متعلّمش الطلب مدفوع من صفحة الرجوع (redirect).** علّمه مدفوع من **الـ webhook** (إشعار server-to-server من البوابة) بعد ما تتأكد إنه حقيقي.
+
+## ليه؟
+- الـ redirect بيعدّي من متصفح العميل. أي حد يقدر يفتح `/payment/success?order=123` بنفسه من غير ما يدفع.
+- العميل ممكن يقفل المتصفح قبل الرجوع، فتفضل الفلوس متحصّلة والطلب مش مدفوع.
+- الـ webhook هو المصدر الموثوق، والبوابة بتعيد إرساله لو سيرفرك وقع.
+
+## الـ flow
+1. **إنشاء الطلب:** سجّل الطلب بحالة `pending` واحفظ `provider_payment_id` اللي رجعته البوابة.
+2. **Webhook:** `POST /webhooks/payment`
+   - اتحقق من الـ signature على الـ **raw body** (HMAC بالـ secret بتاع البوابة).
+   - اتأكد إن المبلغ والعملة يطابقوا الطلب في الـ DB.
+   - علّم الطلب `paid` بشكل **idempotent**.
+3. **صفحة الرجوع:** اعرض الحالة من الـ DB بس. لو لسه `pending`، اعمل polling خفيف كل ثانيتين، أو اسأل API البوابة مباشرة (server-side) عن حالة الدفع.
+
+## كود مبدئي
+
+```ts
+app.post(&apos;/webhooks/payment&apos;, async (c) =&gt; {
+  const raw = await c.req.text(); // raw مش json() عشان الـ signature
+  const sig = c.req.header(&apos;x-signature&apos;) ?? &apos;&apos;;
+
+  const expected = createHmac(&apos;sha256&apos;, process.env.WEBHOOK_SECRET!)
+    .update(raw).digest(&apos;hex&apos;);
+  const a = Buffer.from(sig), b = Buffer.from(expected);
+  if (a.length !== b.length || !timingSafeEqual(a, b)) {
+    return c.text(&apos;invalid signature&apos;, 401);
+  }
+
+  const event = JSON.parse(raw);
+  if (event.type !== &apos;payment.succeeded&apos;) return c.text(&apos;ignored&apos;, 200);
+
+  // UPDATE مشروط: idempotent وآمن مع التكرار والـ race conditions
+  const updated = await db.update(orders)
+    .set({ status: &apos;paid&apos;, paidAt: new Date() })
+    .where(and(
+      eq(orders.providerPaymentId, event.data.id),
+      eq(orders.status, &apos;pending&apos;),
+      eq(orders.amountCents, event.data.amount),
+      eq(orders.currency, event.data.currency),
+    ))
+    .returning({ id: orders.id });
+
+  if (updated.length) {
+    // أول مرة بس: ابعت إيميل، فعّل الاشتراك، قلّل المخزون...
+  }
+  return c.text(&apos;ok&apos;, 200); // رجّع 200 دايمًا بعد المعالجة عشان البوابة متعيدش الإرسال
+});
+```
+
+## نقاط مهمة
+- **Idempotency:** البوابات بتبعت نفس الـ event أكتر من مرة. شرط `status = &apos;pending&apos;` في الـ `WHERE` بيمنع التنفيذ المزدوج. ولو عايز أمان أكتر، خزّن `event.id` في جدول `webhook_events` بـ unique constraint.
+- **الـ raw body:** لو عملت `c.req.json()` قبل التحقق، الـ signature ممكن متطابقش.
+- **الـ endpoint من غير auth/CSRF:** البوابة مش هتبعت cookies، فالـ signature هو الحماية الوحيدة.
+- **الحالات التانية:** تعامل مع `failed` و`refunded` و`expired`، وما تعتمدش على `succeeded` بس.
+- **الـ polling كـ fallback:** ممكن تضيف cron job يراجع الطلبات الـ `pending` الأقدم من 15 دقيقة مع API البوابة.
+
+لو قلتلي إنت بتستخدم أنهي بوابة (Stripe, Paymob, Fawry, Tap...)، هكتبلك الـ signature verification وأسماء الـ events بالظبط. ولو عايز أدخل على الـ schema بتاعك الحالي، قولي وأبص على الكود.</pre>
+</div>
+</details></div>
+</div>
+</section>
+</details>
+<details class="section" open>
+<summary>Prompt</summary>
+<div class="md"><p>عايز أربط بوابة دفع بالموقع (Hono + Drizzle). العميل بيدفع وبيرجع للموقع. أعلّم الطلب إنه مدفوع إمتى وإزاي؟</p>
+</div>
+</details>
+<details class="section" open>
+<summary>Graders — what "good" means for this case</summary>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">agent-used</span><span class="badge">tool_used</span></div>
+<div class="config"><div class="kv"><span>tool</span><code>&quot;Agent&quot;</code></div><div class="kv"><span>input_match</span><code>&quot;integration-engineer&quot;</code></div><div class="kv"><span>min</span><code>1</code></div><div class="kv"><span>arm</span><code>&quot;with-only&quot;</code></div></div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">quality</span><span class="badge">llm</span></div>
+<div class="md"><p>PASS if the reply says the order is marked paid from a verified webhook or a server-side call to the provider and not from the browser redirect, requires webhook signature verification, and handles duplicate webhook deliveries idempotently.
+FAIL if it marks the order paid on the redirect or success page, or omits signature verification.</p>
+</div>
+</div>
+</details>
+</article>
+<article class="case" id="case-5">
+<div class="case-head">
+<h2>market-research-idea</h2>
+<span class="muted mono">evals/market-research-idea</span>
+<span class="spacer"></span>
+
+<span class="delta delta-pos">↑ +50.0 pts</span>
+<span class="muted">with plugin</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:50.0%"></span><i class="tick" style="left:100.0%"></i></span>
+<span class="num case-score">50%</span>
+</div>
+
+<details class="section" open>
+<summary>Results</summary>
+<section class="arm">
+<div class="arm-head">
+<span class="arm-label">With plugin</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:50.0%"></span></span>
+<span class="num">50%</span>
+<span class="muted num">0% of runs perfect</span>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 1</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:50.0%"></span></span>
+<span class="num">50%</span>
+<span class="muted num">1 turns · $0.10 · 13:00:27 UTC</span>
+</div>
+
+<div class="graders"><details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">agent-used</span>  <span class="badge">plugin-fired indicator</span></summary>
+<div class="grader-body">
+<p class="explanation">Agent called 0x (expected 1..∞)</p>
+
+</div>
+</details>
+<details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">arabic</span>  </summary>
+<div class="grader-body">
+<p class="explanation">pattern not found in last_message</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">decision</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">**الفكرة تستاهل تتجرّب، بس ما تبنيهاش دلوقتي. اتأكد الأول إن حد هيدفع.**
+
+اقتراح: `/sabry-kit:kit-setup` (دقيقتين) عشان أظبط الإعدادات على أسلوبك.
+
+**الجيد في الفكرة:**
+- الألم حقيقي. الطلبات الضايعة وسط الواتساب والورق مشكلة يومية عند أصحاب المطاعم.
+- العميل بيحس بالمشكلة من غير ما تشرحله.
+
+**المخاطر:**
+1. **السوق زحمة.** فيه Foodics وLoyverse وSquare وأدوات طلب عبر واتساب، وكتير منها مجاني أو رخيص.
+2. **المطاعم الصغيرة بتدفع قليل وبتسيب بسرعة.** لو الاشتراك 200 جنيه في الشهر، محتاج مئات العملاء عشان الأرقام تمشي، وكل عميل محتاج دعم وتدريب.
+3. **العادة أقوى من الأداة.** صاحب المطعم عنده واتساب شغّال. لازم تكون أسهل منه، مش أحسن منه بس.
+4. **&quot;تطبيق&quot; ممكن يكون الشكل الغلط.** ممكن الحل الأنسب يتبني فوق الواتساب نفسه (استقبال الطلب وتنظيمه) من غير ما العميل يحمّل أي حاجة.
+
+**اللي أنصح بيه (أسبوعين، تكلفتهم تقريباً صفر):**
+1. كلّم 10 إلى 15 صاحب مطعم صغير. اسأل عن آخر مرة ضاع فيها طلب، وبيتعاملوا معاه إزاي دلوقتي، وجرّبوا أداة قبل كده وليه سابوها.
+2. اعمل نسخة يدوية: Google Sheet أو Form مربوطين بواتساب، وجرّبها مع 3 مطاعم.
+3. اطلب منهم فلوس مقدّم أو التزام مكتوب. الكلام الحلو مش دليل.
+4. ابني فقط لو 3 إلى 5 مطاعم على الأقل قالوا &quot;هدفع&quot; وقصدوها.
+
+محتاج أعرف عشان أحسم أكتر:
+- أنت في أنهي بلد؟
+- المطاعم دي أغلبها توصيل، ولا تيك أواي، ولا قعدة؟
+- عندك وصول فعلي لأصحاب مطاعم، ولا هتبدأ من الصفر؟
+
+لو جاوبت، أعمل لك دليل أسئلة للمقابلات وخطة التحقق في ملف.</pre>
+</div>
+</details></div>
+</div>
+</section><section class="arm">
+<div class="arm-head">
+<span class="arm-label">Baseline (no plugin)</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:0.0%"></span></span>
+<span class="num">0%</span>
+<span class="muted num">0% of runs perfect</span>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 1</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:0.0%"></span></span>
+<span class="num">0%</span>
+<span class="muted num">1 turns · $0.05 · 13:00:35 UTC</span>
+</div>
+
+<div class="graders"><details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">arabic</span>  </summary>
+<div class="grader-body">
+<p class="explanation">pattern not found in last_message</p>
+
+</div>
+</details>
+<details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">decision</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: FAIL FAIL FAIL</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✗ ✗ ✗</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">**الجواب المختصر: ممكن، لكن لا تبنِها قبل ما تتحقق من الفكرة. التحقق أرخص بكثير من البناء.**
+
+**ليش الفكرة واعدة**
+- المشكلة حقيقية: الورق والواتساب يسببون ضياع طلبات وأخطاء وفوضى وقت الذروة.
+- المطاعم الصغيرة غالباً ما تغطيها الأنظمة الكبيرة، لأنها غالية ومعقدة.
+
+**المخاطر**
+- **المنافسة موجودة**: Foodics وToast وSquare وLoyverse وأنظمة POS محلية، وبعضها رخيص أو مجاني.
+- **المنافس الحقيقي هو الواتساب**: هو مجاني ومألوف، والصاحب لا يحتاج تعلّم شيء. تطبيقك لازم يكون أسهل منه، وليس أفضل منه فقط.
+- **قدرة الدفع ضعيفة**: أصحاب المطاعم الصغيرة حساسون للسعر، فاحسب هل تكفي 5–15 دولاراً في الشهر لتغطية تكلفة اكتساب العميل والدعم.
+- **التبنّي صعب**: الموظفون مشغولون ولا وقت عندهم لتعلّم أداة جديدة، والإقناع يحتاج زيارات ميدانية.
+
+**كيف تتحقق قبل البناء (أسبوعين تقريباً)**
+1. كلّم 10 إلى 15 صاحب مطعم. اسألهم كيف يستقبلون الطلبات اليوم، وأين يضيع الوقت أو المال، وهل جرّبوا أنظمة وليش تركوها، وكم يدفعون الآن.
+2. لا تسألهم &quot;هل تستخدمون تطبيقاً مثل هذا؟&quot; لأن الجميع سيقول نعم. اسأل عن آخر مرة ضاع فيها طلب، وكم كلّفهم.
+3. جرّب نسخة بدائية بلا تطبيق: نموذج Google Form أو بوت واتساب بسيط أو لوحة طلبات على شاشة، وجرّبها مجاناً مع 3 مطاعم.
+4. الإشارة الحقيقية للنجاح هي أن يطلبوا منك الاستمرار أو يدفعوا، وليس أن يقولوا &quot;فكرة حلوة&quot;.
+
+**إذا نجح التحقق**
+- ابدأ بواتساب أو ويب بسيط بدل تطبيق موبايل كامل.
+- ركّز على شيء واحد: استقبال الطلبات وتتبّع حالتها (جديد، قيد التحضير، جاهز).
+- اختر منطقة أو نوع مطاعم محدداً، مثل المطاعم الصغيرة في مدينتك، بدل استهداف الجميع.
+
+لأعطيك رأياً أدق، أحتاج أن أعرف: في أي بلد أو مدينة، وهل عندك صلة بأصحاب مطاعم، وهل ستبني بنفسك أم مع فريق؟</pre>
+</div>
+</details></div>
+</div>
+</section>
+</details>
+<details class="section" open>
+<summary>Prompt</summary>
+<div class="md"><p>عندي فكرة تطبيق لأصحاب المطاعم الصغيرة يتابعوا بيه الطلبات بدل الورق والواتساب. تستاهل أبنيها؟</p>
+</div>
+</details>
+<details class="section" open>
+<summary>Graders — what "good" means for this case</summary>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">agent-used</span><span class="badge">tool_used</span></div>
+<div class="config"><div class="kv"><span>tool</span><code>&quot;Agent&quot;</code></div><div class="kv"><span>input_match</span><code>&quot;market-researcher&quot;</code></div><div class="kv"><span>min</span><code>1</code></div><div class="kv"><span>arm</span><code>&quot;with-only&quot;</code></div></div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">arabic</span><span class="badge">regex</span></div>
+<div class="config"><div class="kv"><span>target</span><code>&quot;last_message&quot;</code></div><div class="kv"><span>pattern</span><code>&quot;[ -ۿ]{20,}&quot;</code></div><div class="kv"><span>flags</span><code>&quot;&quot;</code></div><div class="kv"><span>match</span><code>&quot;contains&quot;</code></div></div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">decision</span><span class="badge">llm</span></div>
+<div class="md"><p>PASS if the reply lists the assumptions to test before building (for example: the problem is frequent, existing tools don't fit, owners would pay), says how to test them (interviews, reviews, pricing tests), and ends with one decision such as Proceed / Adjust / Research More / Stop, in Arabic or English.
+FAIL if it just encourages building, gives a generic business plan, or treats the idea as validated without evidence.</p>
+</div>
+</div>
+</details>
+</article>
+<article class="case" id="case-6">
+<div class="case-head">
+<h2>mobile-agent-routes</h2>
+<span class="muted mono">evals/mobile-agent-routes</span>
+<span class="spacer"></span>
+
+<span class="delta delta-zero">· 0.0 pts</span>
+<span class="muted">with plugin</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span><i class="tick" style="left:100.0%"></i></span>
+<span class="num case-score">100%</span>
+</div>
+
+<details class="section" open>
+<summary>Results</summary>
+<section class="arm">
+<div class="arm-head">
+<span class="arm-label">With plugin</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">100% of runs perfect</span>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 1</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">1 turns · $0.11 · 13:00:39 UTC</span>
+</div>
+
+<div class="graders"><details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">agent-used</span>  <span class="badge">plugin-fired indicator</span></summary>
+<div class="grader-body">
+<p class="explanation">Agent called 0x (expected 1..∞)</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">quality</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">💡 قبل ما نكمّل: شغّل `/sabry-kit:kit-setup` (دقيقتين) عشان تحفظ تفضيلاتك كإعدادات ثابتة. لحد ما تعمل كده هستخدم الإعدادات الافتراضية.
+
+## التوصية: Outbox Queue + Idempotency Key
+
+الفكرة إن الطلب ما يتبعتش مباشرة. بيتكتب الأول في طابور محلي دائم، وبعدين عامل منفصل يبعته ويعيد المحاولة لحد ما ينجح.
+
+### الأجزاء (على الموبايل)
+
+1. **تخزين دائم للطابور.** استخدم MMKV (سريع وبسيط) أو SQLite لو الطلبات كبيرة أو كتير. الطابور لازم يعيش بعد إغلاق التطبيق أو الكراش. أي طابور في الذاكرة بس يضيع مع الكراش.
+2. **Idempotency key لكل عملية.** ولّد UUID وقت إنشاء العملية، مش وقت الإرسال، واحفظه مع الطلب. ده أهم جزء، وسببه إن الـ timeout غامض. ساعات الطلب يوصل للسيرفر والرد هو اللي يضيع، فلو أعدت الإرسال من غير key هتعمل طلب مكرر (أوردر مرتين مثلًا).
+3. **حالات واضحة لكل عنصر:** `pending` ← `sending` ← `sent` أو `failed`. اعرضها في الـ UI (أيقونة ساعة، &quot;فشل، اضغط للإعادة&quot;)، وعدّل الـ UI بشكل optimistic.
+4. **متى تفرّغ الطابور (flush):** عند رجوع النت (`@react-native-community/netinfo`)، وعند رجوع التطبيق للـ foreground، وعند فتح التطبيق.
+5. **سياسة إعادة المحاولة:**
+   - **أعد المحاولة:** عند network error أو timeout أو 5xx أو 408 أو 429. استخدم exponential backoff مع jitter، واحترم `Retry-After`.
+   - **لا تعيد:** عند 4xx الأخرى (400 أو 403 أو 422). ده خطأ في الطلب نفسه، فحوّله لـ `failed` واعرضه للمستخدم.
+6. **الترتيب:** لو العمليات معتمدة على بعض (إنشاء ثم تعديل لنفس الكيان)، ابعتها بالتسلسل لكل كيان. المستقل منها ممكن يتبعت بالتوازي.
+7. **الـ token:** جدّد الـ auth token قبل إعادة الإرسال. الطابور ممكن يفضل ساعات والـ token ينتهي.
+
+### على السيرفر (مطلوب، من غيره الحل ناقص)
+
+- ادعم header `Idempotency-Key`. خزّن المفتاح مع النتيجة (24 إلى 72 ساعة)، ولو جه نفس المفتاح تاني رجّع نفس الرد من غير ما تنفّذ مرة ثانية.
+- اعمل unique constraint على المفتاح في الداتابيز، عشان طلبين متزامنين بنفس المفتاح ما ينفذوش الاتنين.
+
+### قرارات لازم تحسمها
+
+| السؤال | توصيتي |
+|---|---|
+| **العمليات الحساسة** (دفع، حجز بمخزون محدود) | ما تدخلهاش الطابور. اعرض &quot;محتاج اتصال&quot; بوضوح. تنفيذها متأخر ممكن يبقى غلط. |
+| **عمر العملية في الطابور (TTL)** | حدّد TTL (مثلًا 24 ساعة) وبعدها اسأل المستخدم بدل ما تبعت بصمت. |
+| **iOS في الخلفية** | ما تعتمدش عليه. الإرسال في الخلفية غير مضمون، فاعتبر الـ foreground هو المسار الأساسي. |
+| **التعارضات (conflicts)** | لو العمليات إضافات فقط، مفيش مشكلة. لو تعديلات على بيانات مشتركة، محتاج version أو `updatedAt` على السيرفر. |
+
+### أدوات جاهزة بدل ما تبني
+
+- **لو بتستخدم TanStack Query:** عنده `persistQueryClient` مع mutation persistence و`networkMode: &apos;offlineFirst&apos;`، وبيغطي 70% من اللي فوق. هتكمّل أنت الـ idempotency key وتصنيف الأخطاء.
+- **لو محتاج sync كامل (قراءة وكتابة أوفلاين):** بص على WatermelonDB أو PowerSync. ده أكبر بكتير من مجرد طابور إرسال.
+
+**قراري:** لو عندك TanStack Query، ابني على الـ mutation persistence وزوّد الـ Idempotency-Key على الطرفين. لو لأ، اكتب outbox صغير (MMKV + NetInfo، حوالي 150 سطر). وفي الحالتين، الـ idempotency key على السيرفر شرط أساسي.
+
+عايزني أحوّل ده لخطة مهام مكتوبة في `Plan/`، ولا تقولي الـ stack اللي عندك (بتستخدم إيه للـ networking والـ state؟) وأظبط التصميم عليه؟</pre>
+</div>
+</details></div>
+</div>
+</section><section class="arm">
+<div class="arm-head">
+<span class="arm-label">Baseline (no plugin)</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">100% of runs perfect</span>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 1</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">1 turns · $0.06 · 13:00:42 UTC</span>
+</div>
+
+<div class="graders"><details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">quality</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence"># الحل: طابور طلبات offline (Outbox Pattern)
+
+الفكرة إنك متحاولش تبعت الطلب مباشرة. احفظه الأول محليًا، وبعدين ابعته لما النت يرجع.
+
+## المكونات الأساسية
+
+**1. كشف حالة الشبكة**
+استخدم `@react-native-community/netinfo`:
+```ts
+import NetInfo from &apos;@react-native-community/netinfo&apos;;
+
+NetInfo.addEventListener(state =&gt; {
+  if (state.isConnected &amp;&amp; state.isInternetReachable) flushQueue();
+});
+```
+شيّك على `isInternetReachable` مش `isConnected` بس. الجهاز ممكن يكون على WiFi من غير إنترنت فعلي.
+
+**2. تخزين الطابور بشكل دائم**
+لازم الطابور يفضل موجود حتى لو التطبيق اتقفل. استخدم:
+- `MMKV`: سريع وبسيط، وهو الأنسب لمعظم الحالات.
+- `SQLite` أو `WatermelonDB`: لو الطلبات كتير أو محتاج استعلامات.
+- `AsyncStorage`: ينفع لكنه أبطأ.
+
+كل عنصر في الطابور:
+```ts
+{
+  id: uuid(),              // idempotency key
+  method: &apos;POST&apos;,
+  url: &apos;/orders&apos;,
+  body: {...},
+  createdAt: Date.now(),
+  retries: 0,
+  status: &apos;pending&apos;
+}
+```
+
+**3. معالج الطابور (Flush)**
+- ابعت الطلبات **بالترتيب** (FIFO) لو في اعتماد بينها.
+- لو نجح الطلب، شيله من الطابور.
+- لو فشل بسبب الشبكة، سيبه وجرّب تاني.
+- لو فشل بخطأ 4xx (طلب غلط)، شيله أو علّمه `failed` ومترجّعش تحاول تاني. إعادة المحاولة مش هتفيد.
+
+**4. Retry مع Exponential Backoff**
+```ts
+const delay = Math.min(1000 * 2 ** retries, 60000) + Math.random() * 1000;
+```
+الـ jitter (الجزء العشوائي) بيمنع إن كل الأجهزة تضرب السيرفر في نفس اللحظة.
+
+## أهم نقطة: الـ Idempotency
+
+لو الطلب وصل للسيرفر بس الرد ضاع، التطبيق هيعيد الإرسال والعملية تتكرر (طلب مكرر، دفع مرتين).
+
+الحل إنك تبعت `Idempotency-Key` ثابت لكل طلب، وهو الـ `id` اللي اتولد وقت الإنشاء:
+```ts
+headers: { &apos;Idempotency-Key&apos;: item.id }
+```
+والسيرفر يحفظ المفاتيح اللي شافها، ولو جاله نفس المفتاح تاني يرجّع نفس النتيجة من غير ما ينفّذ تاني. من غير ده الحل كله مش آمن.
+
+## تجربة المستخدم (UX)
+- **Optimistic UI**: اعرض النتيجة فورًا واعتبر الطلب ناجح، وصحّح لو فشل.
+- اعرض مؤشر واضح زي &quot;في انتظار الإرسال&quot; أو &quot;بنحاول تاني&quot;.
+- ادّي المستخدم طريقة يشوف الطلبات الفاشلة ويعيد المحاولة أو يلغيها.
+
+## متى ترسل الطابور؟
+- لما النت يرجع (NetInfo listener).
+- لما التطبيق يرجع للـ foreground (`AppState`).
+- عند فتح التطبيق.
+- لو محتاج الإرسال والتطبيق في الخلفية: `react-native-background-fetch` أو `WorkManager` على Android. لكن iOS بيحدّ من ده.
+
+## مكتبات جاهزة توفر عليك الشغل
+- **TanStack Query** مع `persistQueryClient` و`onlineManager`: بيدعم mutations offline وإعادة تشغيلها تلقائيًا. دي أسرع طريقة لو بتستخدمه أصلًا.
+- **Redux Offline** أو **redux-persist** مع middleware: لو عندك Redux.
+- **WatermelonDB** مع sync: لو التطبيق offline-first بالكامل.
+
+## قرارات لازم تاخدها
+| السؤال | التوصية |
+|---|---|
+| كل الطلبات تتخزن؟ | لأ. الـ GET مش محتاج طابور، والـ mutations بس (POST/PUT/DELETE) |
+| لو الطلب قديم قوي؟ | حط TTL، والطلبات المنتهية تتشال أو تطلب تأكيد |
+| تعارض في البيانات (conflict)؟ | اعتمد على `updatedAt` أو version number، أو &quot;آخر كاتب يكسب&quot; |
+| حساسية الطلب (دفع مثلًا)؟ | الأفضل متدخلوش في الطابور، واطلب نت وقت التنفيذ |
+
+## الخلاصة
+1. خزّن الطلب محليًا مع UUID.
+2. اكشف رجوع النت.
+3. ابعت بالترتيب مع backoff.
+4. استخدم Idempotency Key علشان متتكررش العمليات.
+5. وضّح الحالة للمستخدم.
+
+لو قلتلي بتستخدم إيه حاليًا (Redux؟ TanStack Query؟ Axios؟) وإيه نوع الطلبات، أقدر أكتبلك كود مناسب لمشروعك.</pre>
+</div>
+</details></div>
+</div>
+</section>
+</details>
+<details class="section" open>
+<summary>Prompt</summary>
+<div class="md"><p>عندي تطبيق React Native والمستخدم لما النت يقطع وهو بيبعت طلب، الطلب بيضيع. أصمّم الحل إزاي؟</p>
+</div>
+</details>
+<details class="section" open>
+<summary>Graders — what "good" means for this case</summary>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">agent-used</span><span class="badge">tool_used</span></div>
+<div class="config"><div class="kv"><span>tool</span><code>&quot;Agent&quot;</code></div><div class="kv"><span>input_match</span><code>&quot;mobile-developer&quot;</code></div><div class="kv"><span>min</span><code>1</code></div><div class="kv"><span>arm</span><code>&quot;with-only&quot;</code></div></div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">quality</span><span class="badge">llm</span></div>
+<div class="md"><p>PASS if the reply covers what the user sees offline, a local queue or retry with idempotency so the order is not lost or duplicated, and what survives an app restart.
+FAIL if it only says to show an error, or ignores duplicates and restarts.</p>
+</div>
+</div>
+</details>
+</article>
+<article class="case case-regressed" id="case-7">
+<div class="case-head">
+<h2>orchestrate-feature</h2>
+<span class="muted mono">evals/orchestrate-feature</span>
+<span class="spacer"></span>
+
+<span class="delta delta-neg">↓ -100.0 pts</span>
+<span class="muted">with plugin</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:0.0%"></span><i class="tick" style="left:100.0%"></i></span>
+<span class="num case-score">0%</span>
+</div>
+
+<details class="section" open>
+<summary>Results</summary>
+<section class="arm">
+<div class="arm-head">
+<span class="arm-label">With plugin</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:0.0%"></span></span>
+<span class="num">0%</span>
+<span class="muted num">0% of runs perfect</span>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 1</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:0.0%"></span></span>
+<span class="num">0%</span>
+<span class="muted num">1 turns · $0.47 · 13:00:56 UTC</span>
+</div>
+
+<div class="graders"><details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">agents-launched</span>  <span class="badge">plugin-fired indicator</span></summary>
+<div class="grader-body">
+<p class="explanation">Agent called 2x (expected 2..∞)</p>
+
+</div>
+</details>
+<details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">coverage</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: FAIL FAIL FAIL</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✗ ✗ ✗</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">وقفت قبل الخطوة التالية. `cto` خالف قرار `senior-pm` في نقطة واحدة، والقواعد تقول أوقف وأعرض التعارض عليك.
+
+**التعارض: طريقة تقريب الخصم بالنسبة**
+
+| | `senior-pm` | `cto` |
+|---|---|---|
+| التقريب | لأسفل | round-half-up |
+
+الفرق قرش واحد في بعض الطلبات. التقريب لأسفل أحمى للمتجر من خصم زيادة. round-half-up هو المعتاد في حساب الضريبة. توصيتي **round-half-up**، بشرط أن يتحسب على الخصم نفسه ويتثبّت في `redemptions` وقت الطلب، فلا يتغير بعدها.
+
+**اللي `cto` حسمه** (التفاصيل في `.agents/plans/coupons/architecture.md`):
+- **التزامن (R3):** `UPDATE` شرطي واحد على عدّاد الاستخدام داخل معاملة الطلب. بيتحقق من إن الكوبون مش معطّل ومش منتهي وتحت الحد. فحص حد العميل الواحد بيتم بعده تحت نفس القفل. وفيه حماية إضافية: `CHECK` على العدّاد وقيد unique على `redemptions.order_id`.
+- **البيانات:** جدولان جديدان `coupons` و`redemptions`، وإضافات على `orders`. الفلوس بأصغر وحدة، والنسبة بـ basis points، والضريبة بعد الخصم.
+- **الإلغاء:** تحويل الحالة من active إلى released ثم إنقاص العدّاد، فتكرار الإلغاء مايأثرش.
+- **الانتهاء أو التعطيل أثناء الدفع:** رد 409 مع الإجمالي الجديد، والسعر مايتغيرش بصمت.
+- **الضيف:** معرّف `g:` + الإيميل بعد التطبيع.
+
+**نقطة ضعف محتاجة قرار:** `cto` افترض rate limit في الذاكرة على instance واحدة. لو الـ API هيشتغل على أكتر من instance، الحد مايتطبقش صح. الحل Redis أو جدول في Postgres.
+
+**أسئلة محتاجة ردك:**
+1. التقريب: round-half-up (توصيتي) ولا لأسفل؟
+2. الـ API هيشتغل على instance واحدة ولا أكتر؟
+3. عملة المتجر والـ timezone (مفتوحة من `cto`).
+4. الضيوف مسموحين في الدفع؟ (`cto` افترض نعم، والتكلفة صفر تقريباً.)
+
+أول ما تردّ أطلق بالتوازي `backend-architect` و`Frontend Developer` و`Database-Optimizer`، وبعدهم `qa-tester`. لو قلت &quot;كمّل بالتوصيات&quot; هكمّل بـ round-half-up، وبـ rate limit في Postgres عشان يشتغل على أي عدد instances، وضيوف مسموحين.</pre>
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">skill-fired</span>  <span class="badge">plugin-fired indicator</span></summary>
+<div class="grader-body">
+<p class="explanation">Skill called 1x (expected 1..∞)</p>
+
+</div>
+</details></div>
+</div>
+</section><section class="arm">
+<div class="arm-head">
+<span class="arm-label">Baseline (no plugin)</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">100% of runs perfect</span>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 1</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">1 turns · $0.07 · 13:00:58 UTC</span>
+</div>
+
+<div class="graders"><details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">coverage</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence"># خطة نظام كوبونات الخصم
+
+&gt; لم أفتح الريبو. الخطة مبنية على الـ stack اللي ذكرته (Hono + Drizzle + Next.js). قبل ما نبدأ لازم نراجع شكل جدول الطلبات الحالي وطريقة الـ auth.
+
+## 1. القرارات المعمارية
+
+**الموديل (Drizzle)**
+- جدول `coupons`:
+  - `code` فريد، ويتخزن normalized (uppercase + trim).
+  - `type` (نسبة أو مبلغ ثابت) و`value`.
+  - `max_uses` و`used_count`.
+  - `expires_at` و`is_active`.
+  - اختياري: حد أدنى للطلب، وسقف أقصى للخصم في حالة النسبة.
+- جدول `coupon_redemptions`: `coupon_id` و`order_id` و`user_id` و`discount_amount` و`created_at`. فيه unique على `order_id`، وعلى `(coupon_id, user_id)` لو عايزين حد لكل عميل.
+- جدول الطلبات يتضاف له `coupon_id` و`discount_amount`، ويتخزن snapshot للمبلغ وقت الطلب.
+- الفلوس تتخزن بأصغر وحدة (قروش)، من غير floats.
+
+**منع التجاوز مع الطلبات المتزامنة (أهم نقطة)**
+- ماينفعش نعمل &quot;اقرأ العداد، قارن، بعدين زوّد&quot;، لأن طلبين في نفس اللحظة هيعدّوا الاتنين.
+- الحل: **عملية UPDATE واحدة ذرّية وشرطية** جوه نفس الـ transaction بتاعة إنشاء الطلب.
+  - الشرط في الـ WHERE: الكوبون فعّال، ولسه ماانتهاش، و`used_count` أقل من `max_uses`.
+  - الزيادة في العداد تحصل في نفس الجملة.
+  - لو ماتأثرش ولا صف، يبقى الكوبون خلص أو انتهى، والطلب يفشل برسالة واضحة.
+- الـ unique constraints في الداتابيز هي خط الدفاع الأخير، مش الكود بس.
+- لو الطلب اتلغى أو الدفع فشل، العداد يتنقّص ويتحذف الـ redemption في نفس الـ transaction بتاعة الإلغاء، وبشكل idempotent.
+
+**قواعد عامة**
+- السيرفر هو اللي يحسب السعر النهائي. الـ frontend ماينفعش يبعت سعر أو خصم.
+- endpoint التحقق (validate) للمعاينة بس، وماينفعش يحجز استخدام. الاستهلاك الفعلي بيحصل وقت إنشاء الطلب فقط.
+- الكوبونات المنتهية أو الخلصانة لازم تدّي أكواد أخطاء مميزة (منتهي، مستنفد، غير صالح) عشان الـ UI يعرض الرسالة الصح.
+
+## 2. التاسكات والتوزيع
+
+| # | التاسك | المسؤول | يعتمد على |
+|---|--------|---------|-----------|
+| T1 | تصميم الـ schema + migration (الجداول والـ constraints والـ indexes) | Backend/DB | — |
+| T2 | تثبيت **API contract**: شكل الـ requests/responses وأكواد الأخطاء (OpenAPI أو types مشتركة) | Backend + Frontend lead | — |
+| T3 | Admin API: إنشاء كوبون، قائمة، تعطيل/تعديل، مع validation (النسبة 1–100، المبلغ موجب، الانتهاء في المستقبل) وحماية بدور admin | Backend | T1، T2 |
+| T4 | Pricing service: دالة حساب الخصم (نسبة/ثابت، السقف، عدم نزول الإجمالي تحت صفر) | Backend | T1 |
+| T5 | Validate endpoint للعميل (معاينة بدون حجز) | Backend | T2، T4 |
+| T6 | دمج الكوبون في إنشاء الطلب: الـ UPDATE الذرّي + الـ redemption + الطلب في transaction واحدة | Backend | T1، T4 |
+| T7 | تحرير الكوبون عند إلغاء الطلب أو فشل الدفع | Backend | T6 |
+| T8 | صفحة أدمن في Next.js: فورم إنشاء + جدول الكوبونات + تعطيل | Frontend | T2 (mock لحد T3) |
+| T9 | صفحة الدفع: حقل كود الكوبون، حالات (loading/نجاح/أخطاء)، عرض الخصم والإجمالي الجديد، إمكانية الإزالة | Frontend | T2 (mock لحد T5) |
+| T10 | اختبارات الـ concurrency (انظر القسم 3) | QA/Backend | T6 |
+| T11 | اختبارات unit للـ pricing + integration للـ API + E2E للمسار الكامل | QA | T3–T9 |
+| T12 | مراجعة أمنية: brute-force على الأكواد (rate limit على validate)، صلاحيات الأدمن، عدم تسريب تفاصيل الكوبونات | Security/Review | T3، T5 |
+
+**ترتيب التنفيذ**
+1. **الموجة 1 (بالتوازي):** T1 + T2.
+2. **الموجة 2 (بالتوازي):** T3 + T4 من ناحية الـ backend، وT8 + T9 على mocks من ناحية الـ frontend.
+3. **الموجة 3:** T5 ثم T6 ثم T7، ويتبدّل الـ mocks بالـ API الحقيقي.
+4. **الموجة 4:** T10 + T11 + T12 ثم الدمج.
+
+## 3. خطة الاختبار
+
+**Concurrency (الأهم)**
+- كوبون `max_uses = 1`، و20–50 طلب متزامن بنفس الكود. المتوقع: نجاح واحد بالظبط، والباقي يفشل بخطأ &quot;مستنفد&quot;.
+- نفس التجربة مع `max_uses = N` والتأكد إن `used_count` ما يعدّيش N أبدًا.
+- طلبين متزامنين من نفس العميل مع حد لكل عميل.
+- الاختبار يشتغل على Postgres حقيقي (مش mock) لأن المشكلة في سلوك الـ DB.
+
+**باقي الحالات**
+- كوبون منتهي، أو معطّل، أو كود غلط، أو حروف صغيرة/كبيرة.
+- خصم أكبر من الإجمالي، أو أقل من الحد الأدنى للطلب.
+- إلغاء طلب ثم إعادة استخدام الكوبون، وتكرار الإلغاء مرتين (idempotency).
+- E2E: الأدمن ينشئ كوبون، والعميل يطبّقه في الدفع، والطلب يتسجل بالسعر الصح.
+
+## 4. معايير القبول
+- الأدمن ينشئ كوبون نسبة أو مبلغ ثابت بتاريخ انتهاء.
+- العميل يشوف الخصم في صفحة الدفع قبل التأكيد، والسعر النهائي محسوب من السيرفر.
+- تحت الضغط المتزامن، عدد الاستخدامات الناجحة ≤ `max_uses` دائمًا.
+- الإلغاء بيرجّع الاستخدام.
+- كل الاختبارات في القسم 3 بتعدّي.
+
+## 5. أسئلة محتاجة قرارك قبل البداية
+1. هل فيه حد لكل عميل (مرة واحدة لكل مستخدم) غير الحد الكلي؟
+2. هل الكوبون يتحجز وقت الدفع (قبل ما الدفع يكتمل) ولا بعد نجاحه؟ أنا أقترح الحجز وقت إنشاء الطلب مع التحرير عند الفشل أو الإلغاء.
+3. هل الكوبون مرتبط بمنتجات أو فئات معينة، ولا على إجمالي السلة كله؟
+4. هل مسموح بأكتر من كوبون في الطلب؟ أنا أفترض كوبون واحد فقط.
+5. هل فيه ضرائب أو شحن؟ لازم نحدد هل الخصم قبلها ولا بعدها.
+
+لو وافقت على الخطة وجاوبت على الأسئلة، أقدر أطلّع الـ agents للموجة الأولى (T1 + T2) بالتوازي.</pre>
+</div>
+</details></div>
+</div>
+</section>
+</details>
+<details class="section" open>
+<summary>Prompt</summary>
+<div class="md"><p>نسّق الفريق على feature كاملة: نظام كوبونات خصم لمتجر إلكتروني (Hono + Drizzle + Next.js). المطلوب: 1) الأدمن ينشئ كوبون بنسبة أو مبلغ ثابت وتاريخ انتهاء، 2) العميل يطبّق الكوبون في صفحة الدفع، 3) الكوبون مايتستخدمش أكتر من الحد بتاعه حتى مع طلبين في نفس اللحظة. عايز خطة وتاسكات بس، من غير كود.</p>
+</div>
+</details>
+<details class="section" open>
+<summary>Graders — what "good" means for this case</summary>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">agents-launched</span><span class="badge">tool_used</span></div>
+<div class="config"><div class="kv"><span>tool</span><code>&quot;Agent&quot;</code></div><div class="kv"><span>input_match</span><code>&quot;handoff&quot;</code></div><div class="kv"><span>min</span><code>2</code></div><div class="kv"><span>arm</span><code>&quot;with-only&quot;</code></div></div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">coverage</span><span class="badge">llm</span></div>
+<div class="md"><p>PASS if the final reply accounts for all three asks separately (admin creates a coupon, customer applies it at checkout, usage limit holds under concurrent orders), states for each whether it is covered, and addresses the concurrency ask with a concrete mechanism (transaction with row lock, atomic conditional update, or unique constraint).
+FAIL if any of the three asks is missing from the final reply, or the concurrency ask is answered only with "check the count before applying".</p>
+</div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">skill-fired</span><span class="badge">tool_used</span></div>
+<div class="config"><div class="kv"><span>tool</span><code>&quot;Skill&quot;</code></div><div class="kv"><span>input_match</span><code>&quot;\&quot;skill\&quot;\\s*:\\s*\&quot;(?:[\\w-]+:)?kit-orchestrate\&quot;&quot;</code></div><div class="kv"><span>arm</span><code>&quot;with-only&quot;</code></div></div>
+</div>
+</details>
+</article>
+<article class="case case-regressed" id="case-8">
+<div class="case-head">
+<h2>proposal-agent-routes</h2>
+<span class="muted mono">evals/proposal-agent-routes</span>
+<span class="spacer"></span>
+
+<span class="delta delta-neg">↓ -100.0 pts</span>
+<span class="muted">with plugin</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:0.0%"></span><i class="tick" style="left:100.0%"></i></span>
+<span class="num case-score">0%</span>
+</div>
+
+<details class="section" open>
+<summary>Results</summary>
+<section class="arm">
+<div class="arm-head">
+<span class="arm-label">With plugin</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:0.0%"></span></span>
+<span class="num">0%</span>
+<span class="muted num">0% of runs perfect</span>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 1</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:0.0%"></span></span>
+<span class="num">0%</span>
+<span class="muted num">2 turns · $0.14 · 13:01:07 UTC</span>
+</div>
+
+<div class="graders"><details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">agent-used</span>  <span class="badge">plugin-fired indicator</span></summary>
+<div class="grader-body">
+<p class="explanation">Agent called 0x (expected 1..∞)</p>
+
+</div>
+</details>
+<details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">quality</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: FAIL FAIL FAIL</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✗ ✗ ✗</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">مفيش أداة أسئلة متاحة، فهسألك هنا.
+
+1. **تحب أعمل إيه بالمسودة؟** (توصيتي) أحفظها كملف `.md`، أو أنسقها بصيغة جاهزة للإرسال بالإيميل أو واتساب.
+2. **تحب أقسمها لباقتين (أساسية ومتقدمة)** عشان العميل يختار؟ ده بيسهّل تحديد السعر بعدين.
+3. **لما تحدد السعر والمدة**، ابعتهم وأنا أملا الأرقام وأظبط جدول الدفعات.</pre>
+</div>
+</details></div>
+</div>
+</section><section class="arm">
+<div class="arm-head">
+<span class="arm-label">Baseline (no plugin)</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">100% of runs perfect</span>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 1</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">1 turns · $0.06 · 13:01:13 UTC</span>
+</div>
+
+<div class="graders"><details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">quality</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence"># عرض سعر: موقع حجز مواعيد للعيادة
+
+**التاريخ:** [التاريخ]
+**رقم العرض:** [رقم]
+**صالح حتى:** [تاريخ الانتهاء]
+
+**مقدم إلى:** [اسم العميل / اسم العيادة]
+**مقدم من:** [اسمك / اسم شركتك]
+
+---
+
+## 1. نبذة عن المشروع
+تصميم وتطوير موقع إلكتروني لعيادة [اسم العيادة]. يعرّف الموقع بالعيادة وخدماتها، ويتيح للمرضى حجز مواعيدهم أونلاين دون مكالمات هاتفية. ويمنح إدارة العيادة لوحة تحكم لتنظيم المواعيد.
+
+## 2. نطاق العمل
+
+### أ. واجهة الموقع (للزوار والمرضى)
+- صفحة رئيسية تعرّف بالعيادة وتخصصاتها
+- صفحة الأطباء (الصورة، التخصص، نبذة)
+- صفحة الخدمات
+- صفحة تواصل معنا والموقع على الخريطة
+- تصميم متجاوب يعمل على الموبايل والتابلت والكمبيوتر
+- دعم اللغة العربية والاتجاه من اليمين لليسار [وإضافة الإنجليزية إن لزم]
+
+### ب. نظام حجز المواعيد
+- اختيار الطبيب أو الخدمة، ثم اليوم والوقت المتاح
+- عرض المواعيد المتاحة فقط، ومنع الحجز المزدوج
+- نموذج بيانات المريض (الاسم، الموبايل، سبب الزيارة)
+- رسالة تأكيد بعد الحجز عبر [SMS / واتساب / بريد إلكتروني]
+- تذكير تلقائي قبل الموعد
+- إمكانية إلغاء الموعد أو تعديله
+
+### ج. لوحة تحكم الإدارة
+- عرض المواعيد وتصفيتها حسب اليوم أو الطبيب
+- تأكيد الحجوزات أو إلغاؤها أو تعديلها
+- ضبط جدول عمل كل طبيب والإجازات
+- إدارة الأطباء والخدمات
+- حسابات بصلاحيات مختلفة (مدير / موظف استقبال)
+- تقارير بسيطة عن عدد الحجوزات
+
+### د. ما يشمله المشروع أيضًا
+- ضبط أساسي لمحركات البحث (SEO)
+- شهادة أمان (SSL)
+- اختبار شامل قبل التسليم
+- تدريب فريق العيادة على استخدام لوحة التحكم
+- دليل استخدام مختصر
+
+## 3. المدة الزمنية
+**مدة التنفيذ:** [المدة] من تاريخ استلام الدفعة الأولى وتسليم المحتوى المطلوب من العميل.
+
+| المرحلة | المدة |
+|---|---|
+| التصميم والموافقة عليه | [  ] |
+| التطوير | [  ] |
+| الاختبار والتعديلات | [  ] |
+| التسليم والتدريب | [  ] |
+
+## 4. التكلفة
+
+| البند | السعر |
+|---|---|
+| تصميم وتطوير الموقع | [  ] |
+| نظام الحجز ولوحة التحكم | [  ] |
+| **الإجمالي** | **[  ]** |
+
+**خيارات إضافية (اختيارية):**
+| البند | السعر |
+|---|---|
+| ربط رسائل SMS / واتساب | [  ] |
+| الدفع الإلكتروني للكشف | [  ] |
+| لغة إضافية | [  ] |
+| تطبيق موبايل | [  ] |
+
+**تكاليف خارجية (على العميل):** الدومين والاستضافة وباقات الرسائل، بتكلفة تقريبية [  ] سنويًا. [أو: مشمولة في العرض لأول سنة.]
+
+## 5. شروط الدفع
+- **[ ]%** دفعة مقدمة عند الموافقة وبدء العمل
+- **[ ]%** عند الموافقة على التصميم
+- **[ ]%** عند التسليم النهائي
+
+## 6. الدعم والصيانة
+- **[ ]** شهر دعم فني مجاني بعد التسليم لإصلاح أي أخطاء
+- بعد ذلك: صيانة واستضافة اختيارية بـ [  ] شهريًا / سنويًا
+
+## 7. ما نحتاجه من العميل
+- شعار العيادة وهويتها البصرية (إن وجدت)
+- بيانات الأطباء والخدمات وصورهم
+- مواعيد عمل كل طبيب
+- الرد والموافقة في المواعيد المتفق عليها، فالتأخير قد يؤخر موعد التسليم
+
+## 8. ملاحظات
+- أي طلبات خارج النطاق المذكور تُسعَّر بشكل منفصل.
+- يشمل العرض [عدد] جولات تعديل على التصميم.
+- ملكية الموقع والكود تنتقل للعميل بعد سداد كامل المبلغ.
+- هذا العرض صالح لمدة [  ] يومًا من تاريخه.
+
+---
+
+**للموافقة على العرض:** يُرجى الرد بالموافقة أو التوقيع أدناه.
+
+**التوقيع:** ____________  **التاريخ:** ____________
+
+**للتواصل:** [اسمك] | [رقم الموبايل] | [البريد الإلكتروني]
+
+---
+
+**ملاحظات لك قبل الإرسال:**
+- لو العميل عنده نظام إدارة عيادة قائم، أضف بندًا للربط معه، وسعّره منفصلًا لأنه يغيّر حجم الشغل.
+- حدّد في العرض مَن يدفع تكلفة الرسائل، فهي تتكرر شهريًا وتحسب حسب الاستخدام.
+- لو العميل متردد، قسّم العرض لباقتين (أساسية ومتكاملة) بدل سعر واحد، وسيختار غالبًا الأوسط.
+
+لو حابب أعدّل العرض بالإنجليزي، أو أحوله لباقات، أو أختصره في صفحة واحدة، قولي.</pre>
+</div>
+</details></div>
+</div>
+</section>
+</details>
+<details class="section" open>
+<summary>Prompt</summary>
+<div class="md"><p>اكتبلي عرض سعر لعميل عايز موقع حجز مواعيد لعيادة. السعر والمدة لسه ما اتحددوش.</p>
+</div>
+</details>
+<details class="section" open>
+<summary>Graders — what "good" means for this case</summary>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">agent-used</span><span class="badge">tool_used</span></div>
+<div class="config"><div class="kv"><span>tool</span><code>&quot;Agent&quot;</code></div><div class="kv"><span>input_match</span><code>&quot;proposal-writer&quot;</code></div><div class="kv"><span>min</span><code>1</code></div><div class="kv"><span>arm</span><code>&quot;with-only&quot;</code></div></div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">quality</span><span class="badge">llm</span></div>
+<div class="md"><p>PASS if the draft lists what is included and what is not, leaves the price and timeline as clearly marked gaps or questions instead of inventing numbers, and says what is needed from the client.
+FAIL if it invents a price or a delivery date.</p>
+</div>
+</div>
+</details>
+</article>
+<article class="case" id="case-9">
+<div class="case-head">
+<h2>seo-agent-routes</h2>
+<span class="muted mono">evals/seo-agent-routes</span>
+<span class="spacer"></span>
+
+<span class="delta delta-zero">· 0.0 pts</span>
+<span class="muted">with plugin</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span><i class="tick" style="left:100.0%"></i></span>
+<span class="num case-score">100%</span>
+</div>
+
+<details class="section" open>
+<summary>Results</summary>
+<section class="arm">
+<div class="arm-head">
+<span class="arm-label">With plugin</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">100% of runs perfect</span>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 1</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">3 turns · $0.11 · 13:01:31 UTC</span>
+</div>
+
+<div class="graders"><details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">agent-used</span>  <span class="badge">plugin-fired indicator</span></summary>
+<div class="grader-body">
+<p class="explanation">Agent called 0x (expected 1..∞)</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">quality</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: FAIL PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✗ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">مفيش كود المشروع في المجلد ده، فهرتّب لك الخطوات من الخبرة. ابدأ بالترتيب ده، لأن كل خطوة بتستبعد فئة كاملة من الأسباب:
+
+**1. حدّد المشكلة: &quot;مش مفهرسة&quot; ولا &quot;مش بتظهر&quot;؟** (10 دقايق)
+- في Google Search Console افتح **URL Inspection** على رابط منتج واحد، وبعده **Pages (Indexing)**.
+- الحالة هتقول لك بالظبط: `Discovered – currently not indexed` أو `Crawled – currently not indexed` أو `Excluded by noindex` أو `Alternate page with proper canonical`. كل حالة ليها علاج مختلف، فمتخمّنش قبل ما تشوفها.
+- جرّب كمان `site:yourdomain.com/products` في جوجل.
+
+**2. افحص الحاجات اللي بتقتل الفهرسة في Next.js** (أكتر الأسباب شيوعاً)
+- **`noindex` بالغلط:** افحص `metadata.robots` وهيدر `X-Robots-Tag`. ممكن يكون جاي من إعداد staging اتنقل للـ production.
+- **`robots.txt`:** تأكد إنه مش بيعمل `Disallow` على `/products` أو `/ar` أو `/en`.
+- **الـ Canonical:** لو كل المنتجات canonical على الصفحة الرئيسية أو على لغة واحدة، جوجل هيتجاهلها.
+- **الـ Rendering:** اعمل View Source، مش Inspect. لو بيانات المنتج مش في الـ HTML الأولي وبتتحمّل بـ `useEffect` أو client fetch، جوجل غالباً هيشوف صفحة فاضية. المنتجات لازم تيجي من Server Components أو SSG/ISR.
+- **الـ Middleware الخاص باللغة:** لو بيعمل redirect حسب `Accept-Language` أو الـ cookie، Googlebot هيتوجّه للغة واحدة أو يدخل في loop. اللغتين لازم يكون لكل واحدة URL ثابت (`/ar/...` و`/en/...`).
+
+**3. الـ i18n SEO**
+- `hreflang` متبادل بين النسختين، ولكل نسخة `x-default`، وكل صفحة تشير لنفسها.
+- `alternates.languages` في `generateMetadata` لكل صفحة منتج.
+- عنوان ووصف وslug مختلفين لكل لغة. المحتوى المترجم آلياً أو المكرر بيتصنّف &quot;duplicate&quot;.
+
+**4. اكتشاف الصفحات**
+- `sitemap.ts` ديناميكي فيه كل المنتجات باللغتين، مع `alternates`. قدّمه في Search Console.
+- لازم يكون في روابط داخلية حقيقية `&lt;a href&gt;` من التصنيفات للمنتجات. لو التنقل كله JS onClick، الزاحف مش هيلاقيها.
+
+**5. الجودة**
+- لو الحالة `Crawled – not indexed`، يبقى المشكلة في المحتوى: وصف رفيع أو مكرر، أو صفحات شبه متطابقة. ضيف وصف فريد وبيانات `Product` JSON-LD.
+
+**توصيتي:** ابدأ بخطوة 1 وابعتلي الحالة اللي بتظهر في Search Console لرابط منتج واحد، ومعاها نتيجة View Source للصفحة نفسها. ساعتها أحدد لك السبب الفعلي بدل ما نعدّل كل حاجة.
+
+لو عايزني أراجع الكود نفسه، حط المشروع في المجلد ده أو قول لي مساره. وأقدر أستخدم agent الـ `seo-content` للمراجعة الفنية.
+
+وبالمناسبة، الإعداد الأولي للكيت لسه ما اتعملش. شغّل `/sabry-kit:kit-setup` (دقيقتين).</pre>
+</div>
+</details></div>
+</div>
+</section><section class="arm">
+<div class="arm-head">
+<span class="arm-label">Baseline (no plugin)</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">100% of runs perfect</span>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 1</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">2 turns · $0.06 · 13:01:39 UTC</span>
+</div>
+
+<div class="graders"><details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">quality</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">المجلد فاضي، مفيش كود موقعك هنا. فده ترتيب البداية العام، من الأرخص للأغلى:
+
+## 1. شوف المشكلة فين (10 دقايق، من غير كود)
+- **Google Search Console** ← ضيف الموقع لو مش مضاف. بعدها افتح **URL Inspection** وحط لينك منتج واحد. هتلاقي واحدة من الحالات دي:
+  - *Discovered – currently not indexed*: جوجل عارف اللينك بس مزحفش عليه. السبب غالباً ضعف internal links أو sitemap ناقص.
+  - *Crawled – currently not indexed*: جوجل زحف بس شايف المحتوى ضعيف أو مكرر.
+  - *Excluded by noindex* أو *Blocked by robots.txt*: مشكلة إعدادات، وغالباً أسهل حاجة تتصلح.
+  - *Duplicate, Google chose different canonical*: مشكلة canonical.
+- افتح تقرير **Pages** (Indexing) وشوف الأسباب المجمّعة. ده بيقولك لو المشكلة في كل الصفحات ولا في المنتجات بس.
+- اعمل **&quot;Test Live URL&quot; ← View Crawled Page ← Screenshot**. لو الصفحة طالعة فاضية أو من غير بيانات المنتج، يبقى المحتوى بيتحمّل client-side.
+
+## 2. افحص الأسباب الشائعة في Next.js (دي أكتر حاجات بتحصل)
+1. **الرندر**: صفحات المنتجات لازم تتولد على السيرفر (SSG/ISR/SSR). اعمل `curl -s https://yoursite.com/ar/products/x | grep &quot;اسم المنتج&quot;`. لو الاسم مش موجود في الـ HTML الخام، المشكلة هنا.
+2. **noindex**: دوّر على `robots: { index: false }` في `generateMetadata`، أو على header اسمه `X-Robots-Tag`. ممكن يكون جاي من middleware أو من بيئة staging اتنقلت للـ production.
+3. **robots.txt**: افتح `/robots.txt` وتأكد إنه مش عامل `Disallow: /` ومش بيمنع `/products` أو `/_next/`.
+4. **sitemap.xml**: لازم يكون فيه كل لينكات المنتجات بالنسختين، وتبعته في Search Console. في App Router استخدم `app/sitemap.ts` وولّد المنتجات من الـ DB.
+5. **Canonical و hreflang** (مهم عشان عربي/إنجليزي):
+   - كل صفحة تشاور على نفسها بـ canonical. الغلط الشائع إن كل اللغات تشاور على النسخة الإنجليزية، فجوجل يتجاهل العربي.
+   - استخدم `alternates: { canonical, languages: { &apos;ar&apos;: ..., &apos;en&apos;: ..., &apos;x-default&apos;: ... } }` وخلّي الـ hreflang متبادل بين النسختين.
+6. **Internal linking**: لو المنتجات مش موصولة بلينكات `&lt;a href&gt;` حقيقية من الصفحة الرئيسية أو الأقسام، يعني فيها pagination بـ JS أو infinite scroll من غير لينكات، جوجل مش هيوصلها.
+7. **حالة الـ HTTP**: لازم تكون 200. لو المنتج مش موجود ارجع 404 حقيقي، مش صفحة &quot;غير موجود&quot; بحالة 200 (soft 404).
+8. **i18n routing**: لازم يبقى لكل لغة URL مختلف (`/ar/...` و`/en/...`). لو اللغة بتتحدد بالـ cookie أو الـ Accept-Language على نفس الـ URL، جوجل مش هيشوف غير نسخة واحدة.
+9. **Structured data**: `Product` schema بـ JSON-LD مش شرط للفهرسة، بس بيحسّن الظهور بعد ما الصفحة تتفهرس.
+
+## 3. لو الصفحات اتزحف عليها ومش بتتفهرس
+المحتوى غالباً رفيع أو مكرر: وصف المنتج منسوخ من المورّد، أو نص عام مكرر في كل الصفحات. أضف وصف مميز، وعناوين وصور، وتقييمات لو متاحة.
+
+## أبدأ منين بالظبط؟
+1. افحص لينك منتج واحد في URL Inspection وقولي الحالة اللي ظهرت.
+2. شغّل `curl` على نفس اللينك وشوف المحتوى موجود في الـ HTML ولا لأ.
+3. افتح `/robots.txt` و`/sitemap.xml`.
+
+لو عايزني أراجع الكود معاك، افتح Claude Code جوا مجلد المشروع، أو قولي مكانه. ولو بعتلي نتيجة الخطوات الـ3 أو لينك الموقع، أحدد لك السبب أسرع.</pre>
+</div>
+</details></div>
+</div>
+</section>
+</details>
+<details class="section" open>
+<summary>Prompt</summary>
+<div class="md"><p>موقعي Next.js بالعربي والإنجليزي وصفحات المنتجات مش بتظهر في جوجل خالص. أبدأ منين؟</p>
+</div>
+</details>
+<details class="section" open>
+<summary>Graders — what "good" means for this case</summary>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">agent-used</span><span class="badge">tool_used</span></div>
+<div class="config"><div class="kv"><span>tool</span><code>&quot;Agent&quot;</code></div><div class="kv"><span>input_match</span><code>&quot;seo-content&quot;</code></div><div class="kv"><span>min</span><code>1</code></div><div class="kv"><span>arm</span><code>&quot;with-only&quot;</code></div></div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">quality</span><span class="badge">llm</span></div>
+<div class="md"><p>PASS if the reply checks technical causes before content (indexing blockers such as noindex, robots.txt, canonical, rendering without JavaScript, sitemap), covers the two languages (separate URLs with hreflang, lang and dir), and gives a priority order.
+FAIL if it starts with keywords or writing more content, or promises a ranking.</p>
+</div>
+</div>
+</details>
+</article>
+<article class="case" id="case-10">
+<div class="case-head">
+<h2>support-agent-routes</h2>
+<span class="muted mono">evals/support-agent-routes</span>
+<span class="spacer"></span>
+
+<span class="delta delta-zero">· 0.0 pts</span>
+<span class="muted">with plugin</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:0.0%"></span><i class="tick" style="left:100.0%"></i></span>
+<span class="num case-score">0%</span>
+</div>
+
+<details class="section" open>
+<summary>Results</summary>
+<section class="arm">
+<div class="arm-head">
+<span class="arm-label">With plugin</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:0.0%"></span></span>
+<span class="num">0%</span>
+<span class="muted num">0% of runs perfect</span>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 1</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:0.0%"></span></span>
+<span class="num">0%</span>
+<span class="muted num">1 turns · $0.10 · 13:01:50 UTC</span>
+</div>
+
+<div class="graders"><details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">agent-used</span>  <span class="badge">plugin-fired indicator</span></summary>
+<div class="grader-body">
+<p class="explanation">Agent called 0x (expected 1..∞)</p>
+
+</div>
+</details>
+<details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">quality</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: FAIL FAIL FAIL</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✗ ✗ ✗</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">💡 قبل ما نبدأ: شغّل `/sabry-kit:kit-setup` (دقيقتين) عشان أشتغل بإعداداتك.
+
+دي حادثة production (Sev-1)، لأن الفواتير واقفة عند العميل من الصبح. ترتيب الشغل:
+
+## 1. رد على العميل دلوقتي (خلال 5 دقايق)
+ابعتله رد قصير قبل ما تعرف السبب:
+
+&gt; &quot;وصلتنا المشكلة وبنشتغل عليها حالًا. هنرجعلك بتحديث خلال 30 دقيقة. ممكن تبعتلي: (1) screenshot أو رسالة الخطأ، (2) الساعة اللي بدأت فيها، (3) هل المشكلة عند كل المستخدمين ولا مستخدم أو فرع معيّن؟&quot;
+
+أهم حاجة إنه يحس إن في حد ماسك الموضوع.
+
+## 2. حدّد النطاق (5 دقايق)
+- **الكل ولا واحد؟** لو الكل، يبقى عطل في السيستم. لو واحد، يبقى صلاحيات أو بيانات.
+- **الخطأ إيه بالظبط؟** شاشة بيضا، 500، بطء، ولا زرار مابيعملش حاجة.
+- **إيه اللي اتغيّر قبل الصبح؟** ده أهم سؤال:
+  - deploy أو تحديث جديد
+  - migration
+  - تغيير في env أو secrets
+  - شهادة SSL أو دومين منتهي
+  - disk أو قاعدة البيانات اتملت
+  - مزوّد خارجي واقع، زي بوابة الدفع أو ERP أو ضرايب الفاتورة الإلكترونية
+
+## 3. شخّص من الأدلة
+افتح اللوج أو Sentry على الساعة اللي بدأت فيها المشكلة. شوف الـ health check، وحالة السيرفر والـ DB (connections وdisk). لو في API خارجي للفواتير، اختبره لوحده.
+
+## 4. قرار الإصلاح
+| الحالة | الإجراء |
+|---|---|
+| بدأت بعد deploy | **Rollback فورًا** وحقق بعدين |
+| بدأت بعد migration | لا ترجّع الكود لوحده. راجع توافق الكود القديم مع الـ schema الجديد الأول |
+| مزوّد خارجي واقع | شغّل workaround أو queue للفواتير لحد ما يرجع |
+| مفيش تغيير ظاهر | مورد خارجي أو موارد خلصت (disk أو connections أو شهادة) |
+
+## 5. Workaround للعميل لو الإصلاح هياخد وقت
+- فواتير ورقية أو Excel مؤقتة بنفس الترقيم
+- أو إدخالها بأثر رجعي بعد الإصلاح
+
+اتفق معاه على الطريقة قبل ما تنفّذها، عشان ماتتعملش فواتير مكررة أو بترقيم متضارب.
+
+## 6. بعد الإصلاح
+- تأكد إن فاتورة حقيقية اتعملت من الأول للآخر، مش بس إن الصفحة فتحت.
+- ابعت للعميل تقرير قصير: إيه حصل، ومدّته، وإيه اللي اتعمل، وإزاي هنمنعه.
+- اعمل post-mortem داخلي وضيف **detection**: alert على فشل إنشاء الفواتير يوصلك قبل العميل.
+
+## توصيتي
+ابدأ بسؤال &quot;إيه اللي اتغيّر الصبح؟&quot;. في أغلب الحالات الإجابة deploy، وقتها الـ rollback أسرع من أي تشخيص.
+
+لو عايز، أشغّل agent الـ `support-triage` أو `devops-sre` على المشروع، ولازم تقولي الأول المشروع فين وإيه نوع الخطأ اللي ظهر. تحب نبدأ بإيه؟</pre>
+</div>
+</details></div>
+</div>
+</section><section class="arm">
+<div class="arm-head">
+<span class="arm-label">Baseline (no plugin)</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:0.0%"></span></span>
+<span class="num">0%</span>
+<span class="muted num">0% of runs perfect</span>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 1</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:0.0%"></span></span>
+<span class="num">0%</span>
+<span class="muted num">1 turns · $0.05 · 13:02:01 UTC</span>
+</div>
+
+<div class="graders"><details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">quality</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: FAIL FAIL FAIL</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✗ ✗ ✗</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence"># خطة تعامل سريعة مع بلاغ &quot;مفيش حد عارف يعمل فواتير&quot;
+
+## 1. رد على العميل فورًا (خلال دقايق)
+ما تستناش لحد ما تعرف السبب. العميل محتاج يحس إن في حد ماسك الموضوع:
+
+&gt; &quot;أهلًا يا فندم، وصلتنا المشكلة وبنراجعها حالًا. ممكن تبعتلي: 
+&gt; 1. رسالة الخطأ اللي بتظهر (سكرينشوت لو أمكن)؟ 
+&gt; 2. بدأت من امتى بالظبط؟ 
+&gt; 3. المشكلة عند كل المستخدمين ولا بعضهم؟ 
+&gt; هرجعلك بتحديث خلال ٣٠ دقيقة.&quot;
+
+## 2. حدد حجم المشكلة
+- هل السيستم كله واقع، ولا الفواتير بس؟
+- هل الكل متأثر ولا مستخدمين معينين؟
+- هل حصل تغيير قريب؟ مثل deploy أو تحديث أو تعديل إعدادات أو انتهاء شهادة SSL أو انتهاء اشتراك أو API key أو تغيير في الضرائب أو الفوترة الإلكترونية.
+
+## 3. شوف الأسباب الشائعة (بالترتيب)
+1. **آخر deploy أو تغيير:** لو توقيته قريب من بداية المشكلة، اعمل rollback.
+2. **الـ logs:** دور على errors من الصبح (500 أو timeout أو exceptions في خدمة الفواتير).
+3. **قاعدة البيانات:** مساحة القرص ممتلية، أو connections خلصت، أو lock أو query معلقة، أو sequence رقم الفاتورة وصل لحده.
+4. **خدمة خارجية:** بوابة الفوترة الإلكترونية (مثلًا مصلحة الضرائب)، أو بوابة الدفع، أو خدمة الإيميل أو الـ PDF. ممكن تكون واقعة أو غيّرت الـ API أو انتهت صلاحية التوكن أو الشهادة.
+5. **انتهاء صلاحية:** شهادات، توكنات، تراخيص، أو دومين.
+6. **الصلاحيات أو البيانات:** تغيير في الـ roles أو بيانات ناقصة (عميل أو ضريبة أو منتج) بتكسر الـ validation.
+
+## 4. حل مؤقت لو الإصلاح هياخد وقت
+- لو العميل مضغوط، اقترح workaround مؤقت: فواتير يدوية أو template، وبعدين تدخلها في السيستم لما يرجع.
+- الأولوية إن شغله يستمر، حتى لو بشكل مؤقت.
+
+## 5. حدّث العميل بانتظام
+حتى لو مفيش جديد، قوله &quot;لسه بنشتغل، آخر ما وصلنا له كذا&quot;. التواصل المنتظم بيقلل التوتر جدًا.
+
+## 6. بعد الحل
+- أكّد مع العميل إنه جرّب وشغال.
+- ابعتله ملخص قصير: إيه اللي حصل، وإيه اللي اتعمل، وإيه اللي هيمنع تكراره.
+- اعمل post-mortem داخلي، وضيف monitoring أو alert لو ما كانش موجود.
+
+---
+
+لو تحب أساعدك أكتر، قولي:
+- السيستم ده إيه (تطبيق من عندك؟ ERP؟ SaaS؟)
+- رسالة الخطأ لو موجودة
+- لو الكود في المجلد ده، أقدر أبص على الـ logs والكود المسؤول عن الفواتير وأدور على السبب معاك.</pre>
+</div>
+</details></div>
+</div>
+</section>
+</details>
+<details class="section" open>
+<summary>Prompt</summary>
+<div class="md"><p>العميل بعتلي: "السيستم بايظ ومفيش حد عارف يعمل فواتير من الصبح!!" اعمل إيه؟</p>
+</div>
+</details>
+<details class="section" open>
+<summary>Graders — what "good" means for this case</summary>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">agent-used</span><span class="badge">tool_used</span></div>
+<div class="config"><div class="kv"><span>tool</span><code>&quot;Agent&quot;</code></div><div class="kv"><span>input_match</span><code>&quot;support-triage&quot;</code></div><div class="kv"><span>min</span><code>1</code></div><div class="kv"><span>arm</span><code>&quot;with-only&quot;</code></div></div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">quality</span><span class="badge">llm</span></div>
+<div class="md"><p>PASS if the reply separates what was reported from what is known, lists the specific information or evidence needed to reproduce (which user, what they see, since when, recent deploys or logs), assigns a severity with its reason, and includes a ready reply to the client that states next steps without promising a fix time or blaming anyone.
+FAIL if it jumps to a fix or a cause with no evidence, or the client reply promises a specific fix time.</p>
+</div>
+</div>
+</details>
+</article>
+<footer>Generated by <code>claude plugin eval</code> · schema v1 · scores are not comparable across different suites</footer>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+  var bar=document.querySelector('.toolbar');
+  if(!bar)return;
+  bar.addEventListener('click',function(e){
+    var b=e.target&&e.target.closest('button');
+    if(!b)return;
+    var open=b.dataset.act==='expand';
+    document.querySelectorAll('details.section, details.grader').forEach(function(d){d.open=open});
+  });
+});
+// Collapsed details vanish from print/PDF; these pages are share artifacts.
+window.addEventListener('beforeprint',function(){
+  document.querySelectorAll('details').forEach(function(d){
+    if(!d.open){d.dataset.printOpened='1';d.open=true}
+  });
+});
+window.addEventListener('afterprint',function(){
+  document.querySelectorAll('details[data-print-opened]').forEach(function(d){
+    d.open=false;delete d.dataset.printOpened;
+  });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,106 @@
+{
+  "schemaVersion": 1,
+  "claudeVersion": "2.1.325",
+  "startedAt": "2026-11-14T13:04:00.474Z",
+  "durationSeconds": 28,
+  "costUsd": 0.1115131,
+  "partial": false,
+  "suite": {
+    "root": "/home/user/sabry-claude-kit",
+    "ablation": "none",
+    "caseFilter": "proposal-agent-routes",
+    "threshold": 1,
+    "concurrency": 1,
+    "plugins": [
+      {
+        "name": "sabry-kit",
+        "version": "0.3.0",
+        "path": "/home/user/sabry-claude-kit"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "proposal-agent-routes",
+      "dir": "evals/proposal-agent-routes",
+      "source": "prose",
+      "promptMarkdown": "اكتبلي عرض سعر لعميل عايز موقع حجز مواعيد لعيادة. السعر والمدة لسه ما اتحددوش.",
+      "runsPerCase": 3,
+      "timeoutSeconds": 300,
+      "maxTurns": 15,
+      "graders": [
+        {
+          "name": "agent-used",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Agent",
+            "input_match": "proposal-writer",
+            "min": 1,
+            "arm": "with-only"
+          }
+        },
+        {
+          "name": "quality",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "PASS if the draft lists what is included and what is not, leaves the price and timeline as clearly marked gaps or questions instead of inventing numbers, and says what is needed from the client.\nFAIL if it invents a price or a delivery date.",
+          "config": {
+            "criteria": "PASS if the draft lists what is included and what is not, leaves the price and timeline as clearly marked gaps or questions instead of inventing numbers, and says what is needed from the client.\nFAIL if it invents a price or a delivery date.",
+            "focus": "last_message"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 0.5,
+            "passed": false,
+            "turns": 1,
+            "costUsd": 0.1115131,
+            "judgeCostUsd": 0.0006777,
+            "durationSeconds": 28,
+            "startedAt": "2026-11-14T13:04:00.563Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-KLahF4/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "agent-used",
+                "passed": false,
+                "weight": 1,
+                "explanation": "Agent called 0x (expected 1..∞)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "quality",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "💡 تلميح: شغّل `/sabry-kit:kit-setup` (دقيقتين) عشان تحفظ إعداداتك، وده هيخلّي الردود تمشي على أسلوبك.\n\nدي مسودة عرض السعر. السعر والمدة سايبهم `[ ]` لحد ما تحددهم. ما بعتّش حاجة لحد.\n\n---\n\n# عرض سعر: نظام حجز مواعيد أونلاين لعيادة [اسم العيادة]\n\n**التاريخ:** [التاريخ]\n**مقدَّم إلى:** د. [اسم العميل]\n**مقدَّم من:** [اسمك / شركتك]\n**صلاحية العرض:** [عدد الأيام] يوم من تاريخه\n\n## 1. فهمنا لاحتياجكم\n\nعيادتكم محتاجة موقع يسمح للمرضى بحجز مواعيدهم أونلاين بدل الاتصال التليفوني. الموقع كمان يخلّي فريق العيادة ينظّم الجدول ويقلّل المواعيد الضايعة.\n\n## 2. نطاق العمل\n\n**واجهة المريض (الموقع)**\n- صفحة رئيسية تعرّف بالعيادة والأطباء والخدمات وبيانات التواصل والموقع.\n- حجز موعد على خطوات: اختيار الخدمة أو الطبيب، ثم اليوم والوقت المتاح، ثم بيانات المريض.\n- رسالة تأكيد الحجز، مع تذكير قبل الموعد عبر [SMS / واتساب / إيميل].\n- إمكانية إلغاء الموعد أو تعديله.\n- تصميم متجاوب مع الموبايل، وبدعم العربي (RTL) و[الإنجليزي].\n\n**لوحة تحكم العيادة**\n- تسجيل دخول آمن للموظفين.\n- إدارة الأطباء والخدمات وساعات العمل والإجازات.\n- عرض الحجوزات (يومي وأسبوعي) وتأكيدها أو إلغاؤها أو تعديلها.\n- بحث وتصفية بالمريض أو الطبيب أو الحالة.\n\n**أساسيات تقنية**\n- حماية بيانات المرضى والحجز بدون تعارض في المواعيد.\n- استضافة ونشر الموقع وربط الدومين وشهادة SSL.\n- اختبار شامل قبل التسليم.\n\n## 3. خارج النطاق (تُسعَّر منفصلة عند الطلب)\n\n- الدفع الأونلاين للكشف أو العربون.\n- السجل الطبي الإلكتروني أو الفواتير.\n- تطبيق موبايل مستقل.\n- تعدد الفروع.\n- كتابة المحتوى والتصوير الفوتوغرافي.\n- حملات الإعلانات والتسويق.\n\n> ملاحظة: البنود في النقطتين 2 و3 افتراضات من عندي. راجعها مع العميل قبل الإرسال.\n\n## 4. المراحل والمدة\n\n| المرحلة | المحتوى | المدة |\n|---|---|---|\n| 1. التحليل والتصميم | تأكيد المتطلبات وتصميم الشاشات للموافقة | [ ] |\n| 2. التطوير | الموقع ولوحة التحكم ونظام الحجز | [ ] |\n| 3. الاختبار والمراجعة | اختبار وتعديلات حسب ملاحظات العميل | [ ] |\n| 4. الإطلاق والتسليم | النشر وتدريب فريق العيادة | [ ] |\n| **الإجمالي** | | **[ ]** |\n\nالمدة تبدأ من تاريخ استلام الدفعة الأولى وتوفير المحتوى والبيانات المطلوبة.\n\n## 5. الاستثمار\n\n| البند | السعر |\n|---|---|\n| تصميم وتطوير نظام الحجز والموقع | [ ] |\n| لوحة التحكم | [ ] |\n| الاستضافة والدومين (سنة أولى) | [ ] أو على حساب العميل |\n| **الإجمالي** | **[ ] [العملة]** |\n\n**جدول الدفع المقترح:**\n- [ ]% عند التعاقد.\n- [ ]% عند الموافقة على التصميم.\n- [ ]% عند التسليم والإطلاق.\n\n## 6. شروط عامة\n\n- يشمل السعر **[عدد]** جولات تعديل على التصميم. أي تعديل خارجها أو إضافة خارج النطاق يُسعَّر منفصلًا.\n- تأخر العميل في توفير المحتوى أو الموافقات يمدّ مدة التنفيذ بنفس القدر.\n- الدعم الفني بعد التسليم: [ ] يوم مجانًا، وبعدها [باقة صيانة شهرية / حسب الطلب].\n- ملكية الموقع والكود تنتقل للعميل بعد سداد المبلغ بالكامل.\n\n## 7. الخطوة التالية\n\nللموافقة على العرض، الرد بالتأكيد وسداد الدفعة الأولى، وبنبدأ فورًا.\n\n[اسمك] | [التليفون] | [الإيميل]\n\n---\n\n**اللي لازم تحدده قبل الإرسال:**\n- السعر والمدة وجدول الدفع.\n- هل التذكيرات SMS ولا واتساب ولا إيميل؟ لأن واتساب وSMS ليهم تكلفة اشتراك شهرية.\n- هل الاستضافة والدومين عليك ولا على العميل؟\n- عدد جولات التعديل وفترة الدعم المجانية.\n\nلو عايز، أحوّلها لملف جاهز أو أضبط النبرة (أرسمي أكتر أو أبسط) أو أضيف نسخة إنجليزي."
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 0.5,
+        "passRate": 0
+      }
+    }
+  ],
+  "aggregates": {
+    "casesTotal": 1,
+    "casesPassed": 0,
+    "overallScore": 0.5,
+    "overallPassRate": 0
+  }
+}

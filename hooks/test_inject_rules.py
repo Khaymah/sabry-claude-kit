@@ -122,6 +122,19 @@ class InjectRulesTest(unittest.TestCase):
                     heading = next(l for l in fh if l.startswith("# "))
                 self.assertIn(heading.strip(), ctx, name)
 
+    def test_model_is_told_where_the_kit_files_are(self):
+        kit = os.path.dirname(os.path.dirname(HOOK)).replace("\\", "/")
+        with tempfile.TemporaryDirectory() as d:
+            ctx = ctx_of(run(d)[1])
+            self.assertIn(f"`{kit}/Roles/<name>.md`", ctx)
+            self.assertLess(ctx.index("Kit folder"), ctx.index("# Working mode"))
+            sub = lambda agent: run(d, args=("--subagent",), payload=json.dumps(
+                {"hook_event_name": "SubagentStart", "agent_type": agent}))[1]
+            self.assertIn(f"{kit}/Roles", ctx_of(sub("sabry-kit:cto")))
+            self.assertIn("Kit folder", ctx_of(sub("Explore")))
+            self.assertEqual(sub("other-plugin:reviewer"), "")
+        self.assertTrue(os.path.isfile(os.path.join(kit, "Roles", "CTO.md")))
+
     def test_rules_are_injected_again_after_compaction(self):
         compact = json.dumps({"hook_event_name": "SessionStart", "source": "compact", "session_id": "s"})
         with tempfile.TemporaryDirectory() as d:
