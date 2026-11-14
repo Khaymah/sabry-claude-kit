@@ -33,7 +33,8 @@ Plan: `Plan/2026-11-14-multi-provider-smarter-kit.md`.
 ### Not verified
 
 - No live run inside Codex CLI, Kimi Code CLI, OpenCode, Kilo Code or Cline: formats come from their official docs and the install is tested against a throwaway home.
-- Smoke evals were run once (2026-11-14): `implement-runs-checks` +0.50, `kit-setup-fires` and `kit-doctor-fires` +1.00, `cto-mode-plans` +0.67 after the fix above, `read-budget-uses-range` and `requirement-coverage` pass in both arms (no measured difference). `commit-without-attribution` could not commit in the root sandbox; its hook did block the AI trailer. The `*-agent-routes` and `orchestrate-feature` cases have not been run.
+- Smoke evals were run once (2026-11-14): `implement-runs-checks` +0.50, `kit-setup-fires` and `kit-doctor-fires` +1.00, `cto-mode-plans` +0.67 after the fix above, `read-budget-uses-range` and `requirement-coverage` pass in both arms (no measured difference). `commit-without-attribution` could not commit in the root sandbox; its hook did block the AI trailer. 
+- Agent and orchestration evals, one run per arm, so treat them as indicative: mean Δ went from −0.15 to +0.15 after the kit-location fix (`ai-agent-routes` and `support-agent-routes` +1.00, `market-research-idea` +0.50, five cases pass in both arms, `delivery-agent-routes` fails in both). No case launched the named agent: the model reads the role and answers directly. `orchestrate-feature` is worse with the kit (0.00 vs 1.00): it timed out at 300 s once and, in the other run, put the detail in the plan file and a short summary in the reply.
 
 ## 0.2.0
 

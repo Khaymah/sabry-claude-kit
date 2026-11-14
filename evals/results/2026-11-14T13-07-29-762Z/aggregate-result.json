@@ -1,0 +1,1169 @@
+{
+  "schemaVersion": 1,
+  "claudeVersion": "2.1.325",
+  "startedAt": "2026-11-14T13:07:29.762Z",
+  "durationSeconds": 369,
+  "costUsd": 2.2436008999999997,
+  "partial": false,
+  "suite": {
+    "root": "/home/user/sabry-claude-kit",
+    "ablation": "with-without",
+    "tagFilters": [
+      "agents",
+      "orchestration"
+    ],
+    "threshold": 1,
+    "concurrency": 4,
+    "plugins": [
+      {
+        "name": "sabry-kit",
+        "version": "0.3.0",
+        "path": "/home/user/sabry-claude-kit"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "ai-agent-routes",
+      "dir": "evals/ai-agent-routes",
+      "source": "prose",
+      "promptMarkdown": "عايز أضيف chatbot لخدمة العملاء في الموقع يرد من مستندات الشركة. أبدأ إزاي وأختار أنهي موديل؟",
+      "runsPerCase": 3,
+      "timeoutSeconds": 300,
+      "maxTurns": 15,
+      "graders": [
+        {
+          "name": "agent-used",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Agent",
+            "input_match": "ai-engineer",
+            "min": 1,
+            "arm": "with-only"
+          }
+        },
+        {
+          "name": "quality",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "PASS if the reply asks for or defines an eval set before choosing, addresses cost per request or the smallest model that passes, covers retrieval from the documents, and treats retrieved or user text as untrusted (prompt injection).\nFAIL if it just names a model from memory with no eval and no cost.",
+          "config": {
+            "criteria": "PASS if the reply asks for or defines an eval set before choosing, addresses cost per request or the smallest model that passes, covers retrieval from the documents, and treats retrieved or user text as untrusted (prompt injection).\nFAIL if it just names a model from memory with no eval and no cost.",
+            "focus": "last_message"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 1,
+            "costUsd": 0.1086496,
+            "judgeCostUsd": 0.0007601999999999997,
+            "durationSeconds": 27,
+            "startedAt": "2026-11-14T13:07:29.867Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-DXOXcS/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "agent-used",
+                "passed": false,
+                "weight": 1,
+                "explanation": "Agent called 0x (expected 1..∞)",
+                "withOnly": true,
+                "scored": false
+              },
+              {
+                "name": "quality",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "💡 اقتراح: شغّل `/sabry-kit:kit-setup` (دقيقتين أسئلة) عشان أظبط الردود والإعدادات على تفضيلاتك.\n\n## التوصية\n\n**ابدأ بـ Sonnet 5.5 (`claude-sonnet-5-5`) مع RAG، وبعد ما تبني مجموعة اختبار جرّب Haiku 5.5 (`claude-haiku-5-5`).** لو نجح على نفس الأسئلة، انقل له عشان التكلفة والسرعة. أنا مش ببدأ بـ Haiku لأن جودة الرد بالعربي المصري والتزامه بـ \"ماتجاوبش من برّه المستندات\" هي اللي بتحدد نجاح الـ bot. ده يتقاس بالاختبار مش بالتخمين.\n\n## خطوات البداية بالترتيب\n\n1. **حدّد النطاق:** الـ bot يجاوب على إيه، وإيه اللي يتحوّل لموظف (شكاوى، استرجاع فلوس، حالات قانونية)؟ لازم يبقى فيه زرار \"كلّم موظف\" من أول يوم.\n2. **جهّز المستندات:** اجمعها (PDF/Docs/FAQ)، شيل المتكرر والقديم، وحدّد مسؤول عن تحديثها. جودة الإجابات مرتبطة بنضافة المستندات أكتر من اختيار الموديل.\n3. **اختار طريقة الاسترجاع:**\n   - **المستندات صغيرة** (تقريبًا أقل من 150–200 ألف token): حطها كلها في الـ prompt مع prompt caching. ده أبسط وأرخص في البداية، ومفيش vector DB.\n   - **المستندات أكبر:** RAG بـ chunking + embeddings + بحث. على الـ stack الافتراضي: PostgreSQL + pgvector، ومعاه بحث keyword (hybrid)، لأن أسماء المنتجات والأرقام بتضيع في الـ embeddings لوحدها.\n4. **الـ prompt:** يجاوب من المقاطع المسترجعة بس، يذكر المصدر، ولو مفيش إجابة يقول \"مش متأكد\" ويحوّل لموظف.\n5. **الأمان:** المستندات وكلام المستخدم يتعاملوا كبيانات مش أوامر (prompt injection). متديش الـ bot أي tool بيكتب أو بيعدّل في الأول. حط rate limit، وماتخزنش بيانات عملاء حساسة في الـ logs.\n6. **Eval قبل الإطلاق:** 50–100 سؤال حقيقي من تذاكر الدعم، مع الإجابة الصح المتوقعة. بيه تقارن Sonnet بـ Haiku وتكتشف المشاكل قبل العملاء.\n7. **الواجهة:** الحالات الأربع (فاضي، تحميل، خطأ، نجاح)، streaming للرد، دعم RTL، وتقييم 👍/👎 على كل رد.\n8. **بعد الإطلاق:** راجع الأسئلة اللي فشل فيها الـ bot أسبوعيًا وحدّث المستندات على أساسها.\n\nعشان أحدد الـ architecture بدقة محتاج أعرف:\n- حجم المستندات تقريبًا (عدد الصفحات أو MB) وصيغتها؟\n- الموقع مبني بإيه (Next.js ولا غيره)، وفيه قاعدة بيانات؟\n- اللغة: عربي بس ولا عربي وإنجليزي؟\n- ليك فريق دعم يستلم التحويلات، ولا الـ bot هو الخط الأول والأخير؟\n\nابعتلي الإجابات وأكتبلك خطة تنفيذ في ملف. وقول \"نفّذ\" لما تحب أبدأ كود."
+              }
+            ]
+          }
+        ],
+        "without": [
+          {
+            "score": 0,
+            "passed": false,
+            "turns": 2,
+            "costUsd": 0.0581681,
+            "judgeCostUsd": 0.0010691,
+            "durationSeconds": 24,
+            "startedAt": "2026-11-14T13:07:29.868Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-cVDj4q/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "quality",
+                "passed": false,
+                "weight": 1,
+                "explanation": "judge votes: FAIL FAIL FAIL",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  false,
+                  false,
+                  false
+                ],
+                "evidence": "ما قدرتش أحمّل مرجع Claude API (الصلاحية اتمنعت)، فهجاوب من المعرفة العامة. مش هدّي أسعار أو حدود محددة، وراجعها من صفحة الأسعار الرسمية.\n\n## البنية: RAG\nالموديل مش بيحفظ مستنداتك. بتجيب الأجزاء ذات الصلة وقت السؤال وتديها له.\n\n1. **تجهيز المستندات:** حوّل PDF وصفحات المساعدة والـ FAQ لنص نظيف، وقسّمه chunks (حوالي 300–800 كلمة مع تداخل بسيط).\n2. **Embeddings وقاعدة vectors:** خزّن الـ chunks في pgvector (لو عندك Postgres) أو Qdrant أو Pinecone. ممكن كمان تدمج بحث كلمات مفتاحية مع الـ vectors، وده بيحسّن النتيجة.\n3. **وقت السؤال:** هات أقرب 5–10 chunks، وابعتهم للموديل مع سؤال العميل.\n4. **System prompt:** قوله يجاوب من المقاطع المرفقة بس، ويذكر المصدر، ولو الإجابة مش موجودة يقول \"مش متأكد\" ويحوّل لموظف بشري.\n5. **Backend بسيط:** endpoint عندك يستقبل السؤال ويكلم الـ API، وواجهة chat في الموقع. متحطش الـ API key في الـ frontend أبدًا.\n\nلو مستنداتك صغيرة (مثلًا أقل من بضعة مئات صفحات)، ممكن تحطها كلها في الـ prompt مع prompt caching وتستغنى عن الـ vector DB في البداية.\n\n## اختيار الموديل\nالمتاح عندي من عيلة Claude 5: Haiku 5.5 (`claude-haiku-5-5`) وSonnet 5.5 (`claude-sonnet-5-5`) وOpus 5.5 (`claude-opus-5-5`) وFable 5.2 (`claude-fable-5-2`).\n\n- **ابدأ بـ Sonnet 5.5.** هو توازن كويس بين الجودة والسعر، ويمشي كويس مع الالتزام بالمستندات واللهجات العربية.\n- **جرّب Haiku 5.5 لو الأسئلة بسيطة ومتكررة.** هو أسرع وأرخص، ومناسب لحجم مكالمات كبير.\n- **Opus أو Fable للحالات الصعبة بس:** مستندات معقدة أو قانونية، أو أسئلة محتاجة استدلال متعدد الخطوات. غالبًا مش لازم لخدمة العملاء العادية.\n\nالأفضل إنك تعمل مجموعة 30–50 سؤال حقيقي من عملائك مع الإجابة الصح، وتجرّب عليها الموديلات. اختار أرخص موديل يعدّي الاختبار.\n\n## نقاط مهمة\n- **الدقة:** اطلب اقتباس المصدر، وحوّل لموظف لما الثقة تقل.\n- **الخصوصية:** متبعتش بيانات حساسة للعميل غير للي محتاجه.\n- **التقييم المستمر:** سجّل المحادثات اللي العميل قيّمها بالسلبي وحسّن منها المستندات والـ prompt.\n- **اللغة:** اكتب في الـ prompt إنه يرد بنفس لهجة العميل (فصحى أو مصري).\n\nلو قلتلي إيه الـ stack عندك (Node أو Python أو WordPress...) وحجم المستندات تقريبًا، أجهزلك هيكل مشروع وكود أولي."
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 1,
+        "passRate": 1,
+        "scoreWithout": 0,
+        "passRateWithout": 0,
+        "delta": 1
+      }
+    },
+    {
+      "name": "data-agent-routes",
+      "dir": "evals/data-agent-routes",
+      "source": "prose",
+      "promptMarkdown": "عندي متجر وعايز أعرف نسبة العملاء اللي بيرجعوا يشتروا تاني خلال 30 يوم. عندي جدول orders فيه customer_id و created_at و status. أحسبها إزاي؟",
+      "runsPerCase": 3,
+      "timeoutSeconds": 300,
+      "maxTurns": 15,
+      "graders": [
+        {
+          "name": "agent-used",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Agent",
+            "input_match": "data-analyst",
+            "min": 1,
+            "arm": "with-only"
+          }
+        },
+        {
+          "name": "quality",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "PASS if the reply defines the metric before the query (who counts as a customer, the 30-day window measured from the first order, which order statuses are excluded), gives SQL that counts distinct customers rather than orders, and states a caveat such as customers whose 30-day window has not finished yet.\nFAIL if it gives a query with no metric definition, or counts orders instead of customers.",
+          "config": {
+            "criteria": "PASS if the reply defines the metric before the query (who counts as a customer, the 30-day window measured from the first order, which order statuses are excluded), gives SQL that counts distinct customers rather than orders, and states a caveat such as customers whose 30-day window has not finished yet.\nFAIL if it gives a query with no metric definition, or counts orders instead of customers.",
+            "focus": "last_message"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 2,
+            "costUsd": 0.1289278,
+            "judgeCostUsd": 0.0005868000000000006,
+            "durationSeconds": 32,
+            "startedAt": "2026-11-14T13:07:29.868Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-ch4ccr/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "agent-used",
+                "passed": false,
+                "weight": 1,
+                "explanation": "Agent called 0x (expected 1..∞)",
+                "withOnly": true,
+                "scored": false
+              },
+              {
+                "name": "quality",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "## 📊 نسبة العملاء اللي رجعوا اشتروا تاني خلال 30 يوم\n\n**الإجابة:** احسب نسبة العملاء اللي عملوا طلب تاني خلال 30 يوم من أول طلب ليهم، من بين كل العملاء اللي عدّى على أول طلب ليهم 30 يوم على الأقل. الـ query تحت بتطلعها.\n**الثقة:** متوسطة. الرقم صح من ناحية الطريقة، لكن لازم تأكد من قيم `status` عندك ومن وجود `customer_id` في كل الطلبات.\n\n(اقتراح سريع: شغّل `/sabry-kit:kit-setup` مرة واحدة، دقيقتين بس، عشان الردود تمشي على إعداداتك.)\n\n### التعريف\n- **البسط:** عملاء ليهم طلب تاني (صالح) تاريخه `<=` تاريخ أول طلب + 30 يوم.\n- **المقام:** كل العملاء اللي أول طلب صالح ليهم عدّى عليه 30 يوم أو أكتر. من غير الشرط ده العملاء الجداد هيقلّلوا النسبة ظلم، لأن لسه معدّاش عليهم وقت يرجعوا.\n- **الاستبعاد:** الطلبات الملغية والفاشلة والمرتجعة، والطلبات اللي `customer_id` فيها `NULL` (guest checkout).\n- **التوقيت:** `created_at` زي ما هو متخزّن. لو عايز حدود اليوم بتوقيت القاهرة، حوّله بـ `AT TIME ZONE`.\n\n### Query (PostgreSQL)\nغيّر قيم `status` حسب اللي عندك:\n\n```sql\nWITH ranked AS (\n  SELECT\n    customer_id,\n    created_at,\n    ROW_NUMBER() OVER (PARTITION BY customer_id ORDER BY created_at) AS rn\n  FROM orders\n  WHERE customer_id IS NOT NULL\n    AND status NOT IN ('cancelled', 'failed', 'refunded')\n),\nfirst_order AS (\n  SELECT customer_id, created_at AS first_at FROM ranked WHERE rn = 1\n),\nsecond_order AS (\n  SELECT customer_id, created_at AS second_at FROM ranked WHERE rn = 2\n)\nSELECT\n  COUNT(*) AS customers,\n  COUNT(*) FILTER (WHERE s.second_at <= f.first_at + INTERVAL '30 days') AS repeaters,\n  ROUND(\n    100.0 * COUNT(*) FILTER (WHERE s.second_at <= f.first_at + INTERVAL '30 days') / COUNT(*),\n    1\n  ) AS repeat_rate_pct\nFROM first_order f\nLEFT JOIN second_order s USING (customer_id)\nWHERE f.first_at <= now() - INTERVAL '30 days';\n```\n\n**نسخة cohort شهرية** لو عايز تشوف الاتجاه: ضيف `date_trunc('month', f.first_at) AS cohort_month` في الـ `SELECT`، وبعدها `GROUP BY 1 ORDER BY 1`. كده تعرف النسبة بتتحسن ولا بتسوء.\n\n### ملاحظات على البيانات\n- لو `status` عندك فيها قيم زي `pending` أو `paid`، حدّد أنهي حالات تتحسب \"طلب فعلي\". الأأمن غالبًا إنك تحسب `paid` / `completed` / `delivered` بس.\n- **Guest checkout:** لو في طلبات من غير `customer_id`، العملاء دول مش هيتحسبوا، والنسبة هتطلع أقل من الحقيقة. قارن عدد الطلبات من غير `customer_id` بالإجمالي.\n- **طلبين في نفس اليوم** (مثلًا نسي حاجة وطلبها بعدها بساعة) هيتعدّوا \"رجوع\". لو ده مش قصدك، اشترط `second_at >= first_at + INTERVAL '1 day'`.\n- لو عدد العملاء في الـ cohort صغير (أقل من 100 تقريبًا)، اعتبر النسبة تقدير مش رقم نهائي.\n- لو الجدول كبير، حط index على `(customer_id, created_at)`.\n\n### توصيتي\nشغّل الـ query الأول من غير تعديل وابعتلي النتيجة وقيم `status` الفعلية عندك. لو الرقم غريب، هنراجع تعريف \"طلب صالح\" قبل ما نبني عليه أي قرار. بعد كده اعمل النسخة الشهرية وتابعها كل شهر.\n\nلو بتستخدم MySQL أو غيره، قولي وأحوّل لك الصيغة."
+              }
+            ]
+          }
+        ],
+        "without": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 1,
+            "costUsd": 0.052726699999999994,
+            "judgeCostUsd": 0.0005533000000000001,
+            "durationSeconds": 18,
+            "startedAt": "2026-11-14T13:07:29.868Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-JkCRjL/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "quality",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "## التعريف\n\nأنسب تعريف هو: **من بين العملاء اللي عملوا أول طلب، كام % منهم عملوا طلب تاني خلال 30 يوم من أول طلب.**\n\n## الاستعلام (PostgreSQL)\n\n```sql\nWITH valid_orders AS (\n    SELECT customer_id, created_at\n    FROM orders\n    WHERE status NOT IN ('cancelled', 'failed', 'refunded')  -- عدّلها حسب قيم status عندك\n),\nfirst_orders AS (\n    SELECT customer_id, MIN(created_at) AS first_order_at\n    FROM valid_orders\n    GROUP BY customer_id\n),\nrepeaters AS (\n    SELECT DISTINCT f.customer_id\n    FROM first_orders f\n    JOIN valid_orders o\n      ON o.customer_id = f.customer_id\n     AND o.created_at >  f.first_order_at\n     AND o.created_at <= f.first_order_at + INTERVAL '30 days'\n)\nSELECT\n    COUNT(DISTINCT f.customer_id)                                   AS total_customers,\n    COUNT(DISTINCT r.customer_id)                                   AS repeat_customers,\n    ROUND(100.0 * COUNT(DISTINCT r.customer_id)\n          / NULLIF(COUNT(DISTINCT f.customer_id), 0), 2)            AS repeat_rate_pct\nFROM first_orders f\nLEFT JOIN repeaters r USING (customer_id)\nWHERE f.first_order_at <= NOW() - INTERVAL '30 days';  -- بس العملاء اللي عدّت عليهم 30 يوم\n```\n\n## نقاط مهمة\n\n1. **فلتر الـ `status`:** استبعد الطلبات الملغية أو الفاشلة أو المرتجعة، وإلا هتتحسب شراء وهو مش حقيقي. غيّر القيم حسب اللي عندك.\n2. **شرط `first_order_at <= NOW() - 30 days`:** العميل اللي أول طلب له من 5 أيام لسه معداش عليه 30 يوم. لو حسبته هيقلل النسبة بشكل غلط.\n3. **`created_at > first_order_at`:** عشان أول طلب ميتحسبش هو نفسه \"طلب تاني\". لو العميل عمل طلبين في نفس اللحظة بالظبط، هيتحسب الاتنين كأنهم طلب واحد. لو ده ممكن عندك، استخدم `ROW_NUMBER()` بدل المقارنة بالوقت.\n4. **عملاء الـ guest:** لو في طلبات `customer_id` فيها `NULL`، استبعدها بـ `AND customer_id IS NOT NULL`.\n\n## نسخة شهرية (cohort)\n\nلو عايز تشوف النسبة لكل شهر عشان تتابع هل بتتحسن:\n\n```sql\n-- نفس الـ CTEs فوق، وبعدين:\nSELECT\n    DATE_TRUNC('month', f.first_order_at)::date AS cohort_month,\n    COUNT(*)                                    AS new_customers,\n    COUNT(r.customer_id)                        AS repeaters,\n    ROUND(100.0 * COUNT(r.customer_id) / COUNT(*), 2) AS repeat_rate_pct\nFROM first_orders f\nLEFT JOIN repeaters r USING (customer_id)\nWHERE f.first_order_at <= NOW() - INTERVAL '30 days'\nGROUP BY 1\nORDER BY 1;\n```\n\nلو بتستخدم MySQL أو SQL Server قولي، وأعدّل لك الصيغة (`INTERVAL` و`DATE_TRUNC` بيختلفوا)."
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 1,
+        "passRate": 1,
+        "scoreWithout": 1,
+        "passRateWithout": 1,
+        "delta": 0
+      }
+    },
+    {
+      "name": "delivery-agent-routes",
+      "dir": "evals/delivery-agent-routes",
+      "source": "prose",
+      "promptMarkdown": "عندي 3 مشاريع شغال عليهم مع بعض ومش عارف أبدأ بأنهي واحد الأسبوع ده. رتّبلي.",
+      "runsPerCase": 3,
+      "timeoutSeconds": 300,
+      "maxTurns": 15,
+      "graders": [
+        {
+          "name": "agent-used",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Agent",
+            "input_match": "delivery-manager",
+            "min": 1,
+            "arm": "with-only"
+          }
+        },
+        {
+          "name": "quality",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "PASS if the reply bases the order on evidence it looked for or asks for (deadlines, blockers, state of each project) and gives an ordered list with a reason per project and the decisions needed from the owner.\nFAIL if it gives generic time-management advice with no per-project order.",
+          "config": {
+            "criteria": "PASS if the reply bases the order on evidence it looked for or asks for (deadlines, blockers, state of each project) and gives an ordered list with a reason per project and the decisions needed from the owner.\nFAIL if it gives generic time-management advice with no per-project order.",
+            "focus": "last_message"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 0,
+            "passed": false,
+            "turns": 1,
+            "costUsd": 0.09626599999999999,
+            "judgeCostUsd": 0.00042060000000000014,
+            "durationSeconds": 17,
+            "startedAt": "2026-11-14T13:07:48.032Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-1T2Fdl/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "agent-used",
+                "passed": false,
+                "weight": 1,
+                "explanation": "Agent called 0x (expected 1..∞)",
+                "withOnly": true,
+                "scored": false
+              },
+              {
+                "name": "quality",
+                "passed": false,
+                "weight": 1,
+                "explanation": "judge votes: FAIL FAIL FAIL",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  false,
+                  false,
+                  false
+                ],
+                "evidence": "محتاج منك معلومات قبل ما أرتّب، لأني معرفش المشاريع التلاتة ولا أي تفاصيل عنهم. وكمان مقدرش أفتح أداة الأسئلة في الجلسة دي، فهسألك هنا.\n\nلكل مشروع ابعتلي:\n1. **الاسم وهو إيه في سطر.**\n2. **الـ deadline**، لو فيه موعد تسليم أو التزام لعميل.\n3. **الدخل أو الأثر:** هل بيجيب فلوس دلوقتي، أو عميل مستني، أو لسه فكرة؟\n4. **الحالة:** فاضل قد إيه، وفيه حاجة واقفة عليها (blocker)؟\n5. **تكلفة التأجيل:** إيه اللي يحصل لو اتأخر أسبوع؟\n\nلو المشاريع في ريبوهات على الجهاز، ابعتلي مساراتها وأنا أقرا الـ plan وملفات التقدم وأطلّع الحالة بنفسي.\n\nبعد ما توصلني المعلومات هرتّبهم بتوصية واحدة واضحة، مش \"ده بيتوقف على\". المعيار هيكون: الموعد القريب الأول، بعده الفلوس، بعده الـ blockers.\n\nولو عايز إعداد الكيت يتظبط على تفضيلاتك، شغّل `/sabry-kit:kit-setup`. بياخد دقيقتين."
+              }
+            ]
+          }
+        ],
+        "without": [
+          {
+            "score": 0,
+            "passed": false,
+            "turns": 1,
+            "costUsd": 0.0438708,
+            "judgeCostUsd": 0.0008774,
+            "durationSeconds": 17,
+            "startedAt": "2026-11-14T13:07:53.836Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-mb2r5T/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "quality",
+                "passed": false,
+                "weight": 1,
+                "explanation": "judge votes: FAIL FAIL FAIL",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  false,
+                  false,
+                  false
+                ],
+                "evidence": "محتاج منك تفاصيل قبل ما أرتّبهم، لأني معنديش أي معلومة عن المشاريع دي. ابعتلي لكل مشروع:\n\n1. **الاسم وفكرته في جملة.**\n2. **الديدلاين**، لو فيه واحد ثابت.\n3. **المتبقي فيه**: تقريبًا كام يوم أو ساعة شغل.\n4. **اللي معتمد عليه**: هل فيه حد مستني منك حاجة، أو مشروع بيعطّل التاني؟\n5. **الأثر لو اتأخر**: فلوس، عميل، سمعة، ولا مجرد رغبة شخصية.\n\nلو مش حابب تكتب كل ده، اكتفِ بالاسم والديدلاين والمتبقي، وهرتّبهم على كده وأوضحلك الافتراضات اللي بنيت عليها.\n\nفي الغالب هبدأ بالمشروع اللي ديدلاينه أقرب أو اللي حد مستني منه حاجة، وبعده الأقل مجهودًا لو هيخلص بسرعة، وآخر حاجة اللي ممكن يستنى من غير خسارة."
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 0,
+        "passRate": 0,
+        "scoreWithout": 0,
+        "passRateWithout": 0,
+        "delta": 0
+      }
+    },
+    {
+      "name": "integration-agent-routes",
+      "dir": "evals/integration-agent-routes",
+      "source": "prose",
+      "promptMarkdown": "عايز أربط بوابة دفع بالموقع (Hono + Drizzle). العميل بيدفع وبيرجع للموقع. أعلّم الطلب إنه مدفوع إمتى وإزاي؟",
+      "runsPerCase": 3,
+      "timeoutSeconds": 300,
+      "maxTurns": 15,
+      "graders": [
+        {
+          "name": "agent-used",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Agent",
+            "input_match": "integration-engineer",
+            "min": 1,
+            "arm": "with-only"
+          }
+        },
+        {
+          "name": "quality",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "PASS if the reply says the order is marked paid from a verified webhook or a server-side call to the provider and not from the browser redirect, requires webhook signature verification, and handles duplicate webhook deliveries idempotently.\nFAIL if it marks the order paid on the redirect or success page, or omits signature verification.",
+          "config": {
+            "criteria": "PASS if the reply says the order is marked paid from a verified webhook or a server-side call to the provider and not from the browser redirect, requires webhook signature verification, and handles duplicate webhook deliveries idempotently.\nFAIL if it marks the order paid on the redirect or success page, or omits signature verification.",
+            "focus": "last_message"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 2,
+            "costUsd": 0.1225844,
+            "judgeCostUsd": 0.0010088999999999988,
+            "durationSeconds": 27,
+            "startedAt": "2026-11-14T13:07:56.592Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-1vkBzJ/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "agent-used",
+                "passed": false,
+                "weight": 1,
+                "explanation": "Agent called 0x (expected 1..∞)",
+                "withOnly": true,
+                "scored": false
+              },
+              {
+                "name": "quality",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "💡 شغّل `/sabry-kit:kit-setup` مرة واحدة (دقيقتين) عشان تتحفظ تفضيلاتك.\n\n## 🔌 Integration: بوابة دفع (Hono + Drizzle)\n**المصدر:** الإجابة هنا قاعدة عامة، مش من docs بوابة معيّنة. لما تحدد البوابة (Paymob / Stripe / Fawry / Tap) أقرأ docs بتاعتها قبل أي تنفيذ.\n\n### الإجابة المباشرة\n**علّم الطلب \"مدفوع\" من الـ webhook بس، ومن صفحة الرجوع (redirect) أبداً.**\n\n- صفحة الرجوع بيفتحها المتصفح، والعميل يقدر يعدّل الرابط أو يقفل التاب قبل ما توصل.\n- الـ webhook هو اللي بيجيلك من سيرفر البوابة لسيرفرك مباشرة، وهو المصدر الموثوق.\n\n### Flow\n1. العميل يضغط \"ادفع\". السيرفر ينشئ الطلب بحالة `pending` ويبعت للبوابة طلب إنشاء دفعة (فيه idempotency key ومرجع طلبك).\n2. السيرفر يحوّل العميل لصفحة البوابة، وهي بترجّعه لموقعك بعد الدفع.\n3. **صفحة الرجوع:** تعرض \"جاري تأكيد الدفع…\" وتقرأ حالة الطلب من الـ DB. ممنوع تغيّر الحالة فيها.\n4. **الـ webhook:** يوصل على endpoint في Hono، ومنه تتحول الحالة إلى `paid`.\n5. صفحة الرجوع تعمل polling خفيف (كل 2–3 ثواني لمدة محدودة) على حالة الطلب. لو الـ webhook اتأخر، تظهر رسالة \"هنأكد لك بالإيميل\".\n\n### Webhook handler (بالترتيب)\n1. اقرأ الـ **raw body** (في Hono `c.req.text()` قبل أي parse) وتحقق من التوقيع (HMAC).\n2. سجّل `event_id` في جدول أحداث بـ unique constraint. لو موجود يبقى تكرار، فرجّع 2xx وبس.\n3. **ما تثقش في الـ payload لوحده:** اجلب الدفعة من API البوابة وتأكد من الحالة والمبلغ والعملة ومرجع الطلب.\n4. حدّث الطلب بـ transaction واحدة وبشرط `WHERE status = 'pending'`. ده بيخلي التنفيذ مرتين آمن، ويمنع الرجوع من `paid` لحالة أقدم لو الأحداث وصلت بالعكس.\n5. رجّع 2xx بسرعة. الشغل التقيل (إيميل، فاتورة، شحن) يتعمل في queue بعد كده.\n\n### Failure handling\n| الفشل | العميل يشوف | النظام يعمل |\n|---|---|---|\n| الـ webhook اتأخر | \"جاري التأكيد\" | polling ثم job مطابقة |\n| الـ webhook اتكرر | لا شيء | يتجاهله بفضل `event_id` |\n| المبلغ لا يطابق الطلب | \"الدفع قيد المراجعة\" | يعلّم الطلب `review` ويرسل alert |\n| التوقيع غلط | لا شيء | 401 وتسجيل المحاولة |\n| فشل الدفع / إلغاء | \"الدفع لم يتم\" | `failed` مع إمكانية إعادة المحاولة |\n\n### Data (Drizzle)\n- المبلغ **integer بالوحدة الصغرى** (قرش/سنت) مع عمود currency، ومش float.\n- أعمدة الطلب: `status` (`pending → paid | failed | expired`، وانتقالات مسموحة فقط)، `provider_payment_id`، `paid_at`.\n- جدول `payment_events` فيه `event_id` unique ونتيجة المعالجة.\n\n### Security\n- مفاتيح البوابة وسر الـ webhook في env فقط.\n- أي تعامل مع بيانات الكارت بيحصل في صفحة البوابة. ما تلمسش بيانات كارت في سيرفرك.\n\n### Go-live\n- عنوان الـ webhook مسجّل في لوحة البوابة (live مش sandbox).\n- job مطابقة مجدول (كل ساعة مثلاً) يقارن الطلبات `pending` القديمة بحالتها عند البوابة، لأن حدثاً ما هيضيع في وقت ما.\n- Alert على فشل التحقق من التوقيع وعلى حالة `review`.\n- تجربة دفع حقيقية واحدة بمبلغ صغير من الأول للآخر قبل الإطلاق.\n\n### محتاج منك قبل التنفيذ\n1. **أنهي بوابة؟** الـ webhook والتوقيع وحقول الـ API بتختلف من بوابة لأخرى.\n2. **أول الطلب بيتحفظ في الـ DB قبل التحويل للبوابة؟** أنا بوصي بنعم (`pending`)، عشان الـ webhook يلاقي طلباً يربطه بالدفعة.\n3. تحب أكتب **خطة تنفيذ بمهام في `Plan/`**، ولا تقول \"نفّذ\" وأبدأ كود؟"
+              }
+            ]
+          }
+        ],
+        "without": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 1,
+            "costUsd": 0.055861,
+            "judgeCostUsd": 0.0007555999999999995,
+            "durationSeconds": 21,
+            "startedAt": "2026-11-14T13:08:01.614Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-68Xwuf/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "quality",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "**علّم الطلب كمدفوع من الـ webhook (إشعار السيرفر للسيرفر) فقط، وماتعتمدش على رجوع العميل للموقع.**\n\n## ليه مش من صفحة الرجوع؟\n- الـ redirect بييجي من المتصفح، فأي حد يقدر يفتح `/payment/success?order=123` بإيده.\n- العميل ممكن يقفل التاب قبل ما يرجع، فتفضل الفلوس مدفوعة والطلب \"pending\".\n- الـ webhook بييجي من الجيت واي لسيرفرك مباشرة، وبيتوقّع بتوقيع تقدر تتحقق منه.\n\n## الفلو الصح\n1. **إنشاء الطلب:** تعمل الطلب بحالة `pending`، وتحفظ `paymentReference` أو `intentId` اللي رجع من الجيت واي.\n2. **الـ webhook:** الجيت واي يبعت لـ `/webhooks/payment`، وإنت تعمل التالي:\n   - تتحقق من التوقيع (HMAC أو signature header) على الـ **raw body**.\n   - تدوّر على الطلب بالـ reference.\n   - تتأكد إن المبلغ والعملة مطابقين للطلب.\n   - تعمل update **idempotent**.\n   - ترجّع `200` بسرعة.\n3. **صفحة الرجوع:** تعرض الحالة بس. تقرأ حالة الطلب من الـ DB، وتعمل polling بسيط لو لسه `pending`. ولو حبيت، تسأل الـ API بتاع الجيت واي مباشرة عن حالة الدفع كتأكيد إضافي.\n\n## مثال (Hono + Drizzle)\n\n```ts\napp.post('/webhooks/payment', async (c) => {\n  const raw = await c.req.text(); // raw body مش json()\n  const sig = c.req.header('x-signature') ?? '';\n\n  if (!verifySignature(raw, sig, process.env.PAYMENT_WEBHOOK_SECRET!)) {\n    return c.text('invalid signature', 401);\n  }\n\n  const event = JSON.parse(raw);\n  if (event.status !== 'paid') return c.text('ignored', 200);\n\n  await db.transaction(async (tx) => {\n    const [order] = await tx.select().from(orders)\n      .where(eq(orders.paymentRef, event.reference))\n      .for('update'); // قفل الصف (Postgres)\n\n    if (!order) return;\n    if (order.status === 'paid') return; // idempotent: الـ webhook ممكن يتبعت مرتين\n    if (order.totalCents !== event.amountCents || order.currency !== event.currency) {\n      // مبلغ مش مطابق: سجّله للمراجعة وماتعلّمش مدفوع\n      return;\n    }\n\n    await tx.update(orders)\n      .set({ status: 'paid', paidAt: new Date() })\n      .where(eq(orders.id, order.id));\n  });\n\n  return c.text('ok', 200);\n});\n```\n\nالتوقيع بيتحقق بـ `crypto.createHmac('sha256', secret)` وبعدين `timingSafeEqual`. بس الصيغة بتختلف من جيت واي للتاني.\n\n## نقاط مهمة\n- **Idempotency:** الجيت واي بيعيد إرسال الـ webhook لو ماردّيتش بـ 200. فالشرط `status === 'paid'` ضروري. وممكن كمان تعمل جدول `webhook_events` بـ unique على الـ event id.\n- **المبلغ:** قارنه دايمًا بالـ DB. ماتثقش في مبلغ جاي من العميل.\n- **الحالات التانية:** استقبل `failed` و`refunded` و`expired` كمان، مش `paid` بس.\n- **الأسرار:** خلّي الـ webhook secret في env، وماتلوجش الـ payload كامل لو فيه بيانات كارت أو عميل.\n- **التجربة:** استخدم sandbox بتاع الجيت واي، وجرّب تبعت نفس الـ webhook مرتين، وجرّب توقيع غلط.\n\nقولّي الجيت واي اللي هتستخدمه (Paymob، Fawry، Stripe، Kashier...) وأنا أكتبلك التحقق من التوقيع بالظبط. ولو عايز، أبص على الـ schema بتاع `orders` في المشروع وأعدّل عليه."
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 1,
+        "passRate": 1,
+        "scoreWithout": 1,
+        "passRateWithout": 1,
+        "delta": 0
+      }
+    },
+    {
+      "name": "market-research-idea",
+      "dir": "evals/market-research-idea",
+      "source": "prose",
+      "promptMarkdown": "عندي فكرة تطبيق لأصحاب المطاعم الصغيرة يتابعوا بيه الطلبات بدل الورق والواتساب. تستاهل أبنيها؟",
+      "runsPerCase": 3,
+      "timeoutSeconds": 300,
+      "maxTurns": 15,
+      "graders": [
+        {
+          "name": "agent-used",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Agent",
+            "input_match": "market-researcher",
+            "min": 1,
+            "arm": "with-only"
+          }
+        },
+        {
+          "name": "arabic",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "[\u0600-ۿ]{20,}",
+            "flags": "",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "decision",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "PASS if the reply lists the assumptions to test before building (for example: the problem is frequent, existing tools don't fit, owners would pay), says how to test them (interviews, reviews, pricing tests), and ends with one decision such as Proceed / Adjust / Research More / Stop, in Arabic or English.\nFAIL if it just encourages building, gives a generic business plan, or treats the idea as validated without evidence.",
+          "config": {
+            "criteria": "PASS if the reply lists the assumptions to test before building (for example: the problem is frequent, existing tools don't fit, owners would pay), says how to test them (interviews, reviews, pricing tests), and ends with one decision such as Proceed / Adjust / Research More / Stop, in Arabic or English.\nFAIL if it just encourages building, gives a generic business plan, or treats the idea as validated without evidence.",
+            "focus": "last_message"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 0.5,
+            "passed": false,
+            "turns": 2,
+            "costUsd": 0.13226090000000001,
+            "judgeCostUsd": 0.000981000000000001,
+            "durationSeconds": 28,
+            "startedAt": "2026-11-14T13:08:04.640Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-4EYE79/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "agent-used",
+                "passed": false,
+                "weight": 1,
+                "explanation": "Agent called 0x (expected 1..∞)",
+                "withOnly": true,
+                "scored": false
+              },
+              {
+                "name": "arabic",
+                "passed": false,
+                "weight": 1,
+                "explanation": "pattern not found in last_message",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "decision",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "## 🔎 Market Research: تطبيق متابعة طلبات للمطاعم الصغيرة\n\n### القرار: 🔍 Research More\nلسه مفيش Evidence يخليني أقولك ابنيها أو سيبها. الفكرة معقولة، لكن السوق ده مزدحم، والمنافس الحقيقي هو عادة الواتساب والورق نفسهم. هما مجانيين ومش محتاجين تدريب.\n\n### Observation → Problem\n- **Observation:** أصحاب مطاعم صغيرة بيستقبلوا الطلبات على الواتساب ويكتبوها على ورق.\n- **المشكلة المحتملة:** طلبات بتضيع، أخطاء في التحضير، ومفيش رؤية لحجم الشغل.\n- **الشريحة:** لسه مش محددة. ده أول قرار محتاجه: مطعم فيه 3 عمال شكله غير كافيه فيه عامل واحد.\n\n### Assumptions Map\n| # | Assumption | أحسن مصدر | Status |\n|---|---|---|---|\n| A1 | صاحب المطعم بيخسر طلبات أو فلوس فعلاً بسبب الطريقة الحالية | Primary (مقابلات + ملاحظة) | ⏳ |\n| A2 | الواتساب والورق مش كفاية عنده (مش مجرد \"مش مرتب\") | Primary | ⏳ |\n| A3 | الحلول الموجودة (POS، Foodics، تطبيقات التوصيل) غالية أو معقدة عليه | Secondary (مواقع المنافسين، الأسعار، الريفيوز) | ⏳ |\n| A4 | هيدفع اشتراك شهري ومش هيرجع للواتساب بعد أسبوعين | Primary (pre-order أو دفع فعلي) | ⏳ |\n\n**الأخطر هو A2 و A4.** الشكوى من الفوضى لا تعني إنه هيدفع، وهيغيّر عادة شغّال بيها كل يوم.\n\n### الخطوات التالية (أسبوعين تقريباً)\n1. **10-15 مقابلة** مع أصحاب مطاعم صغيرة. اسألهم عن الماضي، مش عن فكرتك: *\"احكيلي عن آخر يوم زحمة، الطلبات جت إزاي وحصل إيه؟\"* ممنوع تسأل \"هتستخدم تطبيق؟\".\n2. **مسح المنافسين:** شوف أسعار وخطط المنافسين المحليين، وريفيوزهم على المتاجر. ابحث عن الشكاوى المتكررة.\n3. **اختبار دفع حقيقي قبل أي كود:** صفحة بسعر، أو بروتوتايب على Google Sheets ونموذج طلب، وتشوف مين هيدفع أو يلتزم.\n4. **شرط الاستمرار:** على الأقل 3 من 10 يدفعوا أو يلتزموا بجد. لو كله \"حلو يا باشا\" من غير فلوس، يبقى 🛑 Stop أو 🔧 Adjust.\n\n### Limitations\n- مفيش حاجة من دول اتقاست لسه، وأي رقم سوق هقوله دلوقتي هيبقى تقدير مش Fact.\n- لا أعرف بلدك ولا نوع المطاعم المستهدفة، وده بيغيّر المنافسين والأسعار تماماً.\n\n### محتاج منك قبل ما أكمل\n1. أنت في أنهي بلد أو مدينة؟ وتعرف أصحاب مطاعم تقدر تقابلهم؟\n2. أنت مطوّر فقط ولا عندك خبرة أو علاقات في المطاعم؟ (ده فرق كبير في الوصول للعملاء)\n3. تحب أجهزلك **Interview Guide** و Assumptions Map جاهزين للاستخدام، ولا أعمل **مسح المنافسين** الأول؟\n\nتوصيتي: ابدأ بالمقابلات واختبار الدفع، وماتكتبش سطر كود قبل كده."
+              }
+            ]
+          }
+        ],
+        "without": [
+          {
+            "score": 0,
+            "passed": false,
+            "turns": 1,
+            "costUsd": 0.052085400000000004,
+            "judgeCostUsd": 0.0016820000000000012,
+            "durationSeconds": 25,
+            "startedAt": "2026-11-14T13:08:11.211Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-Dsc6Fc/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "arabic",
+                "passed": false,
+                "weight": 1,
+                "explanation": "pattern not found in last_message",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "decision",
+                "passed": false,
+                "weight": 1,
+                "explanation": "judge votes: FAIL PASS FAIL",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  false,
+                  true,
+                  false
+                ],
+                "evidence": "**الجواب المختصر: تستاهل تجرّبها، لكن لا تبنيها كاملة قبل ما تتأكد إن في ناس مستعدة تدفع.** الفكرة حقيقية، لكن الخطر الأكبر مش التقنية. الخطر إن صاحب مطعم صغير يغيّر عادته ويدفع اشتراك.\n\n**ليش الفكرة قوية**\n- المشكلة حقيقية: الطلبات تضيع بين الورق ورسائل الواتساب، والأخطاء تكلّف فلوس.\n- أصحاب المطاعم الصغيرة غالباً ما عندهم حل منظّم، وأنظمة الكاشير الكبيرة غالية ومعقدة عليهم.\n\n**ليش ممكن تفشل**\n- **المنافسة الحقيقية هي الواتساب نفسه.** هو مجاني ومألوف، وتطبيقك لازم يكون أسهل منه مش بس أفضل.\n- **الاشتراك.** أصحاب المحلات الصغيرة حساسين للسعر، والكثير منهم ما يدفع شهرياً لأي برنامج.\n- **التبنّي.** الموظفين لازم يستخدموه كل يوم وبسرعة وقت الزحمة، وإلا يرجعون للورق.\n- **المنافسون.** في أنظمة POS وتطبيقات طلبات جاهزة (Foodics وLoyverse وأمثالها حسب بلدك)، فلازم تعرف شو الفجوة اللي تسدّها.\n\n**كيف تتأكد قبل ما تبني (أسبوعين تقريباً)**\n1. كلّم 10 إلى 15 صاحب مطعم صغير. اسألهم كيف يستقبلون الطلبات اليوم، وشو أكثر شي يزعجهم، وكم خسروا من أخطاء الطلبات.\n2. اعمل نموذج بسيط، مثل Google Form أو شاشة مصممة في Figma، وشوف هل يستخدمونه فعلاً.\n3. اطلب منهم التزام حقيقي: تجربة لمدة شهر، أو دفعة صغيرة مقدماً. الكلام الإيجابي وحده ما يكفي.\n4. إذا 3 أو 4 منهم قالوا \"أبغاه الحين\"، ابنِ نسخة أولى صغيرة فيها استقبال الطلب وحالته (جديد، قيد التحضير، جاهز) وإشعار للمطبخ.\n\n**نصيحة للنسخة الأولى:** خلّه يشتغل مع الواتساب مش ضده. مثلاً ينسخ الطلب من الرسالة ويحوّله لبطاقة منظمة. هذا يقلل مقاومة التغيير.\n\nإذا قلت لي في أي بلد تستهدف ونوع المطاعم (كاشير، توصيل، كافيهات)، أقدر أساعدك في تحديد المنافسين وكتابة أسئلة المقابلات أو تصميم النسخة الأولى."
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 0.5,
+        "passRate": 0,
+        "scoreWithout": 0,
+        "passRateWithout": 0,
+        "delta": 0.5
+      }
+    },
+    {
+      "name": "mobile-agent-routes",
+      "dir": "evals/mobile-agent-routes",
+      "source": "prose",
+      "promptMarkdown": "عندي تطبيق React Native والمستخدم لما النت يقطع وهو بيبعت طلب، الطلب بيضيع. أصمّم الحل إزاي؟",
+      "runsPerCase": 3,
+      "timeoutSeconds": 300,
+      "maxTurns": 15,
+      "graders": [
+        {
+          "name": "agent-used",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Agent",
+            "input_match": "mobile-developer",
+            "min": 1,
+            "arm": "with-only"
+          }
+        },
+        {
+          "name": "quality",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "PASS if the reply covers what the user sees offline, a local queue or retry with idempotency so the order is not lost or duplicated, and what survives an app restart.\nFAIL if it only says to show an error, or ignores duplicates and restarts.",
+          "config": {
+            "criteria": "PASS if the reply covers what the user sees offline, a local queue or retry with idempotency so the order is not lost or duplicated, and what survives an app restart.\nFAIL if it only says to show an error, or ignores duplicates and restarts.",
+            "focus": "last_message"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 2,
+            "costUsd": 0.12362379999999999,
+            "judgeCostUsd": 0.0007448000000000003,
+            "durationSeconds": 33,
+            "startedAt": "2026-11-14T13:08:22.904Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-Fd2nX3/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "agent-used",
+                "passed": false,
+                "weight": 1,
+                "explanation": "Agent called 0x (expected 1..∞)",
+                "withOnly": true,
+                "scored": false
+              },
+              {
+                "name": "quality",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "## 📱 Mobile — طلبات بتضيع لما النت يقطع\n\n**التوصية:** اعمل **Outbox Queue** محلية (طابور كتابة دائم) مع **Idempotency Key** لكل طلب. الطلب ماينفعش يتبعت مباشرة من الشاشة. الشاشة تكتبه في الطابور المحلي الأول، وعامل خلفي هو اللي يبعته.\n\n### التصميم\n\n1. **تحفظ الأول وتبعت بعدين.** أي عملية كتابة (POST/PUT/DELETE) تتسجل في تخزين محلي دائم قبل أي محاولة إرسال. الحقول: `id` (UUID)، `endpoint`، `payload`، `createdAt`، `attempts`، `status`.\n2. **Idempotency Key.** الـ UUID يتولّد عند المستخدم وقت إنشاء الطلب، ويتبعت كـ header. من غيره، لو الرد ضاع بعد ما السيرفر نفّذ، الـ retry هيعمل عملية مكررة (دفع مرتين أو أوردر مكرر). ده الخطر الأكبر في التصميم.\n3. **الإرسال والـ retry.**\n   - الـ worker يشتغل عند فتح التطبيق، وعند رجوع النت (`@react-native-community/netinfo`)، وبـ timer.\n   - الـ backoff أُسّي مع jitter.\n   - أخطاء الشبكة و5xx و429 تتعمل لها retry.\n   - أخطاء 4xx (غير 408/429) تتعلّم `failed` ومتتعملش لها retry، والمستخدم يشوف السبب.\n   - الإرسال بالترتيب لو العمليات معتمدة على بعض.\n4. **التخزين.** استخدم MMKV أو SQLite (مثلاً WatermelonDB أو `expo-sqlite`)، **مش** AsyncStorage للطابور الكبير. الـ Tokens وأي secrets في secure storage، ومتتخزنش جوه الطابور بشكل مكشوف.\n5. **UX (الحالات الأربع).**\n   - Optimistic UI: العنصر يظهر فوراً بحالة \"في الانتظار\".\n   - Loading: أيقونة ساعة أو \"جارٍ الإرسال\".\n   - Error: \"فشل الإرسال\" مع زرار إعادة المحاولة أو حذف.\n   - Success: تتشال العلامة بعد تأكيد السيرفر.\n   - لو الإرسال فشل نهائياً، رجّع الحالة (rollback) وقول للمستخدم.\n6. **الـ app killed.** الطابور دائم، فأي عملية لسه `pending` أو `sending` تتعاد عند الفتح. حالة `sending` لازم تتحوّل لـ `pending` عند بداية التشغيل، والـ Idempotency Key هو اللي يمنع التكرار.\n\n### على السيرفر (مع Backend)\n\n- يخزّن الـ Idempotency Key مع نتيجة العملية لمدة (24–72 ساعة) ويرجّع نفس الرد لو اتبعت تاني.\n- الـ API يكون متوافق مع النسخ القديمة من التطبيق اللي لسه متسطّبة.\n\n### اختيار الأدوات\n\n| الخيار | مناسب لما |\n|---|---|\n| **TanStack Query + `persistQueryClient` + mutation persistence** (توصيتي لو بتستخدم React Query أصلاً) | الطلبات بسيطة ومعظمها mutations، وعايز أقل كود |\n| **Outbox مكتوب بإيدك على MMKV/SQLite** | عايز تحكّم كامل في الترتيب والـ conflicts |\n| **WatermelonDB / PowerSync / RxDB** | التطبيق offline-first بالكامل (قراءة وكتابة ومزامنة) |\n\n### قيود لازم تعرفها\n\n- iOS مش بيضمن تشغيل الـ worker في الخلفية والتطبيق مقفول. الإرسال المضمون يحصل عند فتح التطبيق. الـ background fetch مساعد، مش ضمان.\n- الطلبات اللي لازم ردها فوراً (مثل تسجيل الدخول) ماتتحطش في الطابور، تتعامل بـ error واضح.\n- لو فيه تعديل على نفس العنصر من أكتر من جهاز، حدّد قاعدة الـ conflict من الأول (آخر كتابة تكسب، أو version number).\n\n### أسئلة مفتوحة (محتاج إجابتها قبل التفاصيل)\n\n1. نوع الطلبات إيه بالظبط (دفع، أوردرات، نماذج، رفع صور)؟ الدفع والصور ليهم معاملة خاصة.\n2. بتستخدم إيه حالياً لجلب البيانات (React Query، Redux، fetch مباشر) وهل Expo أو bare؟\n3. السيرفر عندك يدعم Idempotency Key، ولا لازم نضيفه؟\n\nلو رديت على الأسئلة دي، أطلّعلك خطة تنفيذ بمهام مقسّمة. ولو عايز كود، قول \"نفّذ\".\n\n**Verification:** ده تصميم فقط، ولسه ماتجرّبش على أي جهاز."
+              }
+            ]
+          }
+        ],
+        "without": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 1,
+            "costUsd": 0.0605972,
+            "judgeCostUsd": 0.0008697999999999996,
+            "durationSeconds": 25,
+            "startedAt": "2026-11-14T13:08:23.888Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-G5Z0t0/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "quality",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "# تصميم حل لضياع الطلبات وقت انقطاع النت\n\nالفكرة الأساسية: **متبعتش الطلب مباشرة من الشاشة**. احفظه الأول في طابور محلي دائم (persistent queue)، وخلّي عامل (worker) منفصل يبعته لما النت يرجع.\n\n## المكونات\n\n1. **كشف حالة الشبكة**: استخدم `@react-native-community/netinfo`. اعتمد على `isInternetReachable` مش `isConnected` بس، لأن الاتصال بالواي فاي ممكن يبقى من غير نت فعلي.\n2. **طابور دائم**: خزّن الطلبات في MMKV أو SQLite (مثل WatermelonDB أو op-sqlite). ما تستخدمش state في الذاكرة، لأنه بيضيع لو التطبيق اتقفل.\n3. **Worker**: بيسحب الطلبات من الطابور بالترتيب ويبعتها، ويحذف الطلب بعد نجاحه فقط.\n4. **Retry مع exponential backoff + jitter**: مثلاً 1s ثم 2s ثم 4s ... بحد أقصى. أعد المحاولة في أخطاء الشبكة و5xx فقط. أخطاء 4xx تعتبر فشل نهائي ولازم تتعامل معاها.\n5. **Idempotency key**: ولّد UUID لكل طلب وقت إنشائه، وابعته في header مثل `Idempotency-Key`. السيرفر يتجاهل التكرار. ده مهم جدًا، لأن الطلب ممكن يوصل السيرفر والرد هو اللي يضيع، فتعيد الإرسال وتتكرر العملية (دفع مرتين مثلًا).\n6. **Optimistic UI**: اعرض للمستخدم إن العملية \"قيد الإرسال\" بدل ما تفشل قدامه، وحدّث الحالة لما تنجح أو تفشل.\n\n## كود مبسّط\n\n```ts\nimport NetInfo from '@react-native-community/netinfo';\nimport { MMKV } from 'react-native-mmkv';\nimport uuid from 'react-native-uuid';\n\nconst storage = new MMKV();\nconst KEY = 'outbox';\n\ntype Job = { id: string; url: string; method: string; body: any; attempts: number };\n\nconst load = (): Job[] => JSON.parse(storage.getString(KEY) ?? '[]');\nconst save = (q: Job[]) => storage.set(KEY, JSON.stringify(q));\n\nexport function enqueue(url: string, method: string, body: any) {\n  const q = load();\n  q.push({ id: uuid.v4() as string, url, method, body, attempts: 0 });\n  save(q);\n  flush();\n}\n\nlet flushing = false;\nexport async function flush() {\n  if (flushing) return;\n  flushing = true;\n  try {\n    let q = load();\n    while (q.length) {\n      const job = q[0];\n      try {\n        const res = await fetch(job.url, {\n          method: job.method,\n          headers: { 'Content-Type': 'application/json', 'Idempotency-Key': job.id },\n          body: JSON.stringify(job.body),\n        });\n        if (res.ok || (res.status >= 400 && res.status < 500)) {\n          q.shift();                 // نجح، أو فشل نهائي (يُسجَّل/يُبلَّغ عنه)\n          save(q);\n        } else throw new Error('server');\n      } catch {\n        job.attempts++;\n        save(q);\n        await new Promise(r => setTimeout(r, Math.min(30000, 2 ** job.attempts * 1000) * (0.5 + Math.random())));\n        q = load();\n        if (!navigator.onLine && job.attempts > 5) break;\n      }\n    }\n  } finally { flushing = false; }\n}\n\n// شغّل الـ flush لما النت يرجع أو التطبيق يفتح\nNetInfo.addEventListener(s => { if (s.isInternetReachable) flush(); });\n```\n\nالكود ده نقطة بداية. في الإنتاج ضيف حد أقصى لعدد المحاولات، وتعامل مع الفشل النهائي بإشعار للمستخدم.\n\n## نقاط لازم تنتبه لها\n\n- **الترتيب**: لو العمليات تعتمد على بعض (إنشاء ثم تعديل)، ابعتها بالتسلسل. لو مستقلة، ممكن تبعتها بالتوازي.\n- **التطبيق اتقفل**: شغّل `flush()` عند فتح التطبيق. للإرسال في الخلفية استخدم `react-native-background-fetch` أو `expo-background-task`. iOS مش بيضمن توقيت التنفيذ.\n- **تعارض البيانات**: لو المستخدم عدّل نفس البيانات من جهازين، حدد استراتيجية: آخر كتابة تفوز، أو version number مع رد 409.\n- **ملفات كبيرة (صور/فيديو)**: استخدم رفع متقطع (resumable upload) مثل tus، بدل إعادة الرفع من الصفر.\n- **انتهاء التوكن**: الطلب المخزّن ممكن يتبعت بعد ما التوكن ينتهي. اقرأ التوكن وقت الإرسال، مش وقت التخزين.\n- **الحالات الحرجة**: للدفع مثلًا، يفضل تمنع الإرسال دون نت وتوضح للمستخدم، بدل ما تعمل queue.\n\n## بدائل جاهزة\n\n- **TanStack Query** مع `networkMode: 'offlineFirst'` ومعاه `persistQueryClient` و`mutationCache` الدائم. بيدعم إعادة تشغيل الـ mutations المتوقفة (paused mutations) تلقائيًا.\n- **Redux Offline** أو **WatermelonDB sync** لو محتاج مزامنة كاملة.\n\nلو قلتلي نوع الطلبات (نماذج، دفع، رفع ملفات، شات) وهل عندك التحكم في الـ backend، أقدر أخصص التصميم أكتر."
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 1,
+        "passRate": 1,
+        "scoreWithout": 1,
+        "passRateWithout": 1,
+        "delta": 0
+      }
+    },
+    {
+      "name": "orchestrate-feature",
+      "dir": "evals/orchestrate-feature",
+      "source": "prose",
+      "promptMarkdown": "نسّق الفريق على feature كاملة: نظام كوبونات خصم لمتجر إلكتروني (Hono + Drizzle + Next.js). المطلوب: 1) الأدمن ينشئ كوبون بنسبة أو مبلغ ثابت وتاريخ انتهاء، 2) العميل يطبّق الكوبون في صفحة الدفع، 3) الكوبون مايتستخدمش أكتر من الحد بتاعه حتى مع طلبين في نفس اللحظة. عايز خطة وتاسكات بس، من غير كود.",
+      "runsPerCase": 3,
+      "timeoutSeconds": 300,
+      "maxTurns": 30,
+      "graders": [
+        {
+          "name": "agents-launched",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Agent",
+            "input_match": "handoff",
+            "min": 2,
+            "arm": "with-only"
+          }
+        },
+        {
+          "name": "coverage",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "PASS if the final reply accounts for all three asks separately (admin creates a coupon, customer applies it at checkout, usage limit holds under concurrent orders), states for each whether it is covered, and addresses the concurrency ask with a concrete mechanism (transaction with row lock, atomic conditional update, or unique constraint).\nFAIL if any of the three asks is missing from the final reply, or the concurrency ask is answered only with \"check the count before applying\".",
+          "config": {
+            "criteria": "PASS if the final reply accounts for all three asks separately (admin creates a coupon, customer applies it at checkout, usage limit holds under concurrent orders), states for each whether it is covered, and addresses the concurrency ask with a concrete mechanism (transaction with row lock, atomic conditional update, or unique constraint).\nFAIL if any of the three asks is missing from the final reply, or the concurrency ask is answered only with \"check the count before applying\".",
+            "focus": "last_message"
+          }
+        },
+        {
+          "name": "skill-fired",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Skill",
+            "input_match": "\"skill\"\\s*:\\s*\"(?:[\\w-]+:)?kit-orchestrate\"",
+            "arm": "with-only"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 0,
+            "passed": false,
+            "turns": 22,
+            "costUsd": 0.5747112,
+            "judgeCostUsd": 0.0005777999999999998,
+            "durationSeconds": 306,
+            "startedAt": "2026-11-14T13:08:32.669Z",
+            "error": "timed out after 300s",
+            "tracePath": "/tmp/claude-eval-SwKcqb/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "agents-launched",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Agent called 4x (expected 2..∞)",
+                "withOnly": true,
+                "scored": false
+              },
+              {
+                "name": "coverage",
+                "passed": false,
+                "weight": 1,
+                "explanation": "judge votes: FAIL FAIL FAIL",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  false,
+                  false,
+                  false
+                ],
+                "evidence": "الـ CTO خلّص، وفريق backend وfrontend شغالين بالتوازي دلوقتي.\n\n**قرار الـ CTO لـ R3** (التفاصيل في `architecture.md`):\n- الحجز بيتم بـ `UPDATE` واحد بشرط على `coupons.used_count`. بيتحقق في نفس الـ statement من الحد وحالة الكوبون والنافذة الزمنية، جوه transaction إنشاء الأوردر.\n- لو طلبين جُم في نفس اللحظة على آخر خانة، الـ row lock بيخلّي التاني يستنى ويعيد التقييم، فواحد بس يكسب.\n- فيه `CHECK (used_count <= total_limit)` كشبكة أمان، وجدول counter للحد لكل عميل.\n- مهلة الحجز 30 دقيقة، وsweeper بيحرّر الخانات المنتهية.\n- لو الدفع جه متأخر والخانة اتاخدت، الأوردر يروح `payment_review`.\n- الـ `Idempotency-Key` بيتكتب جوه transaction الأوردر.\n\n**قرارات إضافية محتاجاني منك** (ضمن الـ8 اللي فاتوا):\n- **D1:** لو الخانة ضاعت بعد الدفع، مراجعة يدوية ولا refund تلقائي؟ (الافتراضي: يدوية)\n- **D3:** أدوار الأدمن.\n- **D4:** مصدر الـ IP والـ trusted proxy، لحماية تخمين الكوبونات.\n- **D5:** تاريخ الانتهاء إلزامي ولا اختياري؟\n- **D6:** مهلة الحجز 30 دقيقة مناسبة؟\n\n**افتراضات لسه مش متحقق منها:**\n- مزوّد الدفع يدعم session expiry وwebhooks وrefunds.\n- نظام الـ auth لسه ما اتصممش.\n\nبعد ما الاتنين يخلّصوا، هضيف قسميهم في الـ handoff وأطلق `qa-tester`."
+              },
+              {
+                "name": "skill-fired",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Skill called 1x (expected 1..∞)",
+                "withOnly": true,
+                "scored": false
+              }
+            ]
+          }
+        ],
+        "without": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 1,
+            "costUsd": 0.07646199999999999,
+            "judgeCostUsd": 0.0011346000000000012,
+            "durationSeconds": 39,
+            "startedAt": "2026-11-14T13:08:35.749Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-T8gty8/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "coverage",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "# خطة نظام كوبونات الخصم\n\nمفيش كود هنا، خطة وتاسكات بس. لم أفتح الريبو، فالأسماء والمسارات تقديرية وتتأكد منها في أول تاسك.\n\n## 1. قرارات لازم تتحسم قبل البدء\n\n| السؤال | افتراضي مقترح |\n|---|---|\n| الحد بتاع الكوبون: إجمالي استخدامات، ولا لكل عميل، ولا الاتنين؟ | الاتنين: `max_uses` إجمالي و`max_uses_per_user` |\n| كوبون واحد للطلب ولا أكتر؟ | واحد |\n| الخصم على إيه؟ | المنتجات فقط، من غير الشحن |\n| حد أدنى لقيمة السلة؟ | اختياري `min_order_amount` |\n| لو الطلب اتلغى أو الدفع فشل، الاستخدام يرجع؟ | يرجع (تفاصيله في قسم التزامن) |\n| العملة؟ | كل المبالغ أعداد صحيحة بأصغر وحدة (قرش)، ومفيش float |\n| نسبة الخصم | عدد صحيح من 1 لـ 100، وفي حالة النسبة ممكن سقف `max_discount_amount` |\n\n## 2. التصميم\n\n**جداول جديدة:**\n- `coupons`:\n  - الكود: unique وبيتخزن normalized (uppercase وtrim).\n  - النوع: `percent` أو `fixed`.\n  - القيمة، وتاريخ البداية والانتهاء.\n  - `max_uses` و`used_count` و`max_uses_per_user`.\n  - `min_order_amount` و`is_active`.\n- `coupon_redemptions`:\n  - `coupon_id` و`order_id` و`user_id` و`discount_amount` و`created_at`.\n  - فيه unique على `(coupon_id, order_id)`.\n- جدول `orders` يتزود فيه `coupon_id` و`discount_amount`.\n\n**API بتاع الأدمن (Hono):** إنشاء كوبون، وتعديله، وتفعيله أو تعطيله، وعرض القايمة مع `used_count`. كل ده محمي بـ middleware للأدمن، وفيه validation بـ Zod:\n- النسبة بين 1 و100.\n- المبلغ الثابت أكبر من صفر.\n- تاريخ الانتهاء في المستقبل.\n\n**API بتاع العميل:**\n- `POST /coupons/validate`: معاينة بس، ومبتحجزش حاجة. بترجّع الخصم المحسوب أو سبب الرفض.\n- الكوبون بيتطبق فعليًا جوه `POST /orders` (الـ checkout) فقط.\n\n**قاعدة ذهبية:** السيرفر هو اللي بيحسب الخصم والإجمالي. الفرونت مبيبعتش أي مبلغ، بيبعت الكود بس.\n\n## 3. التزامن (الجزء الحساس)\n\nالخطر هو طلبين في نفس اللحظة يقراوا `used_count = 9` من 10 ويعدّوا الاتنين. الحل:\n\n1. كل خطوات الطلب تتعمل في **transaction واحدة**: إنشاء الطلب، وحجز الكوبون، وتسجيل الاستخدام.\n2. الحجز بـ **UPDATE شرطي ذري** على صف الكوبون، بشروط `used_count < max_uses` والكوبون فعّال وغير منتهي. لو الصفوف المتأثرة صفر، الكوبون مرفوض. مفيش read-then-write في طبقة التطبيق خالص.\n3. الحد لكل عميل بيتفرض بالطريقة نفسها: إما unique constraint، وإما lock على صف الكوبون جوه الـ transaction. الـ count المجرد من غير lock مش كفاية.\n4. الـ unique على `(coupon_id, order_id)` يمنع تسجيل نفس الاستخدام مرتين لو الريكوست اتعاد (retry).\n5. التحقق من تاريخ الانتهاء بيتعمل وقت الحجز جوه الـ transaction، مش وقت الـ validate بس.\n6. **الإرجاع:** لو الطلب اتلغى أو الدفع فشل، التاكس ينقص `used_count` ويمسح صف الـ redemption في transaction. ممكن تلغي الطلب التلقائي لو الدفع ما تمش في مدة معينة.\n7. **تأكيد الدفع:** لو بوابة الدفع خارجية، نقرر هل الحجز يتم عند إنشاء الطلب (pending مع مهلة) ولا عند تأكيد الدفع. المقترح هو الحجز عند الإنشاء مع مهلة انتهاء.\n\n## 4. التاسكات\n\n| # | التاسك | المسؤول | يعتمد على | معيار القبول |\n|---|---|---|---|---|\n| T0 | استكشاف الريبو: هيكل Hono، وسكيما Drizzle، وفلو الـ checkout الحالي، وكيف الـ auth والأدوار | Backend | — | ملخص قصير بالملفات اللي هتتغير |\n| T1 | سكيما Drizzle وmigration للجداول والأعمدة الجديدة، مع indexes وconstraints | DB/Backend | T0 | الـ migration بتشتغل لقدام ولورا على قاعدة نضيفة |\n| T2 | دوال منطق الخصم: حساب النسبة والمبلغ، وسقف الخصم، وعدم نزول الإجمالي تحت صفر | Backend | T1 | unit tests على حالات الحواف |\n| T3 | API الأدمن (CRUD) مع الحماية والـ validation | Backend | T1 | رفض أي بيانات غلط، ورفض غير الأدمن بـ 403 |\n| T4 | endpoint الـ validate للعميل برسائل خطأ واضحة: منتهي، استُنفد، غير فعّال، تحت الحد الأدنى | Backend | T2 | كل سبب رفض له كود خطأ مميز |\n| T5 | دمج الكوبون في إنشاء الطلب بالحجز الذري داخل transaction، وتطبيق الإرجاع عند الإلغاء | Backend | T2، T1 | تاسك T8 يعدّي |\n| T6 | صفحات الأدمن في Next.js: قايمة، ونموذج إنشاء وتعديل، وعرض الاستخدام | Frontend | عقد API من T3 | الأدمن ينشئ كوبون نسبة وكوبون مبلغ ثابت |\n| T7 | صفحة الدفع: حقل الكوبون، وزر تطبيق، وعرض الخصم والإجمالي الجديد، وإزالة الكوبون، وحالات الخطأ | Frontend | عقد API من T4 | الإجمالي المعروض يطابق اللي السيرفر يحسبه |\n| T8 | **اختبار التزامن** (تفاصيله تحت) | QA/Backend | T5 | يعدّي 50 مرة ورا بعض من غير فشل |\n| T9 | اختبارات E2E للفلو الكامل، ومراجعة أمنية | QA | T6، T7، T5 | المراجعة تغطي brute force وتلاعب بالأسعار |\n| T10 | توثيق، وخطة rollout بـ feature flag | الكل | T9 | |\n\n## 5. ترتيب التنفيذ\n\n- **المرحلة 1:** T0 ثم T1، بالتسلسل.\n- **المرحلة 2 (بالتوازي):** T2 وT3 على الباك، وT6 على الفرونت بعد ما عقد API يتثبت.\n- **المرحلة 3:** T4 وT5، وT7 بالتوازي مع T4.\n- **المرحلة 4:** T8 وT9 وT10.\n\n**أهم نقطة تنسيق:** تثبيت عقد الـ API (شكل الريكوست والريسبونس وأكواد الأخطاء) قبل المرحلة 2، عشان الفرونت والباك يمشوا بالتوازي من غير تعطيل.\n\n## 6. اختبار التزامن (T8)\n\n- كوبون `max_uses = 1`، و20 طلب متزامن بنفس الكود. المطلوب نجاح واحد بالظبط، و`used_count = 1`، وصف redemption واحد.\n- نفس الاختبار مع `max_uses = 5` و50 طلب.\n- حد لكل عميل: نفس العميل يبعت طلبين في نفس اللحظة.\n- retry لنفس الريكوست مايستهلكش استخدام تاني.\n- إلغاء طلب بيرجّع الاستخدام، وطلب جديد بعده ينجح.\n- كوبون ينتهي أثناء الـ checkout يترفض.\n- الاختبار يشتغل على Postgres حقيقي، مش mock.\n\n## 7. المخاطر\n\n- **Brute force على الأكواد:** rate limit على endpoint الـ validate، ورسالة رفض موحّدة مبتكشفش هل الكود موجود.\n- **تلاعب بالأسعار من الفرونت:** مرفوض بالتصميم، لأن السيرفر هو اللي بيحسب.\n- **فرق المناطق الزمنية في الانتهاء:** نخزّن UTC، ونحدد هل الانتهاء آخر اليوم ولا لحظة معينة.\n- **Isolation level:** الـ UPDATE الشرطي كفاية في الـ default، بس نتأكد من إعداد الـ DB الفعلي في T0.\n\nلو وافقت على الافتراضات في القسم 1، ابدأ بـ T0. وممكن أشغّل agent استكشاف على الريبو يطلعلك الملفات والأنماط الحالية قبل ما نثبّت عقد الـ API."
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 0,
+        "passRate": 0,
+        "scoreWithout": 1,
+        "passRateWithout": 1,
+        "delta": -1
+      }
+    },
+    {
+      "name": "proposal-agent-routes",
+      "dir": "evals/proposal-agent-routes",
+      "source": "prose",
+      "promptMarkdown": "اكتبلي عرض سعر لعميل عايز موقع حجز مواعيد لعيادة. السعر والمدة لسه ما اتحددوش.",
+      "runsPerCase": 3,
+      "timeoutSeconds": 300,
+      "maxTurns": 15,
+      "graders": [
+        {
+          "name": "agent-used",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Agent",
+            "input_match": "proposal-writer",
+            "min": 1,
+            "arm": "with-only"
+          }
+        },
+        {
+          "name": "quality",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "PASS if the draft lists what is included and what is not, leaves the price and timeline as clearly marked gaps or questions instead of inventing numbers, and says what is needed from the client.\nFAIL if it invents a price or a delivery date.",
+          "config": {
+            "criteria": "PASS if the draft lists what is included and what is not, leaves the price and timeline as clearly marked gaps or questions instead of inventing numbers, and says what is needed from the client.\nFAIL if it invents a price or a delivery date.",
+            "focus": "last_message"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 2,
+            "costUsd": 0.127379,
+            "judgeCostUsd": 0.0015514000000000014,
+            "durationSeconds": 32,
+            "startedAt": "2026-11-14T13:08:48.466Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-MASwdc/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "agent-used",
+                "passed": false,
+                "weight": 1,
+                "explanation": "Agent called 0x (expected 1..∞)",
+                "withOnly": true,
+                "scored": false
+              },
+              {
+                "name": "quality",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "💡 قبل ما نكمل: شغّل `/sabry-kit:kit-setup` (دقيقتين) عشان الكيت يحفظ تفضيلاتك.\n\n---\n\n# عرض سعر: موقع حجز مواعيد لعيادة\n\n**مقدّم إلى:** [اسم العميل / العيادة]\n**مقدّم من:** [اسمك / شركتك]\n**التاريخ:** 14 نوفمبر 2026\n\n## 1. فهمنا لاحتياجكم\nالعيادة محتاجة تخلّي المرضى يحجزوا مواعيدهم بنفسهم أونلاين في أي وقت. ده يقلّل المكالمات على الاستقبال ويقلّل تعارض المواعيد، ويدّي العيادة صورة احترافية.\n\n## 2. الحل المقترح\nموقع للعيادة فيه نظام حجز مواعيد، ومعاه لوحة تحكم لفريق العيادة. المريض يختار الطبيب أو الخدمة والوقت المتاح ويأكّد الحجز في دقيقة. الاستقبال يشوف كل الحجوزات ويديرها من مكان واحد.\n\n## 3. النطاق\n\n**مشمول:**\n- صفحات تعريفية: الرئيسية، عن العيادة، الأطباء والخدمات، تواصل معنا\n- حجز موعد أونلاين: اختيار الطبيب أو الخدمة، ثم اليوم والوقت المتاح، وإدخال بيانات المريض\n- منع الحجز المزدوج في نفس الموعد\n- إشعار تأكيد للمريض عبر [بريد إلكتروني / SMS / واتساب: يُحدَّد]\n- لوحة تحكم للعيادة: عرض الحجوزات، التأكيد والإلغاء والتعديل، وضبط مواعيد العمل والإجازات لكل طبيب\n- تصميم متجاوب مع الموبايل، ودعم العربية (RTL) [والإنجليزية: يُحدَّد]\n- تشغيل الموقع على دومين العيادة مع شهادة أمان (HTTPS)\n- اختبار قبل التسليم، وتدريب فريق الاستقبال على اللوحة\n\n**غير مشمول (يُسعَّر منفصلاً لو احتجتوه):**\n- الدفع الأونلاين\n- ملف طبي إلكتروني أو سجلات المرضى\n- تطبيق موبايل\n- الربط مع نظام إدارة عيادة موجود\n- كتابة المحتوى والتصوير (العيادة توفّر النصوص والصور)\n- حملات التسويق وإعلانات الـ SEO المتقدمة\n- الاستضافة والدومين (تُدفع بحساب العيادة، والتكلفة التقريبية في البند 7)\n\n## 4. المخرجات ومعايير القبول\n| المخرج | يُعتبر مقبولاً لما |\n|---|---|\n| صفحات الموقع | كل الصفحات المتفق عليها تظهر صح على الموبايل والكمبيوتر |\n| الحجز | مريض يقدر يحجز موعد من البداية للنهاية، ولا يظهر موعد محجوز لمريض ثاني |\n| الإشعارات | رسالة التأكيد توصل بعد كل حجز |\n| لوحة التحكم | الاستقبال يقدر يضيف ويعدّل ويلغي حجز، ويضبط مواعيد الأطباء |\n| التسليم | الموقع شغّال على الدومين، ومعاه دليل استخدام مختصر وجلسة تدريب |\n\n## 5. الجدول الزمني\n**المدة الإجمالية:** [__ أسابيع]\n\n| المرحلة | المدة | تعتمد على |\n|---|---|---|\n| التصميم والاعتماد | [__] | استلام المحتوى والشعار من العيادة |\n| التطوير | [__] | اعتماد التصميم |\n| الاختبار والمراجعة | [__] | ملاحظات العيادة خلال [__] أيام |\n| التسليم والتدريب | [__] | جاهزية الدومين والاستضافة |\n\nأي تأخير في تسليم المحتوى أو الرد على الملاحظات بيتحرّك معاه الموعد النهائي بنفس المدة.\n\n## 6. السعر وشروط الدفع\n**إجمالي السعر:** [____ جنيه]\n\n| الدفعة | النسبة | موعدها |\n|---|---|---|\n| مقدّم | [__٪] | عند الموافقة وبدء العمل |\n| منتصف | [__٪] | عند اعتماد التصميم / اكتمال التطوير |\n| تسليم | [__٪] | عند التسليم النهائي |\n\n## 7. الافتراضات والمطلوب من العيادة\n- بيانات الأطباء والخدمات والأسعار ومواعيد العمل، والشعار والصور، قبل بدء التطوير\n- شخص واحد من العيادة مسؤول عن الاعتماد والرد على الملاحظات خلال [__] أيام عمل\n- الدومين والاستضافة على حساب العيادة. التكلفة التقريبية [____ سنوياً]\n- عدد الأطباء [__] وعدد اللغات [__]. زيادتهم عن كده تغيّر السعر\n- جولة تعديلات واحدة شاملة على التصميم وجولة واحدة بعد الاختبار\n- الدعم بعد التسليم: [__ يوم/شهر مجاناً] لإصلاح أي خلل. بعدها بعقد صيانة اختياري [____ شهرياً]\n- أي طلب خارج النطاق المكتوب يتسعّر ويتوافق عليه كتابةً قبل التنفيذ\n\n## 8. صلاحية العرض والخطوة التالية\nالعرض ساري لمدة [__ يوم] من تاريخه. للبدء: وافقوا على العرض بالرد عليه وادفعوا المقدّم، وبعدها نحدد موعد جلسة قصيرة لاستلام المحتوى.\n\n---\n\n## ملاحظات ليك (مش للعميل)\n\n- **الأرقام الفاضية** (السعر، المدة، نسب الدفع، الصلاحية، فترة الدعم) كلها placeholders. ما حطّيتش أي رقم من عندي.\n- **النطاق افتراض مني.** أكّده مع العميل: الإشعارات بتتبعت إزاي (SMS أو واتساب بيزوّدوا تكلفة شهرية)، وعدد الأطباء، وهل في لغتين، وهل عنده موقع قديم.\n- **نقطة حساسة:** لو العيادة هتخزّن بيانات مرضى، اسأل عن شروط خصوصية البيانات الطبية في بلد العميل قبل ما تلتزم بأي حاجة في الأمان.\n- **للتسعير:** لو العميل مش متأكد من الميزانية، ممكن نحوّل العرض لثلاث باقات (أساسي، متوسط، كامل). قولّي لو عايز.\n\nدي مسودة، ما اتبعتش لأي حد."
+              }
+            ]
+          }
+        ],
+        "without": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 1,
+            "costUsd": 0.0637638,
+            "judgeCostUsd": 0.0019064000000000008,
+            "durationSeconds": 26,
+            "startedAt": "2026-11-14T13:08:55.677Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-CuVOf2/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "quality",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "# عرض سعر: موقع حجز مواعيد للعيادة\n\n**التاريخ:** 14 نوفمبر 2026\n**مقدم إلى:** [اسم العميل / اسم العيادة]\n**مقدم من:** [اسمك / اسم الشركة]\n**رقم العرض:** [____]\n**صلاحية العرض:** [__] يومًا من تاريخه\n\n---\n\n## 1. نبذة عن المشروع\n\nنقدم لحضرتك موقعًا إلكترونيًا متكاملًا للعيادة. يتيح الموقع للمرضى حجز مواعيدهم أونلاين في أي وقت، ويساعد فريق العيادة على تنظيم الجدول وتقليل المكالمات والتضارب في المواعيد.\n\n## 2. نطاق العمل\n\n### أ) الواجهة العامة (للمرضى)\n- صفحة رئيسية تعرّف بالعيادة وخدماتها.\n- صفحات الأطباء والتخصصات، وفيها نبذة عن كل طبق وصورته.\n- صفحة الخدمات والأسعار.\n- صفحة تواصل فيها الموقع على الخريطة وأرقام الهاتف وواتساب.\n- تصميم متجاوب يعمل على الموبايل والتابلت والكمبيوتر.\n- دعم اللغة العربية بالكامل، مع إمكانية إضافة الإنجليزية [اختياري].\n\n### ب) نظام الحجز\n- اختيار الطبيب أو الخدمة، ثم اليوم والوقت المتاح.\n- عرض المواعيد المتاحة فقط، مع منع الحجز المزدوج.\n- بيانات الحجز: الاسم ورقم الموبايل وملاحظات اختيارية.\n- رسالة تأكيد فورية بعد الحجز.\n- تذكير قبل الموعد عبر [SMS / واتساب / إيميل].\n- إمكانية إلغاء الموعد أو تعديله من المريض.\n\n### ج) لوحة تحكم العيادة\n- عرض المواعيد بشكل يومي وأسبوعي.\n- تأكيد الحجوزات أو رفضها أو تعديلها يدويًا.\n- ضبط مواعيد عمل كل طبق والإجازات والأوقات المحجوبة.\n- إدارة الأطباء والخدمات.\n- قائمة بالمرضى وسجل حجوزاتهم.\n- تقارير بسيطة: عدد الحجوزات وحالات الإلغاء والغياب.\n- صلاحيات متعددة (مدير / موظف استقبال).\n\n### د) أساسيات تقنية\n- شهادة أمان SSL.\n- تحسين السرعة وأساسيات SEO.\n- نسخ احتياطي دوري.\n- حماية بيانات المرضى.\n\n## 3. المخرجات\n- الموقع كامل على الدومين الخاص بالعيادة.\n- لوحة التحكم مع حسابات الإدارة.\n- دليل استخدام مختصر [PDF / فيديو].\n- جلسة تدريب لفريق العيادة.\n\n## 4. إضافات اختيارية (بتكلفة منفصلة)\n| الإضافة | السعر |\n|---|---|\n| الدفع الإلكتروني للعربون أو الكشف | [____] |\n| تطبيق موبايل | [____] |\n| دمج مع Google Calendar | [____] |\n| ملف طبي إلكتروني للمريض | [____] |\n| نسخة إنجليزية كاملة | [____] |\n| حملة إعلانات أو SEO متقدم | [____] |\n\n## 5. المدة الزمنية\n\n**المدة الإجمالية:** [__] أسبوع من تاريخ الدفعة المقدمة واستلام المحتوى.\n\n| المرحلة | المدة |\n|---|---|\n| تجميع المتطلبات والتصميم | [__] |\n| التطوير والبرمجة | [__] |\n| الاختبار والتعديلات | [__] |\n| الإطلاق والتدريب | [__] |\n\n## 6. التكلفة\n\n**إجمالي التكلفة:** [______] جنيه مصري\n\n| البند | التكلفة |\n|---|---|\n| التصميم | [____] |\n| تطوير الموقع ونظام الحجز | [____] |\n| لوحة التحكم | [____] |\n| الاستضافة والدومين (أول سنة) | [____] |\n| **الإجمالي** | **[____]** |\n\n**طريقة الدفع:**\n- [__]% عند التعاقد.\n- [__]% عند تسليم النسخة التجريبية.\n- [__]% عند الإطلاق.\n\n## 7. الدعم والصيانة\n- دعم فني مجاني لمدة [__] يومًا بعد الإطلاق، لإصلاح أي أخطاء.\n- باقة صيانة شهرية اختيارية بسعر [____] جنيه، تشمل التحديثات والنسخ الاحتياطي والدعم.\n\n## 8. المطلوب من العميل\n- شعار العيادة وهويتها البصرية.\n- بيانات الأطباء وصورهم والخدمات وأسعارها.\n- مواعيد العمل وسياسة الإلغاء.\n- نقطة اتصال واحدة لاعتماد التصميم والتعديلات.\n\n## 9. الشروط العامة\n- يشمل العرض [__] جولات تعديل على التصميم، وما زاد عليها يُحتسب بتكلفة إضافية.\n- أي طلبات خارج النطاق المذكور تُسعَّر بشكل منفصل.\n- أي تأخير في تسليم المحتوى أو الاعتماد يؤثر على الجدول الزمني.\n- ملكية الموقع تنتقل للعميل بعد السداد الكامل.\n- رسوم خدمات الطرف الثالث (SMS وواتساب والدفع) على العميل حسب الاستهلاك.\n\n---\n\n**للموافقة:** يُرجى التوقيع أو الرد بما يفيد القبول، وسنرسل العقد وفاتورة الدفعة المقدمة.\n\nالاسم: ____________  التوقيع: ____________  التاريخ: ____________\n\n---\n\n**ملحوظات لك قبل الإرسال:**\n- كل ما بين `[____]` محتاج تملاه، وأهمه السعر والمدة.\n- لو العميل ميزانيته محدودة، ممكن تقدم باقتين: **أساسية** (حجز + لوحة تحكم بسيطة) و**متكاملة** (مع تذكيرات ودفع وتقارير).\n- لو عايز، أظبطلك العرض بنبرة أكثر رسمية، أو أختصره في صفحة واحدة، أو أعمله بصيغة Word أو PDF."
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 1,
+        "passRate": 1,
+        "scoreWithout": 1,
+        "passRateWithout": 1,
+        "delta": 0
+      }
+    },
+    {
+      "name": "seo-agent-routes",
+      "dir": "evals/seo-agent-routes",
+      "source": "prose",
+      "promptMarkdown": "موقعي Next.js بالعربي والإنجليزي وصفحات المنتجات مش بتظهر في جوجل خالص. أبدأ منين؟",
+      "runsPerCase": 3,
+      "timeoutSeconds": 300,
+      "maxTurns": 15,
+      "graders": [
+        {
+          "name": "agent-used",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Agent",
+            "input_match": "seo-content",
+            "min": 1,
+            "arm": "with-only"
+          }
+        },
+        {
+          "name": "quality",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "PASS if the reply checks technical causes before content (indexing blockers such as noindex, robots.txt, canonical, rendering without JavaScript, sitemap), covers the two languages (separate URLs with hreflang, lang and dir), and gives a priority order.\nFAIL if it starts with keywords or writing more content, or promises a ranking.",
+          "config": {
+            "criteria": "PASS if the reply checks technical causes before content (indexing blockers such as noindex, robots.txt, canonical, rendering without JavaScript, sitemap), covers the two languages (separate URLs with hreflang, lang and dir), and gives a priority order.\nFAIL if it starts with keywords or writing more content, or promises a ranking.",
+            "focus": "last_message"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 3,
+            "costUsd": 0.126824,
+            "judgeCostUsd": 0.0008324999999999999,
+            "durationSeconds": 33,
+            "startedAt": "2026-11-14T13:09:14.868Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-YKQvmj/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "agent-used",
+                "passed": false,
+                "weight": 1,
+                "explanation": "Agent called 0x (expected 1..∞)",
+                "withOnly": true,
+                "scored": false
+              },
+              {
+                "name": "quality",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "المشروع اللي في الفولدر ده فاضي، يعني مفيش كود Next.js أقدر أفحصه. فالخطة دي عامة، وبترتّب الفحص من أول مرحلة بتفشل: crawl ← index ← render ← ranking.\n\n## 🔍 SEO: صفحات المنتجات مش بتظهر\n\n### 1. الأول: هل الصفحات مفهرسة أصلاً؟ (10 دقايق)\n- في Google Search Console اعمل URL Inspection لـ 3 صفحات منتجات (واحدة عربي وواحدة إنجليزي).\n- افتح تقرير Pages وشوف السبب في \"Not indexed\". الأسباب المعتادة:\n  - `Discovered, currently not indexed` معناها إن جوجل لقاها ومجاش يزحف عليها (crawl budget أو جودة ضعيفة).\n  - `Crawled, currently not indexed` معناها إن جوجل شافها ورفضها (محتوى رفيع أو مكرر).\n  - `Duplicate, Google chose different canonical` معناها مشكلة canonical.\n  - `Excluded by noindex` أو `Blocked by robots.txt` معناها حظر صريح.\n- لو الموقع مش متسجّل في Search Console، ده أول حاجة تعملها.\n- اكتب في جوجل `site:yourdomain.com/products` عشان تعرف عدد الصفحات المفهرسة تقريباً.\n\n### 2. الحظر التقني (الأسباب الأشهر في Next.js)\n| الفحص | إزاي |\n|---|---|\n| `noindex` متروك من staging | ابحث عن `robots` في `metadata` وفي الـ headers وفي `X-Robots-Tag` |\n| `robots.txt` بيمنع `/products` أو `/_next/` | افتح `/robots.txt` على الموقع الحي |\n| الصفحة بتترندر فاضية بدون JS | `curl -s URL` وشوف هل اسم المنتج وتفاصيله موجودة في الـ HTML. لو لأ، المنتجات بتتحمّل client-side بـ `useEffect` |\n| مفيش sitemap، أو الـ sitemap مش فيه المنتجات | افتح `/sitemap.xml` وتأكد إن فيه روابط المنتجات بالعربي والإنجليزي |\n| مفيش روابط داخلية `<a href>` للمنتجات | لو التنقل بـ `onClick` أو router.push، جوجل مش هيلاقيها |\n| `canonical` غلط (كله بيشاور على الـ home أو على نسخة واحدة) | افحص `<link rel=\"canonical\">` في كل لغة |\n| `hreflang` ناقص أو من غير تبادل | كل نسخة لازم تشاور على الثانية وعلى نفسها |\n| `notFound()` أو redirect loop على الـ dynamic routes | جرّب الروابط الفعلية بـ `curl -I` |\n\n### 3. حاجات خاصة بالموقع ثنائي اللغة\n- كل لغة ليها URL مستقل (`/ar/...` و`/en/...`)، مش نفس الـ URL بيتغيّر بالكوكي أو الـ Accept-Language.\n- `<html lang=\"ar\" dir=\"rtl\">` على النسخة العربية.\n- `alternates.languages` في `generateMetadata`، مع `x-default`.\n- الـ `title` والـ `description` مكتوبين بالعربي للنسخة العربية. مش ترجمة آلية ولا نفس النص الإنجليزي.\n\n### 4. بعد ما الفهرسة تتحل\n- **Structured data:** `Product` schema (الاسم والصورة والسعر والتوفر) لازم يطابق اللي ظاهر في الصفحة. من غير تقييمات مخترعة.\n- **المحتوى:** وصف فريد لكل منتج. الوصف المنسوخ من المورّد هو سبب شائع لـ \"Crawled, not indexed\".\n- **Core Web Vitals:** افحص الـ template (LCP للصور، CLS)، مش صفحة واحدة بس.\n\n### الأولوية (التأثير × الجهد)\n1. Search Console وفحص أسباب عدم الفهرسة. تأثيره أعلى حاجة وجهده قليل.\n2. `curl` للصفحة للتأكد إن الـ HTML فيه المحتوى، وفحص `robots` و`noindex`.\n3. sitemap وhreflang وcanonical.\n4. بعد كده المحتوى والـ schema.\n\n### إزاي نعرف إن الإصلاح نفع\nتقرير Pages في Search Console (عدد الصفحات المفهرسة) وتقرير Performance (impressions للمنتجات). التغيير بياخد أسابيع بعد الإصلاح. مقدرش أوعد بترتيب ولا بتاريخ.\n\n**توصيتي:** ابدأ بالخطوة 1 دلوقتي. لو بعتلي الرابط الحقيقي لصفحة منتج، أو الكود (`app/[locale]/products/[slug]/page.tsx` و`robots` و`sitemap`)، أحدد لك السبب بدل الاحتمالات.\n\nعندك Search Console متسجّل ومفعّل على الدومين؟ وإيه اللي بيظهر في تقرير Pages للصفحات دي؟"
+              }
+            ]
+          }
+        ],
+        "without": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 2,
+            "costUsd": 0.06123749999999999,
+            "judgeCostUsd": 0.0014356999999999998,
+            "durationSeconds": 27,
+            "startedAt": "2026-11-14T13:09:20.844Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-4AT589/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "quality",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "مفيش كود Next.js في المجلد الحالي، فهديك خطة تشخيص مرتبة. ابدأ من الأول للآخر، لأن كل خطوة بتستبعد سبب قبل اللي بعدها.\n\n## 1. اتأكد من حالة الصفحات في Google Search Console\nلو الموقع مش متضاف في Search Console، ضيفه الأول. بعد كده:\n- افحص رابط منتج واحد بأداة **URL Inspection**.\n- شوف الحالة اللي بتظهر، لأنها بتحدد المشكلة:\n  - **\"Discovered – currently not indexed\"**: جوجل عارف الصفحة بس مش شايف إنها تستاهل الزحف. السبب غالبًا ضعف internal links أو محتوى مكرر أو رفيع.\n  - **\"Crawled – currently not indexed\"**: جوجل زحف الصفحة ورفضها. السبب غالبًا جودة المحتوى أو تكراره.\n  - **\"Excluded by noindex\"** أو **\"Blocked by robots.txt\"**: المشكلة في الإعدادات.\n  - **\"Alternate page with proper canonical\"**: الـ canonical بيشاور على صفحة تانية.\n- اضغط **View crawled page** وشوف الـ HTML اللي جوجل استلمه. لو المنتجات مش موجودة فيه، يبقى المحتوى بيتحمّل من الـ client بس.\n\n## 2. أكتر أسباب شيوعًا في Next.js\n1. **الـ rendering**: لو صفحات المنتجات بتجيب الداتا في `useEffect` أو client component، الـ HTML الأولي بيطلع فاضي. استخدم Server Components أو SSG/ISR. اعمل `curl -s https://yourdomain.com/ar/products/xyz` وتأكد إن اسم المنتج وسعره موجودين في الـ HTML.\n2. **`noindex` بالغلط**: دوّر على `robots: { index: false }` في الـ metadata، أو على الـ header `X-Robots-Tag`. الـ staging config ساعات بيتنقل للـ production.\n3. **`robots.txt`**: افتح `/robots.txt` وتأكد إنه مش عامل `Disallow` على `/products` أو `/ar`.\n4. **`sitemap.xml`**: لازم يكون موجود ومتقدّم في Search Console. وتأكد إنه فيه روابط المنتجات بكل اللغات.\n5. **الـ canonical**: كل صفحة لازم تشاور على نفسها. لو كل المنتجات canonical بتاعها الصفحة الرئيسية، جوجل هيتجاهلها.\n6. **الروابط الداخلية**: لو المنتجات متاحة بس عن طريق search أو JS pagination (`onClick` من غير `<a href>`)، جوجل مش هيلاقيها. استخدم `<Link>` عادي.\n\n## 3. إعدادات اللغتين (hreflang)\n- كل لغة ليها URL مستقل (`/ar/...` و`/en/...`)، مش cookie أو تغيير بالـ JS.\n- حط `alternates.languages` في `generateMetadata` عشان يطلع `hreflang` متبادل بين النسختين، مع `x-default`.\n- لو middleware الـ i18n بيعمل redirect حسب `Accept-Language` أو الـ IP، جوجل (بيزحف من US) هيشوف نسخة واحدة بس. اسمح بالوصول المباشر لكل URL من غير redirect.\n- حط `lang` و`dir=\"rtl\"` على `<html>` للعربي.\n\n## 4. بعد كده\n- الـ status code لازم يكون 200 (مش 307/308 متسلسلة، ومش soft-404).\n- حط structured data من نوع `Product` (JSON-LD).\n- محتوى فريد لكل منتج: لو الوصف مكرر أو مترجم آليًا بالكامل، جوجل بيرفضه كتير.\n- اطلب indexing لعيّنة صغيرة من الصفحات بعد التصليح، وبعدها راقب تقرير **Pages**.\n\n## أبدأ منين فعليًا؟\n1. اعمل `curl` على صفحة منتج واحد، عربي وإنجليزي، وشوف الـ HTML والـ headers (`-I` للـ headers).\n2. افحص نفس الرابط في URL Inspection وقارن.\n3. شوف `robots.txt` و`sitemap.xml`.\n\nلو بعتلي الكود (أو شغّلني من داخل مجلد المشروع)، أو الحالة اللي ظاهرة في Search Console، أقدر أحدد السبب بالظبط وأعدّل الكود."
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 1,
+        "passRate": 1,
+        "scoreWithout": 1,
+        "passRateWithout": 1,
+        "delta": 0
+      }
+    },
+    {
+      "name": "support-agent-routes",
+      "dir": "evals/support-agent-routes",
+      "source": "prose",
+      "promptMarkdown": "العميل بعتلي: \"السيستم بايظ ومفيش حد عارف يعمل فواتير من الصبح!!\" اعمل إيه؟",
+      "runsPerCase": 3,
+      "timeoutSeconds": 300,
+      "maxTurns": 15,
+      "graders": [
+        {
+          "name": "agent-used",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Agent",
+            "input_match": "support-triage",
+            "min": 1,
+            "arm": "with-only"
+          }
+        },
+        {
+          "name": "quality",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "PASS if the reply separates what was reported from what is known, lists the specific information or evidence needed to reproduce (which user, what they see, since when, recent deploys or logs), assigns a severity with its reason, and includes a ready reply to the client that states next steps without promising a fix time or blaming anyone.\nFAIL if it jumps to a fix or a cause with no evidence, or the client reply promises a specific fix time.",
+          "config": {
+            "criteria": "PASS if the reply separates what was reported from what is known, lists the specific information or evidence needed to reproduce (which user, what they see, since when, recent deploys or logs), assigns a severity with its reason, and includes a ready reply to the client that states next steps without promising a fix time or blaming anyone.\nFAIL if it jumps to a fix or a cause with no evidence, or the client reply promises a specific fix time.",
+            "focus": "last_message"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 2,
+            "costUsd": 0.1268328,
+            "judgeCostUsd": 0.0011979999999999977,
+            "durationSeconds": 41,
+            "startedAt": "2026-11-14T13:09:22.082Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-InAO9n/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "agent-used",
+                "passed": false,
+                "weight": 1,
+                "explanation": "Agent called 0x (expected 1..∞)",
+                "withOnly": true,
+                "scored": false
+              },
+              {
+                "name": "quality",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "💡 لسه ماعملتش إعداد الكيت، شغّل `/sabry-kit:kit-setup` (دقيقتين) لما تفضى.\n\n## 🧯 Triage: العميل مش قادر يعمل فواتير من الصبح\n\n**النوع:** لسه مش معروف (bug، أو deploy، أو طرف تالت واقع، أو data). **الخطورة: S1 مؤقتاً**، لأن كل المستخدمين متوقفين عن الفوترة، والفلوس متأثرة، ومفيش workaround لحد دلوقتي. لو طلع إن في بديل أو إن المشكلة عند جزء من المستخدمين بس، تنزل S2.\n\n### أول 15 دقيقة، بالترتيب\n1. **رد على العميل فوراً**، قبل ما تعرف السبب. الصمت بيزوّد الغضب أكتر من المشكلة نفسها (الصيغة تحت).\n2. **اسأل العميل عن حاجات محددة بس:**\n   - إيه اللي بيظهر بالظبط؟ صفحة بيضا، رسالة خطأ، تعليق، ولا الزرار مابيعملش حاجة؟ ابعتلي screenshot.\n   - كل المستخدمين ولا بعضهم؟ وعلى كل الأجهزة والمتصفحات؟\n   - آخر مرة اشتغلت فيها الفواتير الساعة كام؟\n   - اللي بيحصل أول ما يفتح الشاشة ولا لما يدوس \"حفظ/إصدار\"؟\n   - **ماتطلبش منهم باسورد أبداً.**\n3. **اسأل نفسك: إيه اللي اتغيّر؟** ده أسرع طريق للسبب:\n   - آخر deploy أو commit قبل الصبح.\n   - migration أو تغيير في الـ env/config.\n   - سيرفر أو DB: امتلاء الديسك، انتهاء الاتصالات، شهادة SSL منتهية.\n   - طرف تالت: بوابة الدفع، مصلحة الضرائب أو الفاتورة الإلكترونية، SMS أو إيميل.\n   - الداتا: sequence رقم الفاتورة، سنة مالية جديدة، سجل بايظ.\n   - تاريخ النهارده 14 نوفمبر. لو في ترقيم أو سنة مالية أو شهادة بتنتهي آخر الشهر، افحصها.\n4. **افحص الـ logs والـ monitoring** حوالين وقت أول شكوى. أي error متكرر (500، timeout، constraint violation) هو أقوى دليل. ولو الـ logs فاضية، فأنت مش شايف المشكلة أصلاً وده سبب تاني تقلق منه.\n5. **حاول تكرر المشكلة** بنفس الخطوات على production أو staging قبل ما تشخّص.\n\n### التشخيص (فرضية، مش حقيقة)\n- **الأرجح:** تغيير حصل قبل الصبح (deploy أو migration أو config أو شهادة). **الثقة: متوسطة**، لأن مفيش أي log قدامي لسه.\n- **بدائل:** مشكلة في بوابة أو API خارجي، أو DB (قفل، امتلاء، sequence)، أو بيانات بايظة.\n- **لو لقيت deploy قريب:** الـ rollback أسرع من البحث عن الـ bug. لو الـ rollback مش آمن (migration اتطبقت)، ماتعملوش من غير ما تتأكد إن الكود القديم يشتغل على الـ schema الجديد.\n\n### Task للمهندس (جاهزة)\n- **الهدف:** إرجاع إصدار الفواتير للشغل، وتحديد السبب الجذري.\n- **المكان:** logs وقت الشكوى، آخر deploys، مسار الإصدار (endpoint ثم service ثم DB أو الطرف التالت).\n- **القبول:** فاتورة تجريبية اتعملت بنجاح على production، ومعروف السبب بدليل (سطر log أو تكرار للمشكلة).\n- **Test:** يتضاف test للحالة اللي كسرت، ويتعمل alert على معدل فشل إصدار الفواتير عشان نعرف قبل العميل.\n\n### Workaround مؤقت\nاسأل العميل: هل ينفع يسجّل الفواتير ورقياً أو في Excel ويدخلها بعد الإصلاح؟ وهل في فواتير حرجة لازم تطلع النهارده؟ لو أيوه، نطلعها يدوياً أو من الـ DB لحالات محددة بس، وبإذن العميل.\n\n### رد جاهز للعميل (ابعته دلوقتي)\n> أهلاً بحضرتك، شكراً إنك نبّهتنا. المشكلة عندنا أولوية قصوى ودلوقتي بنراجع السبب. محتاجين منك screenshot للي بيظهر، وتقولنا الفواتير بطّلت تشتغل من الساعة كام تقريباً وعند كل المستخدمين ولا بعضهم. هنرجعلك بتحديث خلال [30 دقيقة] حتى لو لسه ماوصلناش للحل.\n\nماتحطش في الرد وقت تحل فيه ولا سبب، قبل ما تكون متأكد.\n\n### بعد الحل\n- اكتب للعميل: إيه اللي حصل (بدون تفاصيل داخلية أو لوم)، واتحل إمتى، وإيه اللي اتعمل عشان مايتكررش.\n- لو فواتير فاتت أو اترقمت غلط، حددها وصلّحها كلها، مش واحدة واحدة.\n- سجّل الحالة (العرض، السبب، الحل) في ملف المشاكل المعروفة بتاع المشروع.\n\n**توصيتي:** ابدأ بالنقطتين 1 و3 دلوقتي: رد على العميل، وافحص آخر deploy مع الـ logs. الاتنين بياخدوا دقايق وهيقولوا لنا إذا كان rollback هو الحل.\n\nتحب أفتح معاك المشروع ونبحث في الـ logs وآخر commits، ولا تبعتلي الـ error أو screenshot من العميل ونكمل منه؟"
+              }
+            ]
+          }
+        ],
+        "without": [
+          {
+            "score": 0,
+            "passed": false,
+            "turns": 1,
+            "costUsd": 0.0507689,
+            "judgeCostUsd": 0.0007635000000000003,
+            "durationSeconds": 23,
+            "startedAt": "2026-11-14T13:09:47.721Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-ctELoL/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "quality",
+                "passed": false,
+                "weight": 1,
+                "explanation": "judge votes: FAIL FAIL FAIL",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  false,
+                  false,
+                  false
+                ],
+                "evidence": "# خطوات التعامل مع البلاغ\n\n## 1. ردّ على العميل فوراً (خلال دقايق)\nابعتله رسالة هادية تطمّنه:\n> \"وصلتني المشكلة وبنشتغل عليها حالاً. هرجعلك بتحديث خلال [15-30 دقيقة]. ممكن تقولي: إيه اللي بيظهر بالظبط لما حد يحاول يعمل فاتورة؟ ومن امتى بدأت؟ ولو في screenshot للخطأ ابعته.\"\n\n## 2. اجمع المعلومات بسرعة\n- **رسالة الخطأ بالظبط** (screenshot أو نصها).\n- **النطاق:** كل المستخدمين ولا بعضهم؟ كل الفواتير ولا نوع معيّن؟ باقي السيستم شغال؟\n- **التوقيت:** بدأت إمتى؟ وإيه اللي اتغيّر قبلها (deploy، تحديث، تغيير إعدادات، انتهاء شهادة SSL أو license، امتلاء disk أو DB)؟\n\n## 3. شخّص من ناحيتك\n1. **اللوجات:** دوّر على أول error ظهر وقت بداية المشكلة.\n2. **الـ health:** السيرفر، الـ database، الـ disk والـ memory، والخدمات الخارجية اللي بتعتمد عليها الفواتير (بوابة الدفع، الفاتورة الإلكترونية، API خارجي).\n3. **آخر تغيير:** لو في deploy أو تحديث قبل المشكلة، فهو المشتبه الأول.\n4. **جرّب تعيد المشكلة** بنفسك بحساب تجريبي.\n\n## 4. صلّح، أو خفّف الضرر\n- **لو السبب تغيير حديث:** اعمل rollback الأول وبعدين حقّق في السبب.\n- **لو السبب مورد خارجي أو مساحة أو خدمة واقفة:** أعد تشغيل الخدمة أو وسّع المورد.\n- **لو التصليح هياخد وقت:** اقترح حل مؤقت، زي إنهم يسجّلوا الفواتير يدوياً ويدخّلوها بعد ما السيستم يرجع، وده يخلّي شغلهم مايقفش.\n\n## 5. حدّث العميل بانتظام\nحتى لو مفيش جديد، قوله \"لسه بنشتغل، والتحديث الجاي الساعة كذا\". العميل بيتوتر من الصمت أكتر من المشكلة نفسها.\n\n## 6. بعد الحل\n- أكّد مع العميل إن الفواتير اشتغلت فعلاً.\n- راجع إن مفيش فواتير ضاعت أو اتكررت أثناء العطل.\n- ابعتله ملخص قصير: السبب، والحل، وإيه اللي هتعمله عشان مايتكررش.\n- اكتب post-mortem داخلي، وضيف monitoring أو alert للحالة دي.\n\n---\n\nلو قلتلي إيه نوع السيستم (ERP جاهز، تطبيق من تطويرك، إلخ) ورسالة الخطأ لو موجودة، أقدر أساعدك في التشخيص بشكل أدق. ولو الكود عندك في المشروع، قولي وأبدأ أبص على اللوجات والكود معاك."
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 1,
+        "passRate": 1,
+        "scoreWithout": 0,
+        "passRateWithout": 0,
+        "delta": 1
+      }
+    }
+  ],
+  "aggregates": {
+    "casesTotal": 10,
+    "casesPassed": 7,
+    "overallScore": 0.75,
+    "overallPassRate": 0.7,
+    "meanDelta": 0.15
+  }
+}
