@@ -147,10 +147,11 @@ def provider(target, profile):
             data = json.load(fh)
     except Exception:
         pass
-    tiers = dict(data.get("tiers") or {})
-    override = ((profile.get("providers") or {}).get(target) or {}).get("tiers") or {}
-    tiers.update({k: v for k, v in override.items() if k in TIERS})
-    return {t: tiers.get(t) or None for t in TIERS}
+    as_dict = lambda value: value if isinstance(value, dict) else {}
+    tiers = dict(as_dict(as_dict(data).get("tiers")))
+    override = as_dict(as_dict(as_dict(profile.get("providers")).get(target)).get("tiers"))
+    tiers.update({k: v for k, v in override.items() if k in TIERS and isinstance(v, str)})
+    return {t: tiers.get(t) if isinstance(tiers.get(t), str) and tiers.get(t) else None for t in TIERS}
 
 
 def load_agents():
@@ -163,7 +164,7 @@ def load_agents():
             meta, body = split_frontmatter(fh.read())
         if not meta.get("name") or not meta.get("description"):
             continue
-        tools = [t.strip() for t in meta.get("tools", "").split(",") if t.strip()]
+        tools = [t.strip() for t in meta.get("tools", "").strip("[]").split(",") if t.strip()]
         out.append({
             "name": slug(meta["name"]),
             "description": meta["description"],
@@ -231,10 +232,26 @@ def render_instructions(root=None, extra=""):
     return kit_abs("\n\n---\n\n".join(parts)), profile
 
 
+def block_span(existing):
+    """(start, end) of the kit's block, None when there is none, or "damaged" when a marker is
+    missing or out of order: such a file is left alone, because guessing where the block ends
+    would delete the owner's own text."""
+    a = existing.find(START)
+    if a < 0:
+        return "damaged" if END in existing else None
+    b = existing.find(END, a)
+    if b < 0 or existing.find(START, a + 1) >= 0:
+        return "damaged"
+    return a, b + len(END)
+
+
 def with_block(existing, block):
     wrapped = f"{START}\n{block.strip()}\n{END}\n"
-    if START in existing and END in existing:
-        a, b = existing.index(START), existing.index(END) + len(END)
+    span = block_span(existing)
+    if span == "damaged":
+        return None
+    if span:
+        a, b = span
         tail = existing[b:].lstrip("\n")
         return existing[:a] + wrapped + (("\n" + tail) if tail else "")
     if existing.strip():
@@ -243,15 +260,21 @@ def with_block(existing, block):
 
 
 def without_block(existing):
-    if START not in existing or END not in existing:
+    span = block_span(existing)
+    if not span or span == "damaged":
         return existing
-    a, b = existing.index(START), existing.index(END) + len(END)
-    return (existing[:a].rstrip("\n") + "\n" + existing[b:].lstrip("\n")).strip("\n") + "\n"
+    a, b = span
+    head, tail = existing[:a], existing[b:].lstrip("\n")
+    if not head.strip() and not tail.strip():
+        return ""
+    return head.rstrip("\n") + ("\n\n" if head.strip() and tail else "\n" if head.strip() else "") + tail
 
 
 def read(path):
+    """surrogateescape keeps bytes that are not UTF-8 intact through a read and a write, so
+    an owner's file is never emptied or mangled because of one odd byte."""
     try:
-        with open(path, encoding="utf-8") as fh:
+        with open(path, encoding="utf-8", errors="surrogateescape", newline="") as fh:
             return fh.read()
     except OSError:
         return ""
@@ -261,8 +284,10 @@ def write(path, text, dry):
     if dry:
         return
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, "w", encoding="utf-8", newline="\n") as fh:
+    tmp = f"{path}.{os.getpid()}.tmp"
+    with open(tmp, "w", encoding="utf-8", errors="surrogateescape", newline="") as fh:
         fh.write(text)
+    os.replace(tmp, path)
 
 
 def install_skill(src, dst, dry):
@@ -321,16 +346,38 @@ def hook_command(target, parts):
     return " ".join([quote(sys.executable), quote(adapt), target] + parts)
 
 
+OURS = re.compile(r'^"[^"]+" "([^"]*)/hooks/adapt\.py" (\w+) ')
+
+
 def is_ours(command, target):
-    return f'adapt.py" {target} ' in str(command)
+    """A command the kit generated: this interpreter-and-adapter shape, for this target, whose
+    adapter sits in a sabry-kit folder (this one, or an earlier location of it). An owner's
+    own hook that merely mentions an adapt.py is not touched."""
+    m = OURS.match(str(command))
+    if not m or m.group(2) != target:
+        return False
+    root = m.group(1)
+    if os.path.normcase(os.path.abspath(root)) == os.path.normcase(os.path.abspath(KIT)):
+        return True
+    try:
+        with open(os.path.join(root, ".claude-plugin", "plugin.json"), encoding="utf-8") as fh:
+            return json.load(fh).get("name") == "sabry-kit"
+    except Exception:
+        return "sabry" in root.lower()
 
 
 def strip_codex_hooks(data, target):
-    hooks = data.get("hooks") or {}
+    hooks = data.get("hooks")
+    if not isinstance(hooks, dict):
+        return data
     for event in list(hooks):
         groups = []
-        for group in hooks[event] or []:
-            kept = [h for h in group.get("hooks") or [] if not is_ours(h.get("command"), target)]
+        for group in hooks[event] if isinstance(hooks[event], list) else []:
+            if not isinstance(group, dict) or not isinstance(group.get("hooks"), list):
+                groups.append(group)
+                continue
+            kept = [h for h in group["hooks"]
+                    if not (isinstance(h, dict) and is_ours(h.get("command"), target))]
             if kept:
                 groups.append(dict(group, hooks=kept))
         if groups:
@@ -354,6 +401,8 @@ def install_codex_hooks(home, dry):
                 raise ValueError
         except ValueError:
             return path, "skipped: hooks.json is not valid JSON, left untouched"
+        if not isinstance(data.get("hooks", {}), dict):
+            return path, "skipped: hooks.json has an unexpected shape, left untouched"
     data = strip_codex_hooks(data, "codex")
     hooks = data.setdefault("hooks", {})
     for event, matcher, parts, timeout in HOOK_SETS["codex"]:
@@ -401,6 +450,8 @@ def uninstall_hooks(target, home, dry):
             data = json.loads(read(path))
         except ValueError:
             return None
+        if not isinstance(data, dict):
+            return None
         before = json.dumps(data, sort_keys=True)
         data = strip_codex_hooks(data, "codex")
         if json.dumps(data, sort_keys=True) == before:
@@ -413,7 +464,7 @@ def uninstall_hooks(target, home, dry):
         return path + " (kit hooks)"
     path = os.path.join(home, "config.toml")
     text = read(path)
-    if TOML_START not in text:
+    if TOML_START not in text or TOML_END not in text:
         return None
     rest = strip_toml_block(text)
     if not dry:
@@ -431,21 +482,25 @@ def kilo_config_path(home):
     return os.path.join(home, KILO_CONFIGS[0])
 
 
-def set_kilo_instructions(home, rule_path, dry, remove=False):
+def set_kilo_instructions(home, rule_path, dry, remove=False, created=False):
     """Adds or removes the kit's rule file in the `instructions` list of Kilo's global config.
-    A config with comments (JSONC) is left untouched: rewriting it would drop them."""
+    A config with comments (JSONC) is left untouched: rewriting it would drop them. Returns
+    (path, status, created): `created` is true when the kit made the file, and only then
+    may an uninstall delete it."""
     path = kilo_config_path(home)
     entry = rule_path.replace("\\", "/")
     data = {"$schema": "https://app.kilo.ai/config.json"}
-    if os.path.isfile(path):
+    existed = os.path.isfile(path)
+    if existed:
         try:
             data = json.loads(read(path))
             if not isinstance(data, dict) or not isinstance(data.get("instructions", []), list):
                 raise ValueError
         except ValueError:
-            return path, f'skipped: has comments or an unexpected shape; add "{entry}" to its "instructions" list by hand'
+            return (path, f'skipped: has comments or an unexpected shape; add "{entry}" to its '
+                          '"instructions" list by hand', False)
     elif remove:
-        return path, "absent"
+        return path, "absent", False
     items = [i for i in data.get("instructions", []) if i != entry]
     if not remove:
         items.append(entry)
@@ -453,91 +508,123 @@ def set_kilo_instructions(home, rule_path, dry, remove=False):
         data["instructions"] = items
     else:
         data.pop("instructions", None)
-    if remove and set(data) <= {"$schema"}:
+    if remove and created and set(data) <= {"$schema"}:
         if not dry:
             os.remove(path)
-        return path, "written"
+        return path, "written", False
     write(path, json.dumps(data, indent=2, ensure_ascii=False) + "\n", dry)
-    return path, "written"
+    return path, "written", not existed
+
+
+def remove_stale(previous, files, dirs, others, dry):
+    """Things an earlier install of this target wrote and this one did not: an agent or a
+    skill the kit no longer ships. Left behind they would never be uninstalled."""
+    removed = []
+    for path in previous.get("files", []):
+        if path not in files and os.path.isfile(path) and GENERATED in read(path):
+            if not dry:
+                os.remove(path)
+            removed.append(path)
+    shared = {d for e in others for d in e.get("dirs", [])}
+    for path in previous.get("dirs", []):
+        if path not in dirs and path not in shared and os.path.isfile(os.path.join(path, MARKER)):
+            if not dry:
+                shutil.rmtree(path)
+            removed.append(path)
+    return removed
 
 
 def install(target, dry=False, hooks=True):
     home = target_home(target)
     spec = TARGETS[target]
     report = {"target": spec["label"], "written": [], "skipped": [], "dry_run": dry}
-    files, dirs = [], []
+    manifest = read_manifest()
+    previous = manifest.get(target) if isinstance(manifest.get(target), dict) else {}
+    entry = {"agents_md": None, "files": [], "dirs": [], "kit": KIT, "version": kit_profile.kit_version(),
+             "created_config": bool(previous.get("created_config"))}
+    files, dirs = entry["files"], entry["dirs"]
+    tiers, agent_dir = {}, None
+    try:
+        block, profile = render_instructions(extra=spec.get("extra", ""))
+        mode, rel = spec["instructions"]
+        agents_md = os.path.join(home, *rel.split("/"))
+        if mode == "block":
+            text = with_block(read(agents_md), block)
+            if text is None:
+                report["skipped"].append(f"{agents_md} (a sabry-kit marker is missing or repeated; fix or "
+                                         "remove the markers by hand, nothing was changed)")
+            else:
+                write(agents_md, text, dry)
+                entry["agents_md"] = agents_md
+                report["written"].append(agents_md)
+        elif os.path.isfile(agents_md) and GENERATED not in read(agents_md):
+            report["skipped"].append(f"{agents_md} (yours, not written by the kit)")
+        else:
+            write(agents_md, f"<!-- {GENERATED}; edit the kit or run kit_install again, not this file -->\n\n"
+                  + block.strip() + "\n", dry)
+            files.append(agents_md)
+            report["written"].append(agents_md)
+            if spec.get("config"):
+                path, status, created = set_kilo_instructions(home, agents_md, dry)
+                entry["created_config"] = entry["created_config"] or created
+                (report["written"] if status == "written" else report["skipped"]).append(
+                    path + (" (instructions entry)" if status == "written" else f" ({status})"))
 
-    block, profile = render_instructions(extra=spec.get("extra", ""))
-    mode, rel = spec["instructions"]
-    agents_md = os.path.join(home, *rel.split("/"))
-    if mode == "block":
-        write(agents_md, with_block(read(agents_md), block), dry)
-        report["written"].append(agents_md)
-    elif os.path.isfile(agents_md) and GENERATED not in read(agents_md):
-        report["skipped"].append(f"{agents_md} (yours, not written by the kit)")
-        agents_md = None
-    else:
-        write(agents_md, f"<!-- {GENERATED}; edit the kit or run kit_install again, not this file -->\n\n"
-              + block.strip() + "\n", dry)
-        files.append(agents_md)
-        report["written"].append(agents_md)
-        if spec.get("config"):
-            path, status = set_kilo_instructions(home, agents_md, dry)
-            (report["written"] if status == "written" else report["skipped"]).append(
-                path + (" (instructions entry)" if status == "written" else f" ({status})"))
-        agents_md = None
+        skills_dst = os.path.join(home, spec["skills"]) if spec.get("skills") else os.path.join(agents_home(), "skills")
+        for name in sorted(os.listdir(os.path.join(KIT, "skills"))):
+            src = os.path.join(KIT, "skills", name)
+            if not os.path.isfile(os.path.join(src, "SKILL.md")):
+                continue
+            dst = os.path.join(skills_dst, name)
+            if install_skill(src, dst, dry) == "written":
+                dirs.append(dst)
+                report["written"].append(dst)
+            else:
+                report["skipped"].append(f"{dst} (yours, not written by the kit)")
 
-    skills_dst = os.path.join(home, spec["skills"]) if spec.get("skills") else os.path.join(agents_home(), "skills")
-    for name in sorted(os.listdir(os.path.join(KIT, "skills"))):
-        src = os.path.join(KIT, "skills", name)
-        if not os.path.isfile(os.path.join(src, "SKILL.md")):
-            continue
-        dst = os.path.join(skills_dst, name)
-        if install_skill(src, dst, dry) == "written":
-            dirs.append(dst)
+        tiers = provider(target, profile)
+        agent_dir = os.path.join(home, *spec["agents"].split("/")) if spec.get("agents") else None
+        for agent in load_agents() if agent_dir else []:
+            fn, text = render_agent(target, agent, tiers)
+            dst = os.path.join(agent_dir, fn)
+            if os.path.isfile(dst) and GENERATED not in read(dst):
+                report["skipped"].append(f"{dst} (yours, not written by the kit)")
+                continue
+            write(dst, text, dry)
+            files.append(dst)
             report["written"].append(dst)
-        else:
-            report["skipped"].append(f"{dst} (yours, not written by the kit)")
 
-    tiers = provider(target, profile)
-    agent_dir = os.path.join(home, *spec["agents"].split("/")) if spec.get("agents") else None
-    for agent in load_agents() if agent_dir else []:
-        fn, text = render_agent(target, agent, tiers)
-        dst = os.path.join(agent_dir, fn)
-        if os.path.isfile(dst) and GENERATED not in read(dst):
-            report["skipped"].append(f"{dst} (yours, not written by the kit)")
-            continue
-        write(dst, text, dry)
-        files.append(dst)
-        report["written"].append(dst)
-
-    if not spec.get("hooks"):
-        report["hooks"] = "not installed: this tool takes hooks only as JS/TS plugins; the rules are instructions here, not enforced"
-    elif hooks:
-        path, status = (install_codex_hooks if target == "codex" else install_kimi_hooks)(home, dry)
-        if status == "written":
-            report["written"].append(path + " (hooks)")
-            report["hooks"] = sorted({f"{e}:{m or '*'}:{p[-1] if p[0] != 'sounds/play.py' else 'sound'}"
-                                      for e, m, p, _ in HOOK_SETS[target]})
-        else:
-            report["skipped"].append(f"{path} ({status})")
-    if not dry:
-        manifest = read_manifest()
-        manifest[target] = {"agents_md": agents_md, "files": files, "dirs": dirs, "kit": KIT,
-                            "version": kit_profile.kit_version()}
-        write(manifest_path(), json.dumps(manifest, indent=2, ensure_ascii=False) + "\n", False)
+        if not spec.get("hooks"):
+            report["hooks"] = ("not installed: this tool takes hooks only as JS/TS plugins; the rules are "
+                               "instructions here, not enforced")
+        elif hooks:
+            path, status = (install_codex_hooks if target == "codex" else install_kimi_hooks)(home, dry)
+            if status == "written":
+                report["written"].append(path + " (hooks)")
+                report["hooks"] = sorted({f"{e}:{m or '*'}:{p[-1] if p[0] != 'sounds/play.py' else 'sound'}"
+                                          for e, m, p, _ in HOOK_SETS[target]})
+            else:
+                report["skipped"].append(f"{path} ({status})")
+        stale = remove_stale(previous, files, dirs, [e for t, e in manifest.items() if t != target
+                                                     and isinstance(e, dict)], dry)
+        if stale:
+            report["removed_stale"] = stale
+    finally:
+        if not dry:
+            manifest[target] = entry
+            write(manifest_path(), json.dumps(manifest, indent=2, ensure_ascii=False) + "\n", False)
     if agent_dir:
-        report["models"] = {t: tiers[t] or "tool default" for t in TIERS}
+        report["models"] = {t: tiers.get(t) or "tool default" for t in TIERS}
     return report
 
 
 def uninstall(target, dry=False):
     manifest = read_manifest()
-    entry = manifest.get(target)
-    report = {"target": TARGETS[target]["label"], "removed": [], "dry_run": dry}
-    if not entry:
-        return report
-    others = [e for t, e in manifest.items() if t != target]
+    spec = TARGETS[target]
+    home = target_home(target)
+    entry = manifest.get(target) if isinstance(manifest.get(target), dict) else {}
+    report = {"target": spec["label"], "removed": [], "dry_run": dry}
+    others = [e for t, e in manifest.items() if t != target and isinstance(e, dict)]
     shared = {d for e in others for d in e.get("dirs", [])}
     for path in entry.get("files", []):
         if os.path.isfile(path) and GENERATED in read(path):
@@ -551,17 +638,19 @@ def uninstall(target, dry=False):
             if not dry:
                 shutil.rmtree(path)
             report["removed"].append(path)
-    spec = TARGETS[target]
-    removed_hooks = uninstall_hooks(target, target_home(target), dry) if spec.get("hooks") else None
+    removed_hooks = uninstall_hooks(target, home, dry) if spec.get("hooks") else None
     if removed_hooks:
         report["removed"].append(removed_hooks)
     if spec.get("config"):
-        rule = os.path.join(target_home(target), *spec["instructions"][1].split("/"))
-        path, status = set_kilo_instructions(target_home(target), rule, dry, remove=True)
+        rule = os.path.join(home, *spec["instructions"][1].split("/"))
+        path, status, _ = set_kilo_instructions(home, rule, dry, remove=True,
+                                                created=bool(entry.get("created_config")))
         if status == "written":
             report["removed"].append(path + " (instructions entry)")
     agents_md = entry.get("agents_md")
-    if agents_md and START in read(agents_md):
+    if not agents_md and spec["instructions"][0] == "block":
+        agents_md = os.path.join(home, *spec["instructions"][1].split("/"))
+    if agents_md and isinstance(block_span(read(agents_md)), tuple):
         rest = without_block(read(agents_md))
         if not dry:
             if rest.strip():
@@ -569,7 +658,7 @@ def uninstall(target, dry=False):
             else:
                 os.remove(agents_md)
         report["removed"].append(agents_md + " (kit block)")
-    if not dry:
+    if not dry and target in manifest:
         manifest.pop(target, None)
         write(manifest_path(), json.dumps(manifest, indent=2, ensure_ascii=False) + "\n", False)
     return report
@@ -582,7 +671,12 @@ def main():
         print(__doc__.strip(), file=sys.stderr)
         return 2
     dry = "--dry-run" in args
-    report = uninstall(target, dry) if "--uninstall" in args else install(target, dry, "--no-hooks" not in args)
+    try:
+        report = uninstall(target, dry) if "--uninstall" in args else install(target, dry, "--no-hooks" not in args)
+    except Exception as error:
+        print(f"kit_install: stopped: {error}. What was written so far is recorded, so --uninstall removes it.",
+              file=sys.stderr)
+        return 1
     print(json.dumps(report, indent=2, ensure_ascii=False))
     return 0
 
