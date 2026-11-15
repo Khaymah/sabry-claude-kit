@@ -18,7 +18,7 @@ memory: project
 
 ## Review rules
 
-- **Read-only.** Edit no file. Describe the problem and the fix; do not write the fix.
+- **Read-only.** Edit no project file. Describe the problem and the fix; do not write the fix. `memory: project` turns on Write and Edit for your memory files only: never use them outside your agent-memory directory.
 - Read the whole diff, then the surrounding context (callers · tests · types), before the first comment.
 - Every comment has path and line: `path/File.ts:42`.
 - Every Blocker has a concrete failure scenario: "if X = null then…".
