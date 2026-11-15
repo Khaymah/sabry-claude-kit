@@ -100,6 +100,28 @@ class ProfileTest(unittest.TestCase):
             json.dump({"name": "Eve", "notes": ["x"]}, fh)
         self.assertFalse(self.show()["exists"])
 
+    def test_bundle_carries_quote_identities_and_synced_files(self):
+        import zipfile
+        call("kit_profile.py", ["set", '{"name":"Mona"}'], env=self.env, cwd=self.repo)
+        home = self.env["HOME"]
+        os.makedirs(os.path.join(home, ".agents", "quote", "examples"))
+        with open(os.path.join(home, ".agents", "quote", "identities.json"), "w") as fh:
+            fh.write('{"x": {"name": "X", "signer": "Y"}}')
+        with open(os.path.join(home, ".agents", "quote", "examples", "a.json"), "w") as fh:
+            fh.write("{}")
+        synced = os.path.join(home, ".claude", "skills", "synced", "s", "sabry-profile")
+        os.makedirs(synced)
+        with open(os.path.join(synced, "profile.json"), "w") as fh:
+            fh.write('{"name": "Mona"}')
+        with open(os.path.join(synced, "signing_key"), "w") as fh:
+            fh.write("c2VjcmV0")
+        rc, out, err = call("kit_profile.py", ["bundle", "--with-signing-key"], env=self.env, cwd=self.repo)
+        with zipfile.ZipFile(out.strip()) as z:
+            names = z.namelist()
+        self.assertIn("sabry-profile/quote/identities.json", names)
+        self.assertIn("sabry-profile/quote/examples/a.json", names)
+        self.assertIn("sabry-profile/signing_key", names, "the synced key is carried when the local one is absent")
+
     def test_signing_key_is_bundled_only_on_request(self):
         import zipfile
         call("kit_profile.py", ["set", '{"name":"Mona"}'], env=self.env, cwd=self.repo)

@@ -83,6 +83,7 @@ Built for [Claude Code](https://code.claude.com) as a plugin, and installs into 
 | `architecture-decision` | Loads on its own for an architectural decision (stack · schema · API · auth): Quality-Gate + ADR |
 | `/sabry-kit:team-review` | Parallel review of changes (security · correctness · tests · UX), every finding verified before it is shown |
 | `/sabry-kit:kit-orchestrate` | Coordinates several agents on one job through a fixed playbook (feature · bugfix · idea · release · integration · support ticket · client offer), with one handoff file and a coverage table at the end |
+| `/sabry-kit:quote` | A technical and financial offer as a PDF, always in your fixed layout: cover letter with a summary table, technical offer, financial offer with totals, discount and payment terms. Asks you at any point and never invents a price. Your identities (company, signer…) and reference example live in your private profile, not in the kit |
 | `/sabry-kit:project-audit` | Full project audit: security, quality, performance, architecture, with an Arabic report |
 | `/sabry-kit:self-maintain` | Maintain the kit itself: opens a PR with improvements, never auto-merges |
 | `/sabry-kit:brag-slim` | A short launch video for a project or site |

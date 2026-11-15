@@ -35,7 +35,7 @@ Split the owner's request into numbered items (`R1`, `R2`, …), one verifiable 
 | **release** | (`devops-sre` ∥ `security-reviewer`) → `tech-writer` | nothing internet-facing changed → skip `security-reviewer` |
 | **integration** | `integration-engineer` (design from the provider's docs) → `senior-engineer` or `integration-engineer` (build) → (`security-reviewer` ∥ `qa-tester`) | design already approved → start at the build |
 | **support** | `support-triage` → `senior-engineer` (fix) → `qa-tester` (regression test) → `proposal-writer` (client reply, only when it is long or sensitive) | not a bug → end at triage with the reply |
-| **offer** | `business-developer` → `proposal-writer` | deal terms already agreed → skip `business-developer` |
+| **offer** | `business-developer` → `quote` skill (the offer PDF) → `proposal-writer` (cover email) | deal terms already agreed → skip `business-developer` |
 
 Add `ui-ux` before the frontend step when a new screen is designed, `Database-Optimizer` beside the backend step when the schema or a heavy query changes, `ai-engineer` when the feature calls an LLM, `data-analyst` when the job starts from a number nobody has checked. Never add a role "to be safe".
 

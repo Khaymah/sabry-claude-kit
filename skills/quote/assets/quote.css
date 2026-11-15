@@ -1,0 +1,134 @@
+@font-face { font-family: "Plex"; font-weight: 400; src: url("{fonts}/ibm-plex-sans-arabic-arabic-400-normal.woff2") format("woff2"); unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF, U+200C-200F, U+060C, U+061B, U+061F; }
+@font-face { font-family: "Plex"; font-weight: 500; src: url("{fonts}/ibm-plex-sans-arabic-arabic-500-normal.woff2") format("woff2"); unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF, U+200C-200F, U+060C, U+061B, U+061F; }
+@font-face { font-family: "Plex"; font-weight: 600; src: url("{fonts}/ibm-plex-sans-arabic-arabic-600-normal.woff2") format("woff2"); unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF, U+200C-200F, U+060C, U+061B, U+061F; }
+@font-face { font-family: "Plex"; font-weight: 700; src: url("{fonts}/ibm-plex-sans-arabic-arabic-700-normal.woff2") format("woff2"); unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF, U+200C-200F, U+060C, U+061B, U+061F; }
+@font-face { font-family: "Plex"; font-weight: 400; src: url("{fonts}/ibm-plex-sans-arabic-latin-400-normal.woff2") format("woff2"); unicode-range: U+0000-05FF, U+2000-206F, U+20A0-20CF, U+2100-214F; }
+@font-face { font-family: "Plex"; font-weight: 500; src: url("{fonts}/ibm-plex-sans-arabic-latin-500-normal.woff2") format("woff2"); unicode-range: U+0000-05FF, U+2000-206F, U+20A0-20CF, U+2100-214F; }
+@font-face { font-family: "Plex"; font-weight: 600; src: url("{fonts}/ibm-plex-sans-arabic-latin-600-normal.woff2") format("woff2"); unicode-range: U+0000-05FF, U+2000-206F, U+20A0-20CF, U+2100-214F; }
+@font-face { font-family: "Plex"; font-weight: 700; src: url("{fonts}/ibm-plex-sans-arabic-latin-700-normal.woff2") format("woff2"); unicode-range: U+0000-05FF, U+2000-206F, U+20A0-20CF, U+2100-214F; }
+@font-face { font-family: "Inter"; font-weight: 400; src: url("{fonts}/inter-latin-400-normal.woff2") format("woff2"); }
+@font-face { font-family: "Inter"; font-weight: 600; src: url("{fonts}/inter-latin-600-normal.woff2") format("woff2"); }
+
+:root {
+  --navy: #173a5e;
+  --ink: #1f2933;
+  --muted: #5f6b7a;
+  --line: #e2e8f0;
+  --band: #eaf1f8;
+  --zebra: #f4f7fb;
+  --total: #e3ecf6;
+  --ok: #1e7a3e;
+  --note: #fbf7ea;
+  --gold: #c9a227;
+}
+
+@page {
+  size: A4;
+  margin: 16mm 14mm 17mm 14mm;
+  @bottom-center {
+    content: "{footer} · " counter(page) " / " counter(pages);
+    font-family: "Inter", sans-serif;
+    font-size: 6.5pt;
+    color: #4b5563;
+    direction: ltr;
+  }
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: #fff; }
+body {
+  font-family: "Plex", "Inter", sans-serif;
+  font-size: 10pt;
+  line-height: 1.75;
+  color: var(--ink);
+  direction: rtl;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+p { margin: 0 0 8px; }
+strong { font-weight: 700; }
+.ltr { direction: ltr; unicode-bidi: isolate; display: inline-block; }
+
+.letterhead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  border-bottom: 2.5px solid var(--navy);
+  padding-bottom: 12px;
+  margin-bottom: 18px;
+}
+.brand-name { font-size: 20pt; font-weight: 700; color: var(--navy); line-height: 1.25; direction: ltr; text-align: right; }
+.brand-tag { font-size: 8.5pt; color: var(--muted); margin-top: 6px; }
+.meta { font-size: 8.5pt; color: var(--muted); text-align: right; line-height: 2; }
+
+.to { margin-bottom: 12px; }
+.to div { margin: 0; }
+.greeting { margin: 10px 0 12px; }
+
+.subject, h2.section {
+  background: var(--band);
+  border-right: 3.5px solid var(--navy);
+  border-radius: 3px;
+  color: var(--navy);
+  font-weight: 600;
+  margin: 12px 0 10px;
+  padding: 7px 14px;
+}
+.subject { color: var(--ink); font-size: 10.5pt; }
+.subject strong { color: var(--ink); }
+h2.section { font-size: 13pt; break-after: avoid; page-break-after: avoid; }
+h1.part { font-size: 17pt; font-weight: 700; color: var(--navy); margin: 0 0 16px; }
+h3.group { font-size: 10.5pt; font-weight: 700; color: var(--ink); margin: 14px 0 7px; break-after: avoid; }
+.part-break { break-before: page; page-break-before: always; }
+.keep { break-inside: avoid; page-break-inside: avoid; }
+
+table { width: 100%; border-collapse: collapse; margin: 0 0 10px; }
+tr { break-inside: avoid; page-break-inside: avoid; }
+td, th { text-align: right; vertical-align: top; }
+
+table.kv td { padding: 7px 12px; border-bottom: 1px solid var(--line); font-size: 9.5pt; }
+table.kv tr:nth-child(even) td { background: var(--zebra); }
+table.kv td.v { font-weight: 700; width: 50%; }
+table.kv tr.hl td { background: var(--total); font-weight: 700; color: var(--navy); }
+
+table.grid th {
+  background: var(--navy);
+  color: #fff;
+  font-weight: 600;
+  font-size: 9pt;
+  padding: 7px 12px;
+}
+table.grid td { padding: 6px 12px; font-size: 9pt; border-bottom: 1px solid var(--line); line-height: 1.7; }
+table.grid tbody tr:nth-child(even) td { background: var(--zebra); }
+table.grid td.item { font-weight: 500; width: 24%; }
+table.grid td.status { color: var(--ok); font-weight: 700; width: 12%; }
+table.grid td.num, table.grid th.num { color: var(--muted); width: 6%; }
+table.grid td.price, table.grid th.price { text-align: left; width: 26%; direction: ltr; }
+table.grid tr.total td { background: var(--band); font-weight: 700; color: var(--navy); }
+table.grid td.when { width: 14%; }
+table.grid td.phase { width: 24%; }
+table.grid td.pct { text-align: left; direction: ltr; width: 14%; }
+
+table.sum td { padding: 6px 12px; border-bottom: 1px solid var(--line); font-size: 9pt; }
+table.sum tr:nth-child(even) td { background: var(--zebra); }
+table.sum td.price { text-align: left; direction: ltr; width: 35%; }
+table.sum tr.hl td { background: var(--total); font-weight: 700; color: var(--navy); }
+
+ul { margin: 0 0 10px; padding-right: 22px; padding-left: 0; }
+li { margin-bottom: 4px; }
+.caption { color: var(--muted); font-size: 9pt; margin: 2px 0 12px; }
+
+.note {
+  background: var(--note);
+  border-left: 3.5px solid var(--gold);
+  border-radius: 3px;
+  padding: 9px 14px;
+  margin: 0 0 12px;
+  font-size: 9.5pt;
+}
+
+.sign { display: flex; justify-content: space-between; align-items: flex-start; margin-top: 26px; break-inside: avoid; }
+.sign .who div:first-child { font-weight: 700; }
+.sign .contact { font-size: 9.5pt; color: var(--navy); text-align: right; min-width: 40%; }
+.sign .contact .label { color: var(--ink); }
+.closing { margin-top: 10px; }

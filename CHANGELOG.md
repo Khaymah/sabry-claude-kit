@@ -64,6 +64,12 @@ Smoke evals after these fixes, two runs per arm: mean Δ +0.52, every behavioura
 - **Hook gaps closed:** raw API calls with `curl` and similar, and MCP tools whose server name does not contain `github`.
 - **Cannot be changed:** GitHub's "with Claude" badge on timeline events. It records the app that performed the action; only acting with the owner's own credentials avoids it.
 
+### Offers
+
+- **`/sabry-kit:quote`** produces a technical and financial offer as an A4 PDF in the owner's fixed layout, taken from a real offer: cover letter and summary table, technical offer (understanding, compliance matrix or scope, architecture, timeline, training and warranty), financial offer (component prices, totals, bundle discount, extra terms, payment schedule, inclusions, exclusions, assumptions, general terms). The model writes JSON; `render.py` owns headings, order, styling and every number, and refuses to render with a gap marker, a missing field or payments that do not add up to 100%. Reproducing the reference offer from data gives the same 9 pages with the same page breaks.
+- Sender identities and reference examples live in `~/.agents/quote/` and travel in the profile bundle; nothing of the owner's is in the kit. Fonts (IBM Plex Sans Arabic, Inter) ship with the skill under the OFL.
+- `proposal-writer` hands priced offers to the skill and keeps the cover email and client replies. `kit_profile.py bundle` falls back to the synced profile's files when local copies are missing.
+
 ### Not verified
 
 - No live run inside Codex CLI, Kimi Code CLI, OpenCode, Kilo Code or Cline: formats come from their official docs and the install is tested against a throwaway home.

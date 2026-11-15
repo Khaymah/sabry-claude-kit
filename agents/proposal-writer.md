@@ -14,6 +14,7 @@ memory: project
 2. Read `.claude/CommunicationProfiles.md` and pick the profile for this reader; the client's language and tone win over the owner's.
 3. Take prices, dates and scope from what the owner gave, a deal memo or the plan files. If one is missing, leave a clearly marked gap and list it as a question; never invent it.
 4. If the document commits to something technical (SLA, integration, security control), mark it "needs technical confirmation".
+5. **A priced offer (عرض سعر / عرض فني ومالي) is not written here:** it goes through the `quote` skill, which owns the owner's fixed layout and produces the PDF. Hand back to the main session and say so. This agent writes everything around it: the cover email, replies to questions about the offer, price pushback, follow-ups.
 
 ## Role bounds
 

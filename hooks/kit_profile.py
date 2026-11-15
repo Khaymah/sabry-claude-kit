@@ -119,7 +119,7 @@ description: Owner profile data read by the sabry-kit hooks at session start. No
 
 # sabry-profile
 
-Data only: `profile.json` (settings from /sabry-kit:kit-setup), optional `profile.md` (personal context) and `lessons.md` (owner-wide lessons).
+Data only: `profile.json` (settings from /sabry-kit:kit-setup), optional `profile.md` (personal context), `lessons.md` (owner-wide lessons) and `quote/` (offer identities and reference examples).
 Rebuild with `kit_profile.py bundle` and re-upload on claude.ai (Settings → Skills) to change it.
 """
 
@@ -131,6 +131,17 @@ def kit_version():
             return str(json.load(fh).get("version") or "")
     except Exception:
         return ""
+
+
+def owner_file(name):
+    """A file of the owner's profile: the local copy, else the one in the synced skill, so a
+    bundle built in a fresh cloud session still carries everything the uploaded one had."""
+    local = os.path.join(user_dir(), name)
+    if os.path.exists(local):
+        return local
+    d = kit_config.profile_skill_dir()
+    synced = os.path.join(d, name) if d else None
+    return synced if synced and os.path.exists(synced) else None
 
 
 def bundle(out=None, with_signing_key=False):
@@ -149,11 +160,18 @@ def bundle(out=None, with_signing_key=False):
         if ctx:
             z.write(ctx, "sabry-profile/profile.md")
         for name in ("lessons.md", "lessons-trusted.json"):
-            extra = os.path.join(user_dir(), name)
-            if os.path.isfile(extra):
-                z.write(extra, "sabry-profile/" + name)
-        key = os.path.join(user_dir(), "signing_key")
-        if with_signing_key and os.path.isfile(key):
+            found = owner_file(name)
+            if found:
+                z.write(found, "sabry-profile/" + name)
+        quote = owner_file("quote")
+        if quote and os.path.isdir(quote):
+            for folder, _, files in os.walk(quote):
+                for fn in sorted(files):
+                    full = os.path.join(folder, fn)
+                    if not os.path.islink(full):
+                        z.write(full, "sabry-profile/quote/" + os.path.relpath(full, quote).replace("\\", "/"))
+        key = owner_file("signing_key")
+        if with_signing_key and key:
             z.write(key, "sabry-profile/signing_key")
     return out
 

@@ -42,7 +42,8 @@ Match the owner's request to the role with this table:
 | mobile screen / app / store release / device-only bug | Mobile Developer (+ UI/UX) | mobile |
 | AI or LLM feature / model choice / prompt / RAG / evals | AI Engineer (+ Security when it takes untrusted input or tools) | AI |
 | "إحنا فين؟" / project status / estimate / deadline risk | Delivery Manager | delivery |
-| proposal / quote / SOW / reply to a client / handover report | Proposal Writer (+ BD for price) | client writing |
+| quote / عرض سعر / عرض فني ومالي / reply to a tender | `quote` skill (+ BD for price): fixed layout, PDF | offer |
+| proposal / SOW / reply to a client / handover report | Proposal Writer (+ BD for price) | client writing |
 | data question / report / dashboard / metric definition | Data Analyst (+ Growth for what to do about it) | data |
 | SEO / indexing / content plan / article or landing copy | SEO & Content (+ Frontend for the fixes) | search |
 | payment gateway / webhook / ERP-POS sync / third-party API | Integration Engineer (+ Security before go-live) | integration |
