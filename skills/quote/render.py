@@ -374,7 +374,7 @@ def financial(offer, c):
             label = d.get("label_financial") or f"{system_label(len(systems))} {d.get('label', '')}".strip()
             rows.append((f"{label} (بعد خصم {d['percent']:g}%)", money(c["discounted"]), "hl"))
         body = "".join(f'<tr class="{cls}"><td>{esc(a)}</td><td class="price">{b}</td></tr>' for a, b, cls in rows)
-        out.append(f'<h2 class="section">الإجمالي العام</h2><table class="sum"><tbody>{body}</tbody></table>')
+        out.append(f'<div class="keep"><h2 class="section">الإجمالي العام</h2><table class="sum"><tbody>{body}</tbody></table></div>')
     extra = []
     if offer.get("duration_short") or offer.get("duration"):
         extra.append(("مدة التنفيذ المتوقعة", offer.get("duration_short") or offer["duration"]))
@@ -385,8 +385,8 @@ def financial(offer, c):
     extra.append(("مدة صلاحية العرض", f"{days_phrase(offer['validity_days'])} من تاريخه (حتى {arabic_date(c['valid_until'])})"))
     extra += [(e.get("item"), e.get("value")) for e in f.get("extra", [])]
     body = "".join(f"<tr><td>{esc(a)}</td><td>{esc(b)}</td></tr>" for a, b in extra)
-    out.append(f'<h2 class="section">بنود إضافية</h2><table class="grid"><thead><tr><th>البند</th><th>القيمة</th></tr>'
-               f"</thead><tbody>{body}</tbody></table>")
+    out.append(f'<div class="keep"><h2 class="section">بنود إضافية</h2><table class="grid"><thead><tr><th>البند</th>'
+               f"<th>القيمة</th></tr></thead><tbody>{body}</tbody></table></div>")
     body = "".join(f'<tr><td>{ordinal(i)}</td><td>{esc(p.get("due"))}</td><td class="pct">{p["percent"]:g}%</td></tr>'
                    for i, p in enumerate(f["payments"]))
     note = f'<div class="caption">{esc(f["payments_note"])}</div>' if f.get("payments_note") else ""
@@ -402,10 +402,10 @@ def financial(offer, c):
                                                "ويتم الاتفاق على ذلك كتابياً قبل بدء العمل، ولا يُضاف أي مبلغ دون موافقة مسبقة.")
         rows = "".join(f'<tr><td class="num">{n}</td><td class="item">{esc(a.get("item"))}</td><td>{esc(a.get("value"))}</td></tr>'
                        for n, a in enumerate(f["assumptions"], 1))
-        out.append('<h2 class="section">بنود تحتاج إلى توضيح قبل بدء العمل</h2>'
+        out.append('<div class="keep"><h2 class="section">بنود تحتاج إلى توضيح قبل بدء العمل</h2>'
                    f'<div class="note">{esc(intro)}</div>'
                    f'<table class="grid"><thead><tr><th class="num">#</th><th>البند</th><th>الافتراض الذي بُني عليه العرض</th>'
-                   f"</tr></thead><tbody>{rows}</tbody></table>")
+                   f"</tr></thead><tbody>{rows}</tbody></table></div>")
     terms = [f"الأسعار ب{cur['full']}."] + list(f.get("terms") or [])
     out.append('<div class="keep"><h2 class="section">أحكام عامة</h2>' + labelled_list(terms)
                + signature(c, date_text=arabic_date(offer["date"])) + "</div>")
