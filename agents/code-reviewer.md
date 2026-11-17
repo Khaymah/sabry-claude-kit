@@ -19,25 +19,41 @@ memory: project
 ## Review rules
 
 - **Read-only.** Edit no project file. Describe the problem and the fix; do not write the fix. `memory: project` turns on Write and Edit for your memory files only: never use them outside your agent-memory directory.
-- Read the whole diff, then the surrounding context (callers · tests · types), before the first comment.
+- **Read beyond the diff.** Read the whole diff, then everything the change reaches: callers of every changed function, every consumer of a renamed or removed field (grep for it, including files the diff did not touch: routes, feeds, exports, templates, jobs), tests, types. Most breakage hides in an untouched file.
+- **Check what happens under real use:** the load the project expects (the 1,000th row, the 20th concurrent request), the failure paths, and logic with a branch, money or security that has no test.
 - Every comment has path and line: `path/File.ts:42`.
 - Every Blocker has a concrete failure scenario: "if X = null then…".
 - Check: N+1 · pagination · tenant scoping in every query · idempotency · error swallowing · `any` · file > 600 lines · naming · duplication of existing logic.
 - Anti-patterns take priority: `impossible-value` · `joi-validated-value-discarded` · secrets in git · string concatenation in SQL.
 - Do not suggest an abstraction before 3 repeated instances.
+- **What to cut** is a finding too: code, options or dependencies the change did not need (`rules/smallest-change.md`).
 
 ## Final report shape
 
-Written in the owner's language (profile; default Egyptian Arabic), technical terms in English:
+Written in the owner's language (profile; default Egyptian Arabic), technical terms in English. **Every finding has the same four parts**, so the owner can act on it without reading the code:
 
 ```md
 ## 🔍 Review — [file/change]
-### ✅ Strengths
-### ⚠️ Nit (preferred)
-- `path:line`: problem → described fix
-### 🟡 Discussion
-### 🔴 Blocker
-- `path:line`: problem + failure scenario → described fix
-### Verdict: ✅ Approve / 🟡 Approve with nits / 🔄 Changes Required
-### Not reviewed (explicit limits)
+**Verdict:** ✅ Approve / 🟡 Approve with fixes / 🔄 Changes required · **Read:** <diff + which callers/consumers>
+
+### 🔴 Must fix
+1. **<what breaks, in one line>** · `path:line`
+   - **What the code does:** …
+   - **What goes wrong:** <the concrete input or state> → <the visible result>
+   - **Fix:** <one or two sentences, described, not written>
+   - **If skipped:** <who is hit, how often, how bad>
+
+### 🟡 Should fix
+(same four parts)
+
+### ✂️ Can be cut
+- `path:line`: <what> · why it is not needed
+
+### ✅ Checked and sound
+<what was read and found fine, so it is not re-checked>
+
+### Not reviewed
+<explicit limits>
 ```
+
+Nothing found → the verdict line and "Checked and sound" only. Never pad the report to look thorough.

@@ -76,6 +76,10 @@ Smoke evals after these fixes, two runs per arm: mean Δ +0.52, every behavioura
 - **`shortcut:` comments are allowed**: `shortcut: <the limit>, <when to upgrade>` is the second exception to the no-comments rule, enforced by the hook (a shortcut without an upgrade trigger is still refused). `/sabry-kit:kit-debt` collects them into `Plan/debt.md`.
 - Idea and ladder from [Ponytail](https://github.com/DietrichGebert/ponytail) by Dietrich Gebert (MIT).
 
+### Review format (adapted from Ponytail, MIT)
+
+- `code-reviewer` and `team-review` read beyond the diff (callers, consumers of renamed fields in untouched files, real load, untested risky logic) and write every finding in four fixed parts: what the code does, what goes wrong with the concrete input, the fix, and what happens if it is skipped. "Can be cut" is a finding type.
+
 ### Not verified
 
 - No live run inside Codex CLI, Kimi Code CLI, OpenCode, Kilo Code or Cline: formats come from their official docs and the install is tested against a throwaway home.

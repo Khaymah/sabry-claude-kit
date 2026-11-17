@@ -44,6 +44,8 @@ All calls in **one message** so they truly run in parallel.
 ```
 Agent(subagent_type: "<name>", run_in_background: true,
       prompt: "Review this diff from your angle. Scope: <files>.
+               Read beyond the diff: every caller of a changed function and every consumer
+               of a renamed or removed field, including files the diff did not touch.
                Report everything you find, including low-confidence and low-severity,
                with confidence and severity for each finding. Do not filter yourself.")
 ```
@@ -79,16 +81,25 @@ Owner-facing template (headings stay in Arabic):
 **الزوايا:** <المُفعَّلة> · **النتائج:** <مؤكَّدة> مؤكَّدة من <إجمالي> (سقطت <n> في التحقق)
 
 ### 🔴 يمنع الشحن
-- `file.ts:42` — <ما ينكسر> · **يحدث حين:** <مدخل أو حالة محددة> · **الإصلاح:** <جملة>
+1. **<إيه اللي بيبوظ في سطر>** · `file.ts:42`
+   - **الكود بيعمل إيه:** …
+   - **إيه اللي بيغلط:** <مدخل أو حالة محددة> ← <النتيجة اللي هتبان>
+   - **الإصلاح:** <جملة أو اتنين>
+   - **لو اتساب:** <مين هيتأثر، وإمتى، وقد إيه>
 
 ### 🟡 يجب إصلاحه
+(نفس الأجزاء الأربعة)
+
+### ✂️ ممكن يتشال
+- `file.ts:10`: <إيه> · ليه مش محتاجه
+
 ### 🟢 يستحق النظر
 
 ### ✅ ما فُحص ووجد سليماً
 <حتى لا يُعاد فحصه>
 ```
 
-(Template legend: scope · angles activated · confirmed of total (n dropped in verification) · blocks shipping: what breaks / happens when: specific input or state / fix: one sentence · should fix · worth considering · checked and found sound, so it isn't rechecked.)
+(Template legend: scope · angles activated · confirmed of total (n dropped in verification) · blocks shipping: what breaks in one line, then what the code does / what goes wrong with the specific input or state / the fix / what happens if it is skipped · should fix, same four parts · can be cut · worth considering · checked and found sound, so it isn't rechecked.)
 
 **Describe the fix, don't write the corrected code**, unless explicitly permitted (CLAUDE.md §2).
 
