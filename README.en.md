@@ -227,7 +227,7 @@ The profile stores **only your choices**; every other switch comes from the defa
 | `skills/` | Commands and design systems (table above) |
 | `hooks/` | Every hook plus `kit_profile.py`, `doctor.py`, `adapt.py` and the tests. **Full guide: [hooks/README.md](hooks/README.md)** |
 | `sounds/` | Notification sounds + `play.py` (Windows · macOS · Linux) |
-| `Stacks/` | Per-stack guidance (Next.js · Bun/Hono · Node · React · Go · Rust · PHP · .NET · Astro · GraphQL) |
+| `Stacks/` | Per-stack guidance (Next.js · Bun/Hono · Node · React · Go · Rust · PHP · .NET · Astro · GraphQL) · plus `Stacks/Database.md` for databases in every stack, with configuration in a `SystemSettings` table instead of env vars |
 | `Patterns/` · `Anti-patterns/` · `Decisions/` | Accumulated knowledge: what worked, what to avoid, why decisions were made (ADRs) |
 | `Quality-Gate.md` | The eight axes for architectural decisions |
 | `CommunicationProfiles.md` | Writing style per audience |

@@ -230,7 +230,7 @@ your-project/
 | `skills/` | الأوامر والـ design systems (الجدول فوق) |
 | `hooks/` | كل الـ hooks + `kit_profile.py` + `doctor.py` + `adapt.py` + الاختبارات. **دليلها الكامل: [hooks/README.md](hooks/README.md)** |
 | `sounds/` | أصوات الإشعارات + `play.py` (Windows · macOS · Linux) |
-| `Stacks/` | إرشادات لكل stack (Next.js · Bun/Hono · Node · React · Go · Rust · PHP · .NET · Astro · GraphQL) |
+| `Stacks/` | إرشادات لكل stack (Next.js · Bun/Hono · Node · React · Go · Rust · PHP · .NET · Astro · GraphQL) · ومعاهم `Stacks/Database.md` لقواعد البيانات في كل الـ stacks، والـ config في جدول `SystemSettings` مش في env vars |
 | `Patterns/` · `Anti-patterns/` · `Decisions/` | المعرفة المتراكمة: اللي نجح، واللي نتجنبه، وأسباب القرارات (ADR) |
 | `Quality-Gate.md` | المحاور الثمانية للقرارات المعمارية |
 | `CommunicationProfiles.md` | أسلوب الكتابة حسب الجمهور |

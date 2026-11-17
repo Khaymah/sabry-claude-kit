@@ -92,6 +92,13 @@ Smoke evals after these fixes, two runs per arm: mean Δ +0.52, every behavioura
 - `evals/hidden_checks.py` runs a case with and without the kit, then runs tests the agent never saw (`evals/<case>/hidden/`) against what each run left behind, and measures code lines, test lines and cost. `claude plugin eval` keeps only the last `--case`, so it runs one eval per case.
 - First result, after the smallest-change rule, two runs per arm: both arms pass every hidden check. `orchestrate-team`: 92 code lines with the kit against 116 without (−21%), $0.34 against $0.23. `orchestrate-implement`: 35 against 38 lines, $0.18 against $0.12. The kit writes somewhat less code at equal correctness, and costs about 50% more per task on these small tasks; where that cost comes from is not measured yet.
 
+### Stacks and databases
+
+- **`Stacks/Database.md`**, for every stack: UUIDv7 keys, `timestamptz`, money as integer minor units, constraints in the database, partial unique indexes with soft delete, index rules proven with `EXPLAIN`, no N+1, keyset pagination, no read-check-write (atomic update, `FOR UPDATE` or a constraint), idempotency keys, expand → migrate → contract migrations with timeouts, pool sizing, backups with rehearsed restores, least-privilege roles, tests against a real PostgreSQL.
+- **Configuration lives in the database.** A `SystemSettings` table with a typed registry in code, defaults seeded at boot, fail-fast validation, an in-process cache refreshed by `LISTEN/NOTIFY`, secrets encrypted with AES-256-GCM and write-only through the API, and a history table. The environment keeps only `DATABASE_URL`, `SETTINGS_ENCRYPTION_KEY`, `APP_ENV` and `PORT` (the owner's decision: secrets in the table, encrypted).
+- **`Stacks/Bun-Hono.md` rewritten** in English: the bootstrap-only `Env`, a `Settings` module, `Bun.password` and other built-ins before packages, and a checklist that no longer asks for file headers, JSDoc and inline comments, which contradicted the comment rule. The Next.js checklist had the same contradiction and is fixed; it gains a settings section. The other stacks gain a short configuration and database section with their language's way of doing it.
+- `Database-Optimizer` and `backend-architect` read `Stacks/Database.md` first; the working-mode rule points every database task at it.
+
 ### Not verified
 
 - No live run inside Codex CLI, Kimi Code CLI, OpenCode, Kilo Code or Cline: formats come from their official docs and the install is tested against a throwaway home.

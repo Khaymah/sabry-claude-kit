@@ -152,3 +152,11 @@ public class UserServiceTests
 - `string?` يعني nullable — .NET 8 nullable reference types مفعّل بالافتراضي
 - `ConfigureAwait(false)` في library code لتجنب context capture
 - `IEnumerable` lazy — لا تعدّ عليها أكثر من مرة إذا أردت نفس النتيجة
+
+---
+
+## Configuration and database
+
+- **Database work follows `Stacks/Database.md`:** UUIDv7 keys, `timestamptz`, money as integer minor units, constraints in the database, keyset pagination, no read-check-write, reviewed migrations with expand → migrate → contract.
+- **Runtime configuration lives in the `SystemSettings` table** (`Stacks/Database.md` §1), not in environment variables. The environment holds only `DATABASE_URL`, `SETTINGS_ENCRYPTION_KEY`, `APP_ENV` and `PORT`. Secrets in the table are AES-256-GCM encrypted and write-only through the API. Settings are read from an in-process cache refreshed on change, never queried per request.
+- .NET: a custom `IConfigurationProvider` backed by `SystemSettings` (reloaded on `NOTIFY` through Npgsql), so settings bind to `IOptionsMonitor<T>`; `AesGcm` for secrets; `appsettings.json` keeps bootstrap values only.

@@ -51,14 +51,9 @@ src/
 └── utils/           ← Shared helpers
 ```
 
-## Environment Variables
+## Configuration
 
-```typescript
-// Node.js — يحتاج dotenv
-import 'dotenv/config';  // أو require('dotenv').config()
-
-// Bun — لا تحتاج dotenv (تلقائي)
-```
+Node 20.6+ reads a `.env` file with `node --env-file=.env` (no `dotenv` package). The environment holds only `DATABASE_URL`, `SETTINGS_ENCRYPTION_KEY`, `APP_ENV` and `PORT`, validated once with Zod in `config/env.ts`; every other setting is a `SystemSettings` row read through the settings cache (`Stacks/Database.md` §1).
 
 ## TypeScript Re-exports
 
@@ -110,3 +105,11 @@ describe('UserService', () => {
 - Event loop blocking: لا `fs.readFileSync` في production routes
 - Memory leaks: أغلق DB connections والـ intervals عند shutdown
 - `req.body` يحتاج `express.json()` middleware
+
+---
+
+## Configuration and database
+
+- **Database work follows `Stacks/Database.md`:** UUIDv7 keys, `timestamptz`, money as integer minor units, constraints in the database, keyset pagination, no read-check-write, reviewed migrations with expand → migrate → contract.
+- **Runtime configuration lives in the `SystemSettings` table** (`Stacks/Database.md` §1), not in environment variables. The environment holds only `DATABASE_URL`, `SETTINGS_ENCRYPTION_KEY`, `APP_ENV` and `PORT`. Secrets in the table are AES-256-GCM encrypted and write-only through the API. Settings are read from an in-process cache refreshed on change, never queried per request.
+- Node: `node:crypto` (`createCipheriv("aes-256-gcm")`) for secrets; one `pg` pool per process; refresh the cache with `LISTEN` on a dedicated client.

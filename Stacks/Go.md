@@ -113,3 +113,11 @@ for _, tt := range tests {
 - `nil` map قابل للقراءة لكن الكتابة فيه panic → `make(map[...]...)` أولاً
 - String concatenation في loop: استخدم `strings.Builder`
 - JSON marshal لـ unexported fields يُرجع `{}`
+
+---
+
+## Configuration and database
+
+- **Database work follows `Stacks/Database.md`:** UUIDv7 keys, `timestamptz`, money as integer minor units, constraints in the database, keyset pagination, no read-check-write, reviewed migrations with expand → migrate → contract.
+- **Runtime configuration lives in the `SystemSettings` table** (`Stacks/Database.md` §1), not in environment variables. The environment holds only `DATABASE_URL`, `SETTINGS_ENCRYPTION_KEY`, `APP_ENV` and `PORT`. Secrets in the table are AES-256-GCM encrypted and write-only through the API. Settings are read from an in-process cache refreshed on change, never queried per request.
+- Go: one `*pgxpool.Pool` per process; `crypto/aes` + `cipher.NewGCM` for secrets; the settings cache behind a `sync.RWMutex`, refreshed by `LISTEN` through `pgx`.

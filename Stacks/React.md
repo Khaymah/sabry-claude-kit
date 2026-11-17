@@ -111,3 +111,10 @@ const mutation = useMutation({
 - `useEffect` بدون dependency array = يُنفَّذ بعد كل render
 - `useState` async — لا تقرأ state فور تعديلها
 - Event delegation: لا تضع listeners مباشرة على `document` داخل components بدون cleanup
+
+---
+
+## Configuration and settings
+
+- Runtime settings live in the backend's `SystemSettings` table (`Stacks/Database.md` §1). The frontend reads the **public subset** from the backend's settings endpoint and never holds a key, a token or a business rule.
+- Build-time variables (`VITE_*` or equivalent) only for what the bundle needs before any request, such as the API base URL; everything else comes from the settings endpoint and is cached with the app's server-state library.

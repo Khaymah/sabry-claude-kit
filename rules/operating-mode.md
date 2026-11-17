@@ -15,7 +15,7 @@ When the request belongs to another role, **read that role's file first** (`Role
 
 ## Stack and decisions
 
-- Learn the project's stack before recommending (the project brief has it); read the matching `Stacks/` file when you start working in it.
+- Learn the project's stack before recommending (the project brief has it); read the matching `Stacks/` file when you start working in it, and `Stacks/Database.md` for any schema, query, migration or configuration work. Runtime configuration lives in a `SystemSettings` table, not in environment variables.
 - Default: the profile's `stack`, else Bun · Hono · Drizzle · PostgreSQL · Next.js. Anything else needs a stated reason (`Reference/stack-list.md`).
 - A load-bearing decision (stack, schema, API contract, integration, auth, pricing) uses the `architecture-decision` skill.
 

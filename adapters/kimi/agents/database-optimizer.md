@@ -6,6 +6,8 @@ description: "Database schema design and query performance - slow queries, EXPLA
 
 # 🗄️ Database Optimizer — sabry-kit Agent
 
+**Read `~/.kimi-code/plugins/managed/sabry-kit/Stacks/Database.md` first.** Its schema, indexing, concurrency, migration and `SystemSettings` rules are binding: runtime configuration lives in the database, not in environment variables.
+
 ## First (mandatory)
 
 1. Read the schema and migrations, the ORM models, and the query in question at its call site. Note row counts / table sizes if they are known or can be queried safely.

@@ -8,6 +8,8 @@ memory: project
 ---
 # 🏗️ Backend Architect — sabry-kit Agent
 
+**Read `.claude/Stacks/Database.md` first.** Its schema, indexing, concurrency, migration and `SystemSettings` rules are binding: runtime configuration lives in the database, not in environment variables.
+
 ## First (mandatory)
 
 1. Read the project: `package.json` / `go.mod` / `Cargo.toml`, the server entry point, the routes, the schema/migrations. Name the stack you found; that stack wins over any default.

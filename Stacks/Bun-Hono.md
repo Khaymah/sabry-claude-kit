@@ -1,229 +1,173 @@
-# Bun + Hono Stack
+# Bun + Hono + Drizzle + PostgreSQL
+
+The default backend stack. Database rules, `SystemSettings` and migrations: **`Stacks/Database.md`** (read it before any schema or configuration work).
+
+---
 
 ## Runtime — Bun
 
-- `.env` يُقرأ تلقائياً — لا `import 'dotenv/config'` أبداً
-- `jose` يعمل مع Web Crypto API نيتيف — لا polyfill
-- Package manager: `bun install` / `bun add` / `bun remove`
-- Run: `bun run dev` / `bun start`
-- Typecheck: `bun tsc --noEmit`
-- Test runner: `bun test`
-
----
+- Bun reads `.env` by itself: never `import "dotenv/config"`.
+- Prefer what Bun ships before adding a package: `Bun.password` (argon2id) for password hashing, `bun:test` for tests, `Bun.file` / `Bun.write` for files, Web Crypto for hashing and AES.
+- `jose` for JWT (Web Crypto, no polyfill).
+- Commands: `bun install` · `bun add` · `bun run dev` · `bun test` · `bunx tsc --noEmit`.
 
 ## Framework — Hono
 
-- `c.header()` لا ينتقل إلى `new Response()` المُنشأ يدوياً
-  → مرر headers مباشرة في constructor: `new Response(body, { headers: {...} })`
-- استخدم `c.json()` / `c.text()` / `c.stream()` — تحمل headers تلقائياً
-- Streaming الحقيقي: `c.stream((stream) => { ... })` — لا `new Response(ReadableStream)`
-- Middleware order مهم: global middleware قبل route-specific
-- `c.get('key')` / `c.set('key', value)` لمشاركة بيانات بين middleware
+- `c.json()` / `c.text()` / `c.stream()` carry the headers set with `c.header()`; a hand-built `new Response()` does not, so pass headers in its constructor.
+- Real streaming: `c.stream()` / `streamSSE()`, not `new Response(ReadableStream)`.
+- Middleware order matters: global middleware before route middleware.
+- Share request data with `c.set()` / `c.get()`, typed through the app's `Variables`.
+- Validate every input at the route with `@hono/zod-validator` and read it with `c.req.valid()`.
 
 ---
 
-## Architecture — Modular Monolith
+## Configuration
+
+The environment holds four values; everything else is a `SystemSettings` row.
+
+```ts
+export const Env = z.object({
+  DATABASE_URL: z.string().url(),
+  SETTINGS_ENCRYPTION_KEY: z.string().refine((V) => Buffer.from(V, "base64").length === 32),
+  APP_ENV: z.enum(["development", "staging", "production"]),
+  PORT: z.coerce.number().int().default(3000),
+}).parse(Bun.env)
+```
+
+- `Modules/Settings/` owns the registry, the cache, encryption and the admin routes (pattern in `Stacks/Database.md` §1).
+- Services read settings through `GetSetting("Key")` from the cache, never from the table per request and never from `Bun.env`.
+- Boot order in `Server.ts`: parse `Env` → open the pool → load and validate settings (fail fast in production) → start listening.
+
+---
+
+## Architecture — modular monolith
 
 ```tree
 Src/
-├── App.ts                    ← Hono app (routes mounting فقط)
-├── Server.ts                 ← bootstrap + startup
-│
+├── App.ts                     routes mounting only
+├── Server.ts                  boot order above, graceful shutdown
 ├── Config/
-│   ├── Env.ts                ← Zod env validation
-│   ├── Database.ts           ← Drizzle + PostgreSQL connection
-│   ├── Logger.ts             ← Pino setup
-│   └── Constants.ts          ← app-wide constants
-│
+│   ├── Env.ts                 the four environment values
+│   ├── Database.ts            Drizzle + one pool
+│   └── Logger.ts              pino
 ├── Core/
-│   ├── Types/                ← global TS types (Api.Types.ts, Auth.Types.ts)
-│   ├── Utils/                ← Crypto, Token, Date, Response, Validation
-│   ├── Middleware/           ← Auth, Rbac, RateLimit, Csrf, Hmac, Lang, Logger, Error
-│   ├── EventBus/             ← EventBus.ts + Events.Registry.ts
-│   ├── Errors/               ← App.Errors.ts (custom error classes)
-│   └── Response/             ← Response.Helper.ts (Success/Error format)
-│
+│   ├── Middleware/            Auth, Rbac, RateLimit, Csrf, Hmac, Lang, Logger, Error
+│   ├── Errors/                App.Errors.ts
+│   ├── Response/              Response.Helper.ts
+│   ├── EventBus/              EventBus.ts, Events.Registry.ts
+│   └── Utils/                 only what two modules share
 ├── Modules/
-│   └── [ModuleName]/
-│       ├── Test/
-│       │   ├── E2E/
-│       │   ├── Integration/
-│       │   ├── Unit/
-│       │   └── Edge/
-│       ├── [Module].Routes.ts      ← Route definitions only (لا logic)
-│       ├── [Module].Controller.ts  ← Request parsing + validation + response
-│       ├── [Module].Service.ts     ← Business logic (main logic here)
-│       ├── [Module].Schema.ts      ← Zod validation schemas
-│       ├── [Module].Events.ts      ← Event handlers
-│       └── Models/
-│           └── [Entity].Model.ts   ← Drizzle schema
-│
-├── Database/
-│   ├── Schema.ts             ← All schemas re-exported
-│   └── Migrations/           ← Drizzle migrations
-│
-└── Logs/
-    ├── Errors/               ← Errors-YYYY-MM-DD.jsonl
-    └── Warns/                ← Warns-YYYY-MM-DD.jsonl
+│   ├── Settings/              Settings.Registry.ts, Settings.Service.ts, Settings.Crypto.ts, Settings.Routes.ts
+│   └── [Module]/
+│       ├── [Module].Routes.ts       routes and middleware only
+│       ├── [Module].Controller.ts   parse, call the service, respond
+│       ├── [Module].Service.ts      business logic
+│       ├── [Module].Schema.ts       Zod schemas
+│       ├── [Module].Events.ts       event handlers
+│       ├── Models/[Entity].Model.ts Drizzle tables
+│       └── Test/                    Unit, Integration, E2E
+└── Database/
+    ├── Schema.ts              re-exports every table
+    └── Migrations/            generated, reviewed SQL
 ```
 
-### Module Responsibilities — لا تخلط بينها
-
-| الملف | المسؤولية |
-| --- | --- |
-| `Routes.ts` | تعريف الـ routes + تطبيق الـ middleware فقط |
-| `Controller.ts` | parsing الـ request + validation + استدعاء Service + إرجاع response |
-| `Service.ts` | كل الـ business logic — الملف الرئيسي |
-| `Schema.ts` | Zod schemas للـ validation |
-| `Model.ts` | Drizzle table schema |
+| File | Owns | Never |
+|---|---|---|
+| `Routes.ts` | paths, middleware, validators | logic |
+| `Controller.ts` | read validated input, call the service, shape the response | queries |
+| `Service.ts` | business rules, transactions | HTTP objects |
+| `Model.ts` | table definitions | queries |
 
 ---
 
-## Naming Conventions — MANDATORY
+## Naming — mandatory
 
-| النوع | الـ Convention | مثال |
-| --- | --- | --- |
-| Variables | PascalCase | `const UserData = ...` |
-| Functions | PascalCase | `function GetUserById() {}` |
-| Files | PascalCase + dots | `Auth.Controller.ts` |
-| Folders | PascalCase | `Modules/Auth/Models/` |
-| Interfaces | `I` + PascalCase | `interface IUserPayload` |
-| Types | `T` + PascalCase | `type TApiResponse` |
-| Enums | `E` + PascalCase | `enum EUserRole` |
-| Constants | UPPER_SNAKE_CASE | `const MAX_RETRIES = 3` |
-| DB Tables | PascalCase plural | `Users`, `RefreshTokens` |
-| DB Columns | PascalCase | `CreatedAt`, `UserId` |
-| API Routes | kebab-case | `/api/v1/auth/sign-in` |
-| Env Variables | UPPER_SNAKE_CASE | `DATABASE_URL` |
-
-> **PascalCase على كل شيء** — Variables، Functions، Files، Folders — لا استثناء.
+| Kind | Convention | Example |
+|---|---|---|
+| Variables, functions, files, folders | PascalCase | `GetUserById`, `Auth.Controller.ts` |
+| Interfaces / types / enums | `I` / `T` / `E` + PascalCase | `IUserPayload`, `TApiResponse`, `EUserRole` |
+| Constants | UPPER_SNAKE_CASE | `MAX_RETRIES` |
+| Tables · columns | PascalCase (tables plural) | `RefreshTokens.UserId` |
+| Setting keys | Namespaced PascalCase | `Payments.Paymob.ApiKey` |
+| API routes | kebab-case | `/api/v1/auth/sign-in` |
 
 ---
 
-## ORM — Drizzle + PostgreSQL
+## Drizzle
 
-- لا `VARCHAR` — استخدم `TEXT`
-- `update()` يتطلب `.where()` دائماً — بدونه يُحدّث **كل** الصفوف
-- كل `WHERE` يتضمن `eq(Table.IsDeleted, false)` إلا في admin queries صريحة
-- استخدم `.returning()` بعد `insert()` للحصول على `Id` و `CreatedAt`
-- `Id`: uuidv7 — لا random UUID
-- Timestamps: UTC — `withTimezone: true`
-- لا hard delete — `IsDeleted: true` فقط (soft delete)
-- Enum values في comparisons — لا string literals
-
-```typescript
-// Base columns — كل جدول يجب أن يحتويها
-const BaseColumns = {
+```ts
+export const BaseColumns = {
   Id: uuid("Id").primaryKey().$defaultFn(() => uuidv7()),
-  CreatedAt: timestamp("CreatedAt", { withTimezone: true }).defaultNow(),
-  UpdatedAt: timestamp("UpdatedAt", { withTimezone: true }).defaultNow(),
-  IsDeleted: boolean("IsDeleted").default(false),
-};
+  CreatedAt: timestamp("CreatedAt", { withTimezone: true }).notNull().defaultNow(),
+  UpdatedAt: timestamp("UpdatedAt", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
+  IsDeleted: boolean("IsDeleted").notNull().default(false),
+}
 ```
 
-### Translation Tables — MANDATORY
-
-```typescript
-// ❌ ممنوع — أعمدة لكل لغة
-{ NameAr: text("NameAr"), NameEn: text("NameEn") }
-
-// ✅ صحيح — جدول ترجمة منفصل
-// Entity          (Id, Slug, Price, ...BaseColumns)
-// EntityTranslations (Id, EntityId FK, Locale, Name, Description)
-//   Unique: (EntityId, Locale) + ON DELETE CASCADE
-```
-
-- API input: `Translations: [{ Locale, Title, Description }]`
-- English (en) مطلوبة دائماً كـ fallback
-- Snapshot data (OrderItems) → جدول ترجمة منفصل — لا JSONB
+- `update()` and `delete()` always have `.where()`; without it every row changes.
+- The soft-delete filter comes from one helper (`NotDeleted(Table)`), not from memory.
+- `.returning()` after `insert()` / `update()` instead of a second read.
+- Relational queries (`db.query.X.findMany({ with: … })`) or joins: no query inside a loop.
+- Transactions: `db.transaction(async (Tx) => …)`, passing `Tx` down; nothing awaits the network inside.
+- Concurrency, pagination, money, enums, translation tables, migrations: `Stacks/Database.md`.
 
 ---
 
 ## Auth
 
-- `jose` لـ JWT — لا `jsonwebtoken`
-- `argon2` لـ password hashing — لا `bcrypt`
-- Refresh tokens: httpOnly cookies
-- Access tokens: Authorization header (Bearer)
-- Auth/permissions في Routes middleware — لا manual checks في Controller
+- Access token: short-lived JWT (`jose`) in the `Authorization: Bearer` header. Refresh token: rotating, stored hashed, in an `httpOnly; Secure; SameSite` cookie.
+- Passwords: `Bun.password.hash` (argon2id) and `Bun.password.verify`.
+- Authentication and permission checks in route middleware, never inside controllers.
+- Signing secrets that are not bootstrap values live in `SystemSettings` as secrets.
 
----
+## Responses
 
-## Response Format
-
-```typescript
-// Success
-{ Success: true, Data: {...}, Message: "i18n.key", Meta: { Page, Limit, Total } }
-
-// Error
+```ts
+{ Success: true, Data: {}, Message: "i18n.key", Meta: { Page, Limit, Total } }
 { Success: false, Error: { Code: "AUTH_INVALID", Message: "translated", Details: [] } }
 ```
 
+Errors are `App.Errors.ts` classes mapped by the error middleware; no raw stack traces leave the server.
+
 ---
 
-## Code Quality — Checklist
+## Code quality — checklist
 
 ```txt
-[ ] PascalCase naming for ALL identifiers
-[ ] File header comment explaining purpose
-[ ] JSDoc comment على كل function
-[ ] Inline comments للـ complex logic
-[ ] Zod schema لكل input
-[ ] Custom errors من App.Errors.ts
-[ ] Response format موحد (Success/Error)
-[ ] UTC timestamps في كل مكان
-[ ] I18n message keys — لا hardcoded strings
-[ ] Events تُرسل للـ side effects
-[ ] Module structure: Routes → Controller → Service → Model
-[ ] uuidv7 لكل primary key
-[ ] Soft delete (IsDeleted) — لا hard delete
-[ ] لا any types — استخدم unknown + narrowing
-[ ] Max 600 lines per file
-[ ] HMAC verification على API routes
-[ ] WHERE queries تتضمن IsDeleted = false
-[ ] jose لـ JWT، argon2 لـ passwords، pino للـ logging
-[ ] Translation tables منفصلة — لا NameAr/NameEn
-[ ] Enum values في comparisons — لا string literals
-[ ] Database-backed scheduling — لا setTimeout
-[ ] Single source of truth — لا duplicate functions
+[ ] No comments (only `IMPORTANT:` and `shortcut: <limit>, <when to upgrade>`)
+[ ] Smallest complete change: reuse before adding, no dependency for a few lines
+[ ] PascalCase for every identifier, I/T/E prefixes
+[ ] Zod validation on every input at the route
+[ ] Config from SystemSettings via GetSetting; Bun.env read only in Config/Env.ts
+[ ] Routes → Controller → Service → Model, no layer skipped
+[ ] App.Errors classes and the shared response shape
+[ ] UUIDv7 keys, timestamptz, soft delete through one helper
+[ ] No query in a loop; keyset pagination for growing lists
+[ ] No read-check-write; atomic update, FOR UPDATE or a constraint
+[ ] Events for side effects; database-backed jobs, never setTimeout for scheduled work
+[ ] I18n message keys, no hardcoded user-facing strings
+[ ] No `any`: `unknown` and narrowing
+[ ] 600 lines per file at most
+[ ] A test for every new branch, money or security path
 ```
 
----
+## File size — 600 lines maximum
 
-## File Size Limit — MANDATORY
-
-> **ممنوع أي ملف يتجاوز 600 سطر مطلقاً.**
-
-إذا تجاوز → قسّم حسب المسؤولية:
-
-- `Auth.Service.ts` → `Auth.Core.ts` + `Auth.OAuth.ts` + `Auth.Sessions.ts`
-- الملف الأصلي يبقى كـ barrel re-export فقط
-
-**مستثنى:** Test files, Seed data, Config/Catalog files
-
----
+Split by responsibility (`Auth.Service.ts` → `Auth.Core.ts` · `Auth.OAuth.ts` · `Auth.Sessions.ts`); the original file becomes a barrel. Tests, seeds and catalog files are exempt.
 
 ## TypeScript
 
-- `export type { Foo }` = type فقط → لا تعمل للقيمة في runtime
-- `export { Foo }` = القيمة والـ type → استخدم هذا في barrel files
-- لا `any` — استخدم `unknown` + type narrowing
-- Interface prefix: `I` — Type prefix: `T` — Enum prefix: `E`
-
----
+- `export type { X }` exports the type only; barrels use `export { X }`.
+- `unknown` + narrowing instead of `any`.
 
 ## Performance
 
-- Streaming responses (SSE) لتقليل وقت الانتظار
-- Redis للـ caching + rate limiting + session store
-- Database connection pooling
-- كل شيء stateless ليسهل التوسع أفقياً
-
----
+- Stateless processes, so they scale horizontally; sessions, rate limits and caches in Redis when there is more than one instance.
+- Settings and other hot reference data cached in memory and invalidated by `NOTIFY`.
+- SSE for long responses; one database pool per process.
 
 ## Testing
 
-- مسار: `Module/Test/` → E2E / Integration / Unit / Edge
-- `bun test` لتشغيل كل الـ tests
-- Mock interfaces — لا concrete implementations
-- Integration tests تضرب DB حقيقية — لا mocks للـ database
+- `bun test`, under `Module/Test/` (Unit, Integration, E2E).
+- Integration tests hit a real PostgreSQL inside a rolled-back transaction; mock only external HTTP.
+- A race (stock, coupons, balances) is tested with concurrent requests, not reasoned about.

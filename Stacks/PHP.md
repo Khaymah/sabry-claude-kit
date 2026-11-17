@@ -125,3 +125,11 @@ php artisan test
 - `null` coalescing: `$val = $data['key'] ?? 'default'`
 - Array functions: `array_map`, `array_filter`, `array_reduce` — prefer Laravel Collections
 - `dd()` و `dump()` للـ debugging — لا تتركها في production
+
+---
+
+## Configuration and database
+
+- **Database work follows `Stacks/Database.md`:** UUIDv7 keys, `timestamptz`, money as integer minor units, constraints in the database, keyset pagination, no read-check-write, reviewed migrations with expand → migrate → contract.
+- **Runtime configuration lives in the `SystemSettings` table** (`Stacks/Database.md` §1), not in environment variables. The environment holds only `DATABASE_URL`, `SETTINGS_ENCRYPTION_KEY`, `APP_ENV` and `PORT`. Secrets in the table are AES-256-GCM encrypted and write-only through the API. Settings are read from an in-process cache refreshed on change, never queried per request.
+- Laravel: a `SystemSetting` model with an `encrypted` cast is not enough on its own (it uses `APP_KEY`): keep the AES-256-GCM pattern and `SETTINGS_ENCRYPTION_KEY`, cache with `Cache::rememberForever` and forget on save; `config()` holds only framework bootstrap values.

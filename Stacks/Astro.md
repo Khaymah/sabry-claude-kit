@@ -114,3 +114,10 @@ export default defineConfig({
 - Public env: `PUBLIC_` prefix → يُكشف للـ client
 - Private env: بدون prefix → server-only
 - لا `window` / `document` في Astro frontmatter — server-side فقط
+
+---
+
+## Configuration and settings
+
+- Runtime settings live in the backend's `SystemSettings` table (`Stacks/Database.md` §1). The frontend reads the **public subset** from the backend's settings endpoint and never holds a key, a token or a business rule.
+- `PUBLIC_*` variables only for what the browser needs before any request; server-side code reads the public settings from the backend at request or build time, never a secret through `import.meta.env`.

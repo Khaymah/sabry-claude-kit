@@ -159,6 +159,15 @@ Form state                 → React Hook Form
 
 ---
 
+## Configuration and settings
+
+- Runtime settings live in the backend's `SystemSettings` table (`Stacks/Database.md` §1). The frontend reads the **public subset** from one endpoint (`/api/v1/settings/public`) in a Server Component, cached with `next: { revalidate: 60, tags: ["settings"] }`, and passes what the client needs as props.
+- The admin settings page edits them through the backend API; secrets are write-only there (shown as set or not set, never their value).
+- `NEXT_PUBLIC_*` only for values the browser bundle needs before any request (the API base URL). Never a key, a token or a business rule.
+- The frontend has no database credentials. A Next.js app that owns its own database follows `Stacks/Database.md` and keeps the same four environment values as the backend.
+
+---
+
 ## Styling — Tailwind CSS v4 (CSS-First)
 
 ```css
@@ -250,9 +259,9 @@ export const metadata: Metadata = {
 
 ```txt
 [ ] PascalCase naming for ALL identifiers
-[ ] File header comment explaining purpose
-[ ] Component/Function JSDoc comments
-[ ] Inline comments للـ complex logic
+[ ] No comments (only `IMPORTANT:` and `shortcut: <limit>, <when to upgrade>`)
+[ ] Smallest complete change: an existing component or the platform before new code
+[ ] Settings come from the backend's public settings endpoint; no secret in the bundle or in NEXT_PUBLIC_*
 [ ] لا any types — استخدم unknown + narrowing
 [ ] Max 600 lines per file
 [ ] كل text عبر i18n keys — لا hardcoded strings

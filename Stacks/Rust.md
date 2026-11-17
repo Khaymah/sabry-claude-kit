@@ -129,3 +129,11 @@ mod tests {
 - Closure captures: `move ||` إذا أردت الـ closure يأخذ ownership
 - `async fn` في traits يحتاج `#[async_trait]` أو Rust 1.75+
 - `serde` بحاجة `#[derive(Serialize, Deserialize)]` على كل struct
+
+---
+
+## Configuration and database
+
+- **Database work follows `Stacks/Database.md`:** UUIDv7 keys, `timestamptz`, money as integer minor units, constraints in the database, keyset pagination, no read-check-write, reviewed migrations with expand → migrate → contract.
+- **Runtime configuration lives in the `SystemSettings` table** (`Stacks/Database.md` §1), not in environment variables. The environment holds only `DATABASE_URL`, `SETTINGS_ENCRYPTION_KEY`, `APP_ENV` and `PORT`. Secrets in the table are AES-256-GCM encrypted and write-only through the API. Settings are read from an in-process cache refreshed on change, never queried per request.
+- Rust: `sqlx` with a `PgPool` per process; `aes-gcm` for secrets; the settings cache in an `Arc<RwLock<…>>` (or `arc-swap`), refreshed by `PgListener`.

@@ -449,3 +449,10 @@ const [CreateProduct] = useCreateProductMutation({
 [ ] كل operation في .graphql file مستقل
 [ ] Naming: Queries (Get/List), Mutations (verb), Subscriptions (On)
 ```
+
+---
+
+## Configuration and settings
+
+- Runtime settings live in the backend's `SystemSettings` table (`Stacks/Database.md` §1). The frontend reads the **public subset** from the backend's settings endpoint and never holds a key, a token or a business rule.
+- Expose settings through a `publicSettings` query (public subset only) and an admin-only `updateSetting` mutation that validates against the registry; secrets are write-only and never resolvable.
