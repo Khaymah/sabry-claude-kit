@@ -1,6 +1,6 @@
 ---
 name: architecture-decision
-description: Load-bearing technical decisions - choosing a stack or framework, a schema or data model, an API contract, an integration, auth/authz design, a pricing model, build vs buy. Applies the kit's Quality-Gate and records an ADR. Use when the owner asks "which should we use", "design the architecture", "هنستخدم إيه", "قرار معماري", or when a change is hard to reverse.
+description: Load-bearing technical decisions - choosing a stack or framework, a schema or data model, an API contract, an integration, auth/authz design, a pricing model, build vs buy. Applies the kit's Quality-Gate and records an ADR. Use before answering any "X or Y?" between technologies, even a one-line one ("Postgres ولا MongoDB؟", "نستخدم X ولا Y", "أنهي أحسن لـ"), and when the owner asks "which should we use", "design the architecture", "هنستخدم إيه", "قرار معماري", "قرار نهائي", or when a change is hard to reverse.
 ---
 
 # Architecture decision

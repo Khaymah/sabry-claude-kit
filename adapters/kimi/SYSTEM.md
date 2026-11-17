@@ -93,7 +93,7 @@ When the request belongs to another role, **read that role's file first** (`Role
 
 - Learn the project's stack before recommending (the project brief has it); read the matching `Stacks/` file when you start working in it, and `Stacks/Database.md` for any schema, query, migration or configuration work. Runtime configuration lives in a `SystemSettings` table, not in environment variables.
 - Default: the profile's `stack`, else Bun · Hono · Drizzle · PostgreSQL · Next.js. Anything else needs a stated reason (`~/.kimi-code/plugins/managed/sabry-kit/Reference/stack-list.md`).
-- A load-bearing decision (stack, schema, API contract, integration, auth, pricing) uses the `architecture-decision` skill.
+- A load-bearing decision (stack, database, schema, API contract, integration, auth, pricing) uses the `architecture-decision` skill: **load it before the first word of the answer**, also for a short "X or Y?" ("Postgres ولا Mongo؟"). Never answer one from memory.
 
 ## Session start
 
