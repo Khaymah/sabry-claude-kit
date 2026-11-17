@@ -145,6 +145,18 @@ class InjectRulesTest(unittest.TestCase):
             self.assertEqual(sub("other-plugin:reviewer"), "")
         self.assertTrue(os.path.isfile(os.path.join(kit, "Roles", "CTO.md")))
 
+    def test_coding_subagents_get_the_smallest_change_and_comment_rules(self):
+        with tempfile.TemporaryDirectory() as d:
+            sub = lambda agent: ctx_of(run(d, args=("--subagent",), payload=json.dumps(
+                {"hook_event_name": "SubagentStart", "agent_type": agent}))[1])
+            coder = sub("sabry-kit:senior-engineer")
+            self.assertIn("first rung that fully works", coder)
+            self.assertIn("shortcut:", coder)
+            self.assertIn("Kit folder", coder)
+            self.assertIn("first rung", sub("general-purpose"))
+            self.assertNotIn("first rung", sub("sabry-kit:cto"))
+            self.assertLess(len(coder), 10000)
+
     def test_rules_are_injected_again_after_compaction(self):
         compact = json.dumps({"hook_event_name": "SessionStart", "source": "compact", "session_id": "s"})
         with tempfile.TemporaryDirectory() as d:

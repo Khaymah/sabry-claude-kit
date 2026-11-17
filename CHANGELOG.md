@@ -70,6 +70,12 @@ Smoke evals after these fixes, two runs per arm: mean Δ +0.52, every behavioura
 - Sender identities and reference examples live in `~/.agents/quote/` and travel in the profile bundle; nothing of the owner's is in the kit. Fonts (IBM Plex Sans Arabic, Inter) ship with the skill under the OFL.
 - `proposal-writer` hands priced offers to the skill and keeps the cover email and client replies. `kit_profile.py bundle` falls back to the synced profile's files when local copies are missing.
 
+### Smallest complete change (adapted from Ponytail, MIT)
+
+- **`rules/smallest-change.md`**: before writing code, map what the change must reach, then take the first rung that fully works: does it need to exist, already in the codebase, standard library or platform, an installed dependency, one line, only then the minimum code. Never cut validation, data-loss handling, security or accessibility; new branching logic leaves one small test. Injected every session, and given to coding subagents on `SubagentStart` with the comment rule (subagents never received the session rules before).
+- **`shortcut:` comments are allowed**: `shortcut: <the limit>, <when to upgrade>` is the second exception to the no-comments rule, enforced by the hook (a shortcut without an upgrade trigger is still refused). `/sabry-kit:kit-debt` collects them into `Plan/debt.md`.
+- Idea and ladder from [Ponytail](https://github.com/DietrichGebert/ponytail) by Dietrich Gebert (MIT).
+
 ### Not verified
 
 - No live run inside Codex CLI, Kimi Code CLI, OpenCode, Kilo Code or Cline: formats come from their official docs and the install is tested against a throwaway home.

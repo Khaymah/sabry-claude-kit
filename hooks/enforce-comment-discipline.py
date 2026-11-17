@@ -3,8 +3,10 @@
 PreToolUse hook - enforces the owner's absolute comment rule (all projects):
 
   Code carries NO comments. Not line comments, not block comments, not JSDoc.
-  The ONLY comment allowed in source is one that opens with `IMPORTANT:` and
-  marks something genuinely exceptional. Readable code is NEVER commented.
+  Two comments are allowed in source: one that opens with `IMPORTANT:` and marks
+  something genuinely exceptional, and a deliberate shortcut in the form
+  `shortcut: <the limit>, <when to upgrade>` (collected by /sabry-kit:kit-debt).
+  Readable code is NEVER commented.
 
 Why a hook and not just CLAUDE.md: the "keep JSDoc" habit kept creeping back in
 after every cleanup, and the model's own training biases toward documenting code.
@@ -179,6 +181,9 @@ def find_comments(src):
     return out
 
 
+SHORTCUT = re.compile(r"shortcut:\s*\S.*,\s*\S", re.S)
+
+
 def _inner(kind, text):
     body = text[2:] if kind == "line" else (text[2:-2] if text.endswith("*/") else text[2:])
     return body.lstrip("*/ \t\r\n")
@@ -189,7 +194,8 @@ def is_allowed(kind, text):
         return True
     if kind == "block" and BLOCK_DIRECTIVE.match(text):
         return True
-    return _inner(kind, text).lower().startswith("important:")
+    body = _inner(kind, text).lower()
+    return body.startswith("important:") or SHORTCUT.match(body) is not None
 
 
 def _is_code_file(path):
@@ -252,10 +258,11 @@ def main():
                 "no line comments, no block comments, no JSDoc. Readable code is never "
                 "commented; rationale lives in ADR / Plan, not in the code.\n"
                 "Allowed exceptions: build directives (ts-expect-error, eslint-disable, "
-                "triple-slash reference, biome-ignore ...), and a comment that opens with "
-                "`IMPORTANT:` marking something genuinely exceptional.\n"
-                "Fix: delete the comment, or - only if truly exceptional - rewrite it as "
-                "`// IMPORTANT: <reason>` and re-run."
+                "triple-slash reference, biome-ignore ...), a comment that opens with "
+                "`IMPORTANT:` marking something genuinely exceptional, and a deliberate "
+                "shortcut written as `// shortcut: <the limit>, <when to upgrade>`.\n"
+                "Fix: delete the comment, or rewrite it as `// IMPORTANT: <reason>` or "
+                "`// shortcut: <limit>, <when to upgrade>` and re-run."
             )
     return 0
 

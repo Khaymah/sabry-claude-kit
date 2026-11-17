@@ -137,14 +137,27 @@ def kit_location():
             f"`{root}/Roles/<name>.md`: read it from there, not from the project.")
 
 
+CODING_AGENTS = {"senior-engineer", "backend-architect", "Frontend Developer", "mobile-developer", "ai-engineer",
+                 "integration-engineer", "Database-Optimizer", "devops-sre", "qa-tester", "general-purpose"}
+SUBAGENT_RULES = ("smallest-change.md", "comment-discipline.md")
+
+
 def subagent(payload):
     """SubagentStart: a subagent gets no SessionStart context, so it would look for its
     role file inside the project and work without it."""
     agent = str(payload.get("agent_type") or "")
     if ":" in agent and not agent.startswith("sabry-kit:"):
         return 0
-    print(json.dumps({"hookSpecificOutput": {"hookEventName": "SubagentStart",
-                                             "additionalContext": kit_location()}}))
+    text = kit_location()
+    if agent.split(":")[-1] in CODING_AGENTS:
+        rules_dir = os.path.join(KIT_ROOT, "rules")
+        for name in SUBAGENT_RULES:
+            try:
+                with open(os.path.join(rules_dir, name), encoding="utf-8") as fh:
+                    text += "\n\n" + strip_frontmatter(fh.read()).strip()
+            except OSError:
+                continue
+    print(json.dumps({"hookSpecificOutput": {"hookEventName": "SubagentStart", "additionalContext": text}}))
     return 0
 CONTINUED = "# sabry-kit rules, part {n} of {total} (same priority as part 1)\n\n"
 
