@@ -1,0 +1,78 @@
+{
+  "name": "sabry-kit",
+  "version": "0.3.0",
+  "description": "Portable AI-agent brain: a top-priority owner profile, 24 role agents with an orchestrator, lessons learned from the owner's corrections, checkbox plans for long tasks, per-project memory under .agents/, secret scanning, a conflict doctor and enforcement hooks. Installs into Codex CLI, Kimi Code, OpenCode, Kilo Code and Cline as well.",
+  "author": {
+    "name": "Sabry Dawood"
+  },
+  "homepage": "https://github.com/Khaymah/sabry-claude-kit",
+  "license": "MIT",
+  "interface": {
+    "displayName": "sabry-kit",
+    "shortDescription": "The owner's profile, rules, role agents, lessons and enforcement hooks"
+  },
+  "skills": "./skills/",
+  "agents": "./adapters/kimi/agents/",
+  "systemPromptPath": "./adapters/kimi/SYSTEM.md",
+  "hooks": [
+    {
+      "event": "UserPromptSubmit",
+      "command": "\"$(command -v python3 || command -v python)\" ./hooks/adapt.py kimi --once inject-rules.py --profile-only",
+      "timeout": 10
+    },
+    {
+      "event": "SessionStart",
+      "command": "\"$(command -v python3 || command -v python)\" ./hooks/adapt.py kimi git-identity.py",
+      "timeout": 15
+    },
+    {
+      "event": "SessionStart",
+      "command": "\"$(command -v python3 || command -v python)\" ./hooks/adapt.py kimi git-signing.py",
+      "timeout": 180
+    },
+    {
+      "event": "UserPromptSubmit",
+      "command": "\"$(command -v python3 || command -v python)\" ./hooks/adapt.py kimi --once project-brief.py",
+      "timeout": 15
+    },
+    {
+      "event": "UserPromptSubmit",
+      "command": "\"$(command -v python3 || command -v python)\" ./hooks/adapt.py kimi lessons.py --prompt --all",
+      "timeout": 10
+    },
+    {
+      "event": "PreToolUse",
+      "matcher": "Bash",
+      "command": "\"$(command -v python3 || command -v python)\" ./hooks/adapt.py kimi enforce-commit-style.py",
+      "timeout": 10
+    },
+    {
+      "event": "PreToolUse",
+      "matcher": "Bash",
+      "command": "\"$(command -v python3 || command -v python)\" ./hooks/adapt.py kimi scan-secrets.py",
+      "timeout": 30
+    },
+    {
+      "event": "PreToolUse",
+      "matcher": "Write|Edit",
+      "command": "\"$(command -v python3 || command -v python)\" ./hooks/adapt.py kimi enforce-comment-discipline.py",
+      "timeout": 10
+    },
+    {
+      "event": "PreToolUse",
+      "matcher": "Write|Edit",
+      "command": "\"$(command -v python3 || command -v python)\" ./hooks/adapt.py kimi enforce-nextjs-structure.py",
+      "timeout": 10
+    },
+    {
+      "event": "PermissionRequest",
+      "command": "\"$(command -v python3 || command -v python)\" ./hooks/adapt.py kimi sounds/play.py needs-input.wav",
+      "timeout": 20
+    },
+    {
+      "event": "Stop",
+      "command": "\"$(command -v python3 || command -v python)\" ./hooks/adapt.py kimi sounds/play.py done.wav",
+      "timeout": 20
+    }
+  ]
+}

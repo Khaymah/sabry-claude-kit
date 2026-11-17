@@ -238,6 +238,12 @@ def main():
             return late(payload)
         if "--subagent" in sys.argv[1:]:
             return subagent(payload)
+        if "--profile-only" in sys.argv[1:]:
+            root = kit_config.project_root(payload.get("cwd"))
+            text = kit_profile.render(kit_config.load_profile(root), kit_config.has_profile(root))
+            print(json.dumps({"hookSpecificOutput": {"hookEventName": payload.get("hook_event_name") or "SessionStart",
+                                                     "additionalContext": text}}))
+            return 0
         root = kit_config.project_root(payload.get("cwd"))
         profile = kit_config.load_profile(root)
         found = kit_config.has_profile(root)

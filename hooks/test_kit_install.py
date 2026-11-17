@@ -192,10 +192,16 @@ class InstallTest(unittest.TestCase):
         self.assertEqual(self.read(".codex", "hooks.json"), "{not json")
         self.assertEqual(self.read(".kimi-code", "config.toml"), "hooks = []\n")
 
-    def test_opencode_agents_and_block(self):
+    def plugin_dir(self):
+        return os.path.join(KIT, "adapters", "opencode").replace("\\", "/")
+
+    def test_opencode_gets_the_plugin_instead_of_a_rules_block(self):
         report = self.run_install("--target", "opencode")
         self.assertIn("not installed", report["hooks"])
-        self.assertIn("sabry-kit:start", self.read(".config", "opencode", "AGENTS.md"))
+        self.assertIn("plugin", report["instructions"])
+        config = json.loads(self.read(".config", "opencode", "opencode.json"))
+        self.assertEqual(config["plugins"], [self.plugin_dir()])
+        self.assertFalse(os.path.exists(self.path(".config", "opencode", "AGENTS.md")), "rules come from the plugin")
         reviewer = self.read(".config", "opencode", "agents", "code-reviewer.md")
         head = reviewer.split("\n---", 1)[0]
         self.assertIn("mode: subagent", head)
@@ -204,45 +210,57 @@ class InstallTest(unittest.TestCase):
         self.assertNotIn("\nmodel:", head)
         self.assertNotIn("permissions", self.read(".config", "opencode", "agents", "senior-engineer.md").split("\n---", 1)[0])
         self.assertTrue(os.path.isfile(self.path(".agents", "skills", "kit-setup", "SKILL.md")))
+        self.run_install("--target", "opencode")
+        self.assertEqual(json.loads(self.read(".config", "opencode", "opencode.json"))["plugins"], [self.plugin_dir()])
         self.run_install("--target", "opencode", "--uninstall")
         self.assertEqual(os.listdir(self.path(".config", "opencode", "agents")), [])
+        self.assertFalse(os.path.exists(self.path(".config", "opencode", "opencode.json")), "the kit created it")
+
+    def test_opencode_config_with_comments_falls_back_to_the_rules_block(self):
+        os.makedirs(self.path(".config", "opencode"))
+        original = '{\n  // mine\n  "theme": "x"\n}\n'
+        with open(self.path(".config", "opencode", "opencode.jsonc"), "w") as fh:
+            fh.write(original)
+        report = self.run_install("--target", "opencode")
+        self.assertTrue(any("by hand" in x for x in report["skipped"]), report["skipped"])
+        self.assertIn("sabry-kit:start", self.read(".config", "opencode", "AGENTS.md"))
+        self.assertEqual(self.read(".config", "opencode", "opencode.jsonc"), original)
+        self.run_install("--target", "opencode", "--uninstall")
+        self.assertEqual(self.read(".config", "opencode", "opencode.jsonc"), original)
         self.assertFalse(os.path.exists(self.path(".config", "opencode", "AGENTS.md")))
 
-    def test_kilo_rule_file_config_entry_and_model_override(self):
+    def test_kilo_plugin_entry_and_model_override(self):
         os.makedirs(self.path(".agents"))
         with open(self.path(".agents", "profile.json"), "w") as fh:
             json.dump({"providers": {"kilo": {"tiers": {"strong": "zai/glm-big"}}}}, fh)
         os.makedirs(self.path(".config", "kilo"))
         with open(self.path(".config", "kilo", "kilo.jsonc"), "w") as fh:
-            json.dump({"model": "x", "instructions": ["mine.md"]}, fh)
+            json.dump({"model": "x", "plugin": ["other-plugin"]}, fh)
         self.run_install("--target", "kilo")
         self.run_install("--target", "kilo")
-        rule = self.path(".config", "kilo", "sabry-kit.md").replace("\\", "/")
         config = json.loads(self.read(".config", "kilo", "kilo.jsonc"))
-        self.assertEqual(config["instructions"], ["mine.md", rule])
+        self.assertEqual(config["plugin"], ["other-plugin", "file://" + ("" if self.plugin_dir().startswith("/") else "/")
+                                            + self.plugin_dir() + "/index.js"])
         self.assertEqual(config["model"], "x")
-        self.assertIn("Comment discipline", self.read(".config", "kilo", "sabry-kit.md"))
+        self.assertNotIn("instructions", config)
+        self.assertFalse(os.path.exists(self.path(".config", "kilo", "sabry-kit.md")))
         self.assertIn("model: zai/glm-big", self.read(".config", "kilo", "agents", "cto.md").split("\n---", 1)[0])
         self.assertIn("permission:\n  edit: deny", self.read(".config", "kilo", "agents", "code-reviewer.md"))
         self.run_install("--target", "kilo", "--uninstall")
-        self.assertEqual(json.loads(self.read(".config", "kilo", "kilo.jsonc")), {"model": "x", "instructions": ["mine.md"]})
-        self.assertFalse(os.path.exists(self.path(".config", "kilo", "sabry-kit.md")))
+        self.assertEqual(json.loads(self.read(".config", "kilo", "kilo.jsonc")), {"model": "x", "plugin": ["other-plugin"]})
 
-    def test_kilo_config_with_comments_is_left_alone_and_fresh_config_is_removed(self):
+    def test_kilo_config_with_comments_falls_back_and_is_left_alone(self):
         os.makedirs(self.path(".config", "kilo"))
         original = '{\n  // my model\n  "model": "x"\n}\n'
         with open(self.path(".config", "kilo", "kilo.jsonc"), "w") as fh:
             fh.write(original)
         report = self.run_install("--target", "kilo")
         self.assertTrue(any("by hand" in x for x in report["skipped"]), report["skipped"])
+        self.assertIn("Comment discipline", self.read(".config", "kilo", "sabry-kit.md"))
         self.assertEqual(self.read(".config", "kilo", "kilo.jsonc"), original)
         self.run_install("--target", "kilo", "--uninstall")
         self.assertEqual(self.read(".config", "kilo", "kilo.jsonc"), original)
-        os.remove(self.path(".config", "kilo", "kilo.jsonc"))
-        self.run_install("--target", "kilo")
-        self.assertIn("instructions", json.loads(self.read(".config", "kilo", "kilo.jsonc")))
-        self.run_install("--target", "kilo", "--uninstall")
-        self.assertFalse(os.path.exists(self.path(".config", "kilo", "kilo.jsonc")))
+        self.assertFalse(os.path.exists(self.path(".config", "kilo", "sabry-kit.md")))
 
     def test_cline_rules_file_own_skills_and_roles_as_files(self):
         report = self.run_install("--target", "cline")

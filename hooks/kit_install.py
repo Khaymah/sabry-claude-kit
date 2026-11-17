@@ -64,9 +64,11 @@ TARGETS = {
     "kimi": {"home_env": "KIMI_CODE_HOME", "home": ".kimi-code", "label": "Kimi Code CLI",
              "instructions": ("block", "AGENTS.md"), "agents": "agents/sabry-kit", "hooks": True},
     "opencode": {"home_env": "OPENCODE_CONFIG_DIR", "home": ".config/opencode", "label": "OpenCode",
-                 "instructions": ("block", "AGENTS.md"), "agents": "agents"},
+                 "instructions": ("block", "AGENTS.md"), "agents": "agents",
+                 "plugin": (("opencode.json", "opencode.jsonc"), "plugins", "dir")},
     "kilo": {"home_env": "KILO_CONFIG_DIR", "home": ".config/kilo", "label": "Kilo Code",
-             "instructions": ("file", "sabry-kit.md"), "agents": "agents", "config": True},
+             "instructions": ("file", "sabry-kit.md"), "agents": "agents", "config": True,
+             "plugin": (("kilo.jsonc", "kilo.json"), "plugin", "file")},
     "cline": {"home_env": "CLINE_DIR", "home": ".cline", "label": "Cline",
               "instructions": ("file", "rules/sabry-kit.md"), "skills": "skills", "extra": NO_AGENTS},
 }
@@ -132,11 +134,13 @@ def slug(name):
     return re.sub(r"-+", "-", re.sub(r"[^a-z0-9]+", "-", name.lower())).strip("-")
 
 
-def kit_abs(text):
-    """Agent bodies point at .claude/<kit file>; outside Claude Code that path does not exist."""
+def kit_abs(text, root=None):
+    """Agent bodies point at .claude/<kit file>; outside Claude Code that path does not exist.
+    `root` replaces the kit's own path, for packages whose install location is fixed by the host."""
+    base = (root or KIT).replace("\\", "/").rstrip("/")
     for name in KIT_PATHS:
-        text = text.replace(f".claude/{name}", os.path.join(KIT, name).replace("\\", "/"))
-    text = text.replace("`Reference/", "`" + os.path.join(KIT, "Reference").replace("\\", "/") + "/")
+        text = text.replace(f".claude/{name}", f"{base}/{name}")
+    text = text.replace("`Reference/", f"`{base}/Reference/")
     return text
 
 
@@ -154,7 +158,7 @@ def provider(target, profile):
     return {t: tiers.get(t) if isinstance(tiers.get(t), str) and tiers.get(t) else None for t in TIERS}
 
 
-def load_agents():
+def load_agents(root=None):
     out = []
     folder = os.path.join(KIT, "agents")
     for fn in sorted(os.listdir(folder)):
@@ -170,7 +174,7 @@ def load_agents():
             "description": meta["description"],
             "tier": meta.get("tier") if meta.get("tier") in TIERS else "balanced",
             "read_only": bool(tools) and not (set(tools) & WRITE_TOOLS),
-            "body": kit_abs(body).rstrip() + "\n",
+            "body": kit_abs(body, root).rstrip() + "\n",
         })
     return out
 
@@ -516,6 +520,44 @@ def set_kilo_instructions(home, rule_path, dry, remove=False, created=False):
     return path, "written", not existed
 
 
+def plugin_entry(kind):
+    folder = os.path.join(KIT, "adapters", "opencode").replace("\\", "/")
+    return folder if kind == "dir" else "file://" + ("/" if not folder.startswith("/") else "") + folder + "/index.js"
+
+
+def set_plugin(home, spec, dry, remove=False, created=False):
+    """Adds or removes the kit's OpenCode plugin in the tool's global config list. A config with
+    comments is left untouched. Returns (path, status, created) like set_kilo_instructions."""
+    names, key, kind = spec
+    path = next((os.path.join(home, n) for n in names if os.path.isfile(os.path.join(home, n))), os.path.join(home, names[0]))
+    entry = plugin_entry(kind)
+    existed = os.path.isfile(path)
+    data = {}
+    if existed:
+        try:
+            data = json.loads(read(path))
+            if not isinstance(data, dict) or not isinstance(data.get(key, []), list):
+                raise ValueError
+        except ValueError:
+            return path, f'skipped: has comments or an unexpected shape; add "{entry}" to its "{key}" list by hand', False
+    elif remove:
+        return path, "absent", False
+    items = [i for i in data.get(key, []) if i != entry and not (isinstance(i, str) and "/adapters/opencode" in i
+                                                                    and "sabry" in i.lower())]
+    if not remove:
+        items.append(entry)
+    if items:
+        data[key] = items
+    else:
+        data.pop(key, None)
+    if remove and created and not data:
+        if not dry:
+            os.remove(path)
+        return path, "written", False
+    write(path, json.dumps(data, indent=2, ensure_ascii=False) + "\n", dry)
+    return path, "written", not existed
+
+
 def remove_stale(previous, files, dirs, others, dry):
     """Things an earlier install of this target wrote and this one did not: an agent or a
     skill the kit no longer ships. Left behind they would never be uninstalled."""
@@ -541,14 +583,27 @@ def install(target, dry=False, hooks=True):
     manifest = read_manifest()
     previous = manifest.get(target) if isinstance(manifest.get(target), dict) else {}
     entry = {"agents_md": None, "files": [], "dirs": [], "kit": KIT, "version": kit_profile.kit_version(),
-             "created_config": bool(previous.get("created_config"))}
+             "created_config": bool(previous.get("created_config")),
+             "created_plugin_config": bool(previous.get("created_plugin_config"))}
     files, dirs = entry["files"], entry["dirs"]
     tiers, agent_dir = {}, None
     try:
         block, profile = render_instructions(extra=spec.get("extra", ""))
         mode, rel = spec["instructions"]
         agents_md = os.path.join(home, *rel.split("/"))
-        if mode == "block":
+        via_plugin = False
+        if spec.get("plugin"):
+            path, status, created = set_plugin(home, spec["plugin"], dry)
+            entry["created_plugin_config"] = entry["created_plugin_config"] or created
+            via_plugin = status == "written"
+            (report["written"] if via_plugin else report["skipped"]).append(
+                path + (" (plugin entry)" if via_plugin else f" ({status})"))
+            if via_plugin:
+                report["instructions"] = ("delivered every turn by the kit's plugin, with the owner's profile and "
+                                          "the enforcement checks")
+        if via_plugin:
+            pass
+        elif mode == "block":
             text = with_block(read(agents_md), block)
             if text is None:
                 report["skipped"].append(f"{agents_md} (a sabry-kit marker is missing or repeated; fix or "
@@ -641,6 +696,11 @@ def uninstall(target, dry=False):
     removed_hooks = uninstall_hooks(target, home, dry) if spec.get("hooks") else None
     if removed_hooks:
         report["removed"].append(removed_hooks)
+    if spec.get("plugin"):
+        path, status, _ = set_plugin(home, spec["plugin"], dry, remove=True,
+                                     created=bool(entry.get("created_plugin_config")))
+        if status == "written":
+            report["removed"].append(path + " (plugin entry)")
     if spec.get("config"):
         rule = os.path.join(home, *spec["instructions"][1].split("/"))
         path, status, _ = set_kilo_instructions(home, rule, dry, remove=True,

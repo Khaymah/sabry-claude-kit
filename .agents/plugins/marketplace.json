@@ -1,0 +1,21 @@
+{
+  "name": "sabry-kit",
+  "interface": {
+    "displayName": "sabry-kit"
+  },
+  "plugins": [
+    {
+      "name": "sabry-kit",
+      "source": {
+        "source": "url",
+        "url": "https://github.com/Khaymah/sabry-claude-kit.git",
+        "ref": "main"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

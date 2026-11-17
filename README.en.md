@@ -275,6 +275,17 @@ New-Item -ItemType SymbolicLink -Force -Path "$HOME\.claude\rules"         -Targ
 - **`agents/`, `skills/`, `hooks/`:** don't symlink them, or everything shows up twice (`kit-doctor` flags it).
 - **Hooks:** never run from symlinks; they come from the plugin only.
 
+### Native plugins (no script)
+
+| Tool | Install | What arrives |
+|---|---|---|
+| Kimi Code | `/plugins install https://github.com/Khaymah/sabry-claude-kit`, then `/reload` | rules in the system prompt every turn, skills, the 24 agents, hooks, and the profile with the first message |
+| Codex | `codex plugin marketplace add Khaymah/sabry-claude-kit`, then `codex plugin add sabry-kit@sabry-kit`, then trust the hooks in `/hooks` | skills, hooks, rules and profile at session start. Codex plugins do not carry agents: `kit_install.py --target codex --no-hooks` |
+| OpenCode · Kilo Code | `kit_install.py --target opencode` (or `kilo`) registers the kit's plugin in the tool's config | rules and profile **every turn**, commit, secret and comment checks before tools run, skills and agents |
+
+- Do not combine a plugin with `kit_install` for the same tool (except agents in Codex), or the hooks run twice.
+- **Not tried inside the tools:** formats come from the official docs (2026-11-17); the OpenCode plugin is tested with node under both APIs (V1 and V2), but blocking by throwing in V2 is not documented explicitly.
+
 ### Codex CLI and Kimi Code CLI (each tool on its own)
 
 One script installs the kit into the tool in its own format. Needs a local clone of the kit and Python:

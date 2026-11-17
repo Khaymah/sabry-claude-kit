@@ -44,4 +44,6 @@ skills/synced/
 Anti-patterns
 Decisions
 .claude.json
-.agents/
+.agents/*
+!.agents/plugins/
+evals/results/

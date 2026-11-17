@@ -80,6 +80,18 @@ Smoke evals after these fixes, two runs per arm: mean Δ +0.52, every behavioura
 
 - `code-reviewer` and `team-review` read beyond the diff (callers, consumers of renamed fields in untouched files, real load, untested risky logic) and write every finding in four fixed parts: what the code does, what goes wrong with the concrete input, the fix, and what happens if it is skipped. "Can be cut" is a finding type.
 
+### Native plugins for other tools (idea from Ponytail)
+
+- **Kimi Code:** `kimi.plugin.json` installs the kit with `/plugins install <repo>`: rules through `systemPromptPath`, skills, the agents in Kimi's format, the hooks, and the owner's profile on the first prompt.
+- **Codex:** `.codex-plugin/plugin.json` and `.agents/plugins/marketplace.json` (`codex plugin marketplace add Khaymah/sabry-claude-kit`). Its hooks point at `adapters/codex/hooks.json` on purpose: Codex otherwise loads `hooks/hooks.json`, the Claude Code hooks, which do not fit Codex. Rules and profile arrive at session start.
+- **OpenCode and Kilo Code:** `adapters/opencode/index.js` injects the rules and profile every turn and runs the commit, secret and comment checks before a tool runs, under both OpenCode plugin APIs. `kit_install --target opencode|kilo` registers it and stops writing a separate rules file; a config with comments falls back to the old behaviour.
+- `hooks/build_adapters.py` generates the Kimi and Codex files from the kit's sources; `--check` runs in the suite so a stale copy fails it.
+
+### Hidden-check measurement
+
+- `evals/hidden_checks.py` runs a case with and without the kit, then runs tests the agent never saw (`evals/<case>/hidden/`) against what each run left behind, and measures code lines, test lines and cost. `claude plugin eval` keeps only the last `--case`, so it runs one eval per case.
+- First result, after the smallest-change rule, two runs per arm: both arms pass every hidden check. `orchestrate-team`: 92 code lines with the kit against 116 without (−21%), $0.34 against $0.23. `orchestrate-implement`: 35 against 38 lines, $0.18 against $0.12. The kit writes somewhat less code at equal correctness, and costs about 50% more per task on these small tasks; where that cost comes from is not measured yet.
+
 ### Not verified
 
 - No live run inside Codex CLI, Kimi Code CLI, OpenCode, Kilo Code or Cline: formats come from their official docs and the install is tested against a throwaway home.

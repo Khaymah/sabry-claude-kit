@@ -1,0 +1,143 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$(command -v python3 || command -v python)\" \"${PLUGIN_ROOT}/hooks/adapt.py\" codex inject-rules.py --part 1",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$(command -v python3 || command -v python)\" \"${PLUGIN_ROOT}/hooks/adapt.py\" codex inject-rules.py --part 2",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$(command -v python3 || command -v python)\" \"${PLUGIN_ROOT}/hooks/adapt.py\" codex inject-rules.py --part 3",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$(command -v python3 || command -v python)\" \"${PLUGIN_ROOT}/hooks/adapt.py\" codex inject-rules.py --part 4",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$(command -v python3 || command -v python)\" \"${PLUGIN_ROOT}/hooks/adapt.py\" codex git-identity.py",
+            "timeout": 15
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$(command -v python3 || command -v python)\" \"${PLUGIN_ROOT}/hooks/adapt.py\" codex git-signing.py",
+            "timeout": 180
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$(command -v python3 || command -v python)\" \"${PLUGIN_ROOT}/hooks/adapt.py\" codex project-brief.py",
+            "timeout": 15
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$(command -v python3 || command -v python)\" \"${PLUGIN_ROOT}/hooks/adapt.py\" codex sounds/play.py notification.wav",
+            "timeout": 20
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$(command -v python3 || command -v python)\" \"${PLUGIN_ROOT}/hooks/adapt.py\" codex lessons.py --prompt --all",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$(command -v python3 || command -v python)\" \"${PLUGIN_ROOT}/hooks/adapt.py\" codex enforce-commit-style.py",
+            "timeout": 10
+          }
+        ],
+        "matcher": "Bash"
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$(command -v python3 || command -v python)\" \"${PLUGIN_ROOT}/hooks/adapt.py\" codex scan-secrets.py",
+            "timeout": 30
+          }
+        ],
+        "matcher": "Bash"
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$(command -v python3 || command -v python)\" \"${PLUGIN_ROOT}/hooks/adapt.py\" codex enforce-comment-discipline.py",
+            "timeout": 10
+          }
+        ],
+        "matcher": "apply_patch"
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$(command -v python3 || command -v python)\" \"${PLUGIN_ROOT}/hooks/adapt.py\" codex sounds/play.py needs-input.wav",
+            "timeout": 20
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$(command -v python3 || command -v python)\" \"${PLUGIN_ROOT}/hooks/adapt.py\" codex sounds/play.py done.wav",
+            "timeout": 20
+          }
+        ]
+      }
+    ]
+  }
+}

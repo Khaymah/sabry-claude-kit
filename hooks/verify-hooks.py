@@ -418,6 +418,7 @@ def main():
     test_suite("⬆️  تحديث الكيت مع profile موجود", "test_kit_update.py")
     test_suite("🚫 حارس توقيع الـ AI على GitHub", "test_attribution_guard.py")
     test_suite("🧾 عروض الأسعار (quote)", "test_quote.py")
+    test_suite("🔌 plugins أصلية (Codex · Kimi · OpenCode)", "test_adapters.py")
     test_registration()
     test_sounds()
     test_adapter()

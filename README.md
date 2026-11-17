@@ -278,6 +278,17 @@ New-Item -ItemType SymbolicLink -Force -Path "$HOME\.claude\rules"         -Targ
 - **`agents/` و`skills/` و`hooks/`:** ما تعملش لهم symlink، وإلا كل حاجة هتظهر مرتين، و`kit-doctor` هينبّهك.
 - **الـ hooks:** مابتشتغلش من الـ symlinks، بتيجي من الـ plugin بس.
 
+### plugin أصلي (من غير سكربت)
+
+| الأداة | التثبيت | بيوصل إيه |
+|---|---|---|
+| Kimi Code | `/plugins install https://github.com/Khaymah/sabry-claude-kit` ثم `/reload` | القواعد في الـ system prompt كل دور، الـ skills، الـ 24 agent، الـ hooks، والـ profile مع أول رسالة |
+| Codex | `codex plugin marketplace add Khaymah/sabry-claude-kit` ثم `codex plugin add sabry-kit@sabry-kit`، وبعدها `/hooks` ووافق | الـ skills، الـ hooks، والقواعد والـ profile في أول الجلسة. الـ agents مش بتتنقل في plugins Codex: `kit_install.py --target codex --no-hooks` |
+| OpenCode · Kilo Code | `kit_install.py --target opencode` (أو `kilo`): بيسجّل plugin الكيت في إعدادات الأداة | القواعد والـ profile **كل دور**، وفحص الـ commits والأسرار والكومنتات قبل الأدوات، والـ skills والـ agents |
+
+- ماتجمعش الـ plugin وسكربت `kit_install` للأداة نفسها (ما عدا الـ agents في Codex)، عشان الـ hooks ماتشتغلش مرتين.
+- **ماتجرّبش live جوه الأدوات:** الصيغ من الـ docs الرسمية (2026-11-17)، وplugin OpenCode متجرّب بـ node على الـ API الاتنين (V1 و V2)، بس المنع بـ throw في V2 مش موثّق صراحةً.
+
 ### Codex CLI و Kimi Code CLI (كل أداة لوحدها)
 
 سكربت واحد بيثبّت الكيت في الأداة بصيغتها. محتاج نسخة محلية من الكيت و Python:
