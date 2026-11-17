@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-SessionStart hook - once per day, inject a short awareness note telling the owner that
+SessionStart hook - once a week, inject a short awareness note telling the owner that
 sabry-kit self-maintains weekly via a cloud Routine that opens a PR for review.
 
 It does NOT run the maintenance itself: a local hook runs inside whatever project is
@@ -8,13 +8,16 @@ open (not the kit repo), and `git push` is denied by the kit's settings, so a ho
 reliably open a cross-repo PR. The real engine is the weekly cloud Routine; this hook
 only keeps the owner aware when they open a session.
 
-Deduped to at most once per day via a stamp file. Never breaks a session: any failure
+Deduped to at most once every 7 days via a stamp file (it costs context in every
+session it appears in, and the maintenance it describes is weekly). Never breaks a session: any failure
 exits 0 with no output. Opt out with SABRY_KIT_NO_MAINTAIN_NOTE=1.
 """
 import datetime
 import json
 import os
 import sys
+
+INTERVAL_DAYS = 7
 
 
 def main():
@@ -27,16 +30,14 @@ def main():
         today = datetime.date.today().isoformat()
         stamp = os.path.join(cfg, ".sabry-kit-maintain-note")
 
-        # Already noted today -> stay silent.
         try:
             with open(stamp, "r", encoding="utf-8") as fh:
-                if fh.read().strip() == today:
-                    return 0
+                last = datetime.date.fromisoformat(fh.read().strip())
+            if 0 <= (datetime.date.today() - last).days < INTERVAL_DAYS:
+                return 0
         except Exception:
             pass
 
-        # Record today's date first; if we cannot, stay silent rather than repeat
-        # the note on every session of the day.
         try:
             os.makedirs(cfg, exist_ok=True)
             with open(stamp, "w", encoding="utf-8") as fh:

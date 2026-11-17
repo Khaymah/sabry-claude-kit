@@ -94,7 +94,7 @@
 | `inject-rules.py --subagent` | SubagentStart | يقول للـ subagent فولدر الكيت فين، عشان يلاقي ملف الدور بتاعه (`Roles/…`) بدل ما يدوّر عليه جوه المشروع | لا |
 | `inject-rules.py --late` | UserPromptSubmit | لو الجلسة بدأت قبل ما الـ profile يتزامن من claude.ai: يحقنه مع أول رسالة، مرة واحدة | لا |
 | `inject-rules.py --part 1..4` | SessionStart | يحقن الـ profile و `rules/*.md` في السياق (لو مش محمّلة أصلاً من `~/.claude/rules`). متقسّم على 4 نداءات لأن Claude Code بيقصّ أي ناتج hook فوق 10,000 حرف لأول 2,000 بس | لا |
-| `maintain-note.py` | SessionStart | تذكير مرة في اليوم بالصيانة الأسبوعية | لا |
+| `maintain-note.py` | SessionStart | تذكير مرة في الأسبوع بالصيانة الأسبوعية | لا |
 | `team-review-reminder.py --baseline` | SessionStart | يصوّر حالة الشجرة عشان يفرّق بين شغل الجلسة والتعديلات القديمة | لا |
 | `team-review-reminder.py` | عن طريق `stop-reminders` | لو اتغيّر في الجلسة 3 ملفات كود أو أكتر، أو 150 سطر، أو مسار حساس (auth · دفع · أسرار): يقترح `/team-review` بالـ reviewers المناسبين، مرة واحدة لكل change-set | لا |
 | `enforce-commit-style.py` | PreToolUse · `Bash` + أدوات GitHub/GitLab في الـ MCP | يرفض أي نسبة لـ AI في الـ commits والـ tags والـ PRs والـ issues والتعليقات والـ reviews والـ releases (`Co-Authored-By` لأي أداة AI · `Generated with/by …` بأي صيغة · روابط `claude.ai/code/session_` · `Claude-Session:` · 🤖)، عبر `git` و`gh` و`gh api` و`glab` والـ MCP. ويرفض العربي في رسائل الـ commit وعناوين ووصف الـ PR، **أو commit صاحبه أو الـ committer بتاعه Claude/Anthropic** (`--author` · `GIT_AUTHOR_*` · `git -c user.*` · `git config` · `--amend` من غير `--reset-author`) | ✅ |
