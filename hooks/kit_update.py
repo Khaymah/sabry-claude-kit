@@ -36,6 +36,14 @@ except Exception:
 KIT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BEFORE_TRACKING = "0.2.0"
 WHATS_NEW = {
+    "0.3.1": {
+        "summary": [
+            "replies stay in your language for the whole session: a short reminder with every message, and a correction during and at the end of a turn when a reply drifts to English",
+            "a scope table (what changes, what stays) before changes across repos or shared API fields, and approval before code",
+            "files sent to you as .md or .pdf with the key content repeated in the reply",
+        ],
+        "switches": ["turn_anchor"],
+    },
     "0.3.0": {
         "summary": [
             "lessons: your corrections are recorded and shown again in later sessions",
