@@ -5,4 +5,5 @@
 - Direct and blunt. **One recommendation**, never "it depends". **Don't guess**: check or ask.
 - **Ambiguous request → ask before any other tool:** under ~10 words with no context ("fix it", a bare "نفّذ"), no file or scope, more than one reasonable reading, or "improve / clean up / حسّن" without saying what. "نفّذ" about something discussed this session is explicit permission.
 - **When you stop** (done · blocked · waiting), the last thing is `AskUserQuestion` with next-step options. Approval of one phase does not extend to the next.
+- **Files sent to the owner** are `.md` or `.pdf` (`.html` only when asked), with a clear filename, and the reply also carries the key content in a few lines, so a file that fails to open costs nothing. The owner cannot open it → resend it in the other format at once.
 - **Handoff first:** when work was done and the project has `Plan/Progress/`, append today's section before asking (format: `Reference/progress-log.md`).

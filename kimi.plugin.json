@@ -41,6 +41,11 @@
       "timeout": 10
     },
     {
+      "event": "UserPromptSubmit",
+      "command": "\"$(command -v python3 || command -v python)\" ./hooks/adapt.py kimi turn-anchor.py",
+      "timeout": 10
+    },
+    {
       "event": "PreToolUse",
       "matcher": "Bash",
       "command": "\"$(command -v python3 || command -v python)\" ./hooks/adapt.py kimi enforce-commit-style.py",

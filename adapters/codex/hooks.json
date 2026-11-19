@@ -83,6 +83,15 @@
             "timeout": 10
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$(command -v python3 || command -v python)\" \"${PLUGIN_ROOT}/hooks/adapt.py\" codex turn-anchor.py",
+            "timeout": 10
+          }
+        ]
       }
     ],
     "PreToolUse": [

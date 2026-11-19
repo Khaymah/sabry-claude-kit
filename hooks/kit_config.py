@@ -43,6 +43,7 @@ DEFAULTS = {
     "lessons": True,
     "long_task_plans": True,
     "attribution_guard": True,
+    "turn_anchor": True,
 }
 
 STORAGE_DIR = ".agents"

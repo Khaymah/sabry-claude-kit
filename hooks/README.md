@@ -73,6 +73,7 @@
 | `project_brief` | ✅ | ملخص المشروع في أول الجلسة |
 | `lessons` | ✅ | `lessons`: تسجيل تصحيحات المالك وعرضها في الجلسات اللي بعدها |
 | `long_task_plans` | ✅ | `kit_plans`: خطة المهمة الطويلة في الملخص + تذكير الـ checkboxes + حفظ الحالة قبل الـ compaction |
+| `turn_anchor` | ✅ | `turn-anchor`: سطر الأساسيات مع كل رسالة + تصحيح لو آخر رد طلع إنجليزي |
 | `attribution_guard` | ✅ | `attribution-guard`: workflow على GitHub بيشيل توقيع الـ AI من الـ PRs والتعليقات. `github_owners` في الـ profile بيحصر التثبيت في حسابات معيّنة |
 
 ---
@@ -106,6 +107,7 @@
 | `stop-reminders.py` | Stop | بيشغّل التذكيرات التلاتة (التحقق · الخطة · المراجعة) ويبعت اللي عنده حاجة منهم كتنبيه **واحد**، مع تعليمة إن الرد عليهم يبقى إضافة قصيرة واحدة مش تكرار للتقرير | لا |
 | `verify-reminder.py` | عن طريق `stop-reminders` | لو اتعدّل كود ومفيش test/typecheck/lint/build اشتغل بعد آخر تعديل: يطلب التحقق (بأوامر المشروع نفسه من `package.json`) أو يقول إيه اللي ما اتحققش. مرة لكل change-set | feedback |
 | `lessons.py --prompt` | UserPromptSubmit | أول رسالة في الجلسة: يعرض الدروس العامة. رسالة شكلها تصحيح ("غلط" · "قلتلك" · "مش كده" · "wrong" · "I told you"): يطلب من الـ agent يسجّل درس بـ `lessons.py add` | لا |
+| `turn-anchor.py` | UserPromptSubmit | مع كل رسالة: سطر واحد (حوالي 60 token) بلغة الرد، والأسئلة بـ `AskUserQuestion`، ومفيش كود من غير "نفّذ"، ومفيش نسبة للـ AI. لو الـ profile عربي وآخر رد كان إنجليزي في أغلبه (الكود والمسارات مش محسوبة)، يضيف تصحيح صريح | لا |
 | `lessons.py --start` | SessionStart | يعرض الدروس العامة أول الجلسة. بعد compact أو `/clear` بينسى اللي عرضه قبل كده، فالدروس العامة ترجع فوراً والمحددة بملف أو أمر تظهر تاني عند أول تطابق | لا |
 | `lessons.py --match` | PreToolUse · `Bash\|Write\|Edit\|MultiEdit` | يعرض الدروس اللي نمطها (`files` globs · `commands`) مطابق للملف أو الأمر، مرة واحدة لكل درس في الجلسة | لا |
 | `kit_plans.py --stop` | عن طريق `stop-reminders` | فيه خطة نشطة في `.agents/plans/<slug>/plan.md` واتعدّلت ملفات بعد آخر تحديث ليها: يطلب تعليم البنود اللي خلصت (مرة لكل تغيير) | لا |
