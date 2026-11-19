@@ -194,6 +194,15 @@
             "timeout": 10
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$(command -v python3 || command -v python)\" \"${CLAUDE_PLUGIN_ROOT}/hooks/turn-anchor.py\" --tool",
+            "timeout": 10
+          }
+        ]
       }
     ],
     "Stop": [
@@ -213,6 +222,15 @@
             "type": "command",
             "command": "\"$(command -v python3 || command -v python)\" \"${CLAUDE_PLUGIN_ROOT}/sounds/play.py\" done.wav",
             "async": true
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$(command -v python3 || command -v python)\" \"${CLAUDE_PLUGIN_ROOT}/hooks/turn-anchor.py\" --stop",
+            "timeout": 10
           }
         ]
       }

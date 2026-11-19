@@ -3,6 +3,7 @@
 ## Unreleased
 
 - **Turn anchor** (`hooks/turn-anchor.py`, UserPromptSubmit): long sessions drifted back to English and forgot the basics, because the rules arrive once, far behind English tool output. Every owner message now carries one line built from the profile (reply language · questions through `AskUserQuestion` · no code without permission · no AI attribution), about 60 tokens. When the profile is Arabic and the last reply was mostly English (code, paths and links not counted), it adds a direct correction. Switch: `turn_anchor`.
+- **Drift inside a turn**: a long turn full of tool output could finish in English before the owner wrote again. `turn-anchor.py --tool` (PostToolUse) stays silent while the turn's text is Arabic and corrects at once when it drifts; `--stop` sends an English final reply back once to be written in the owner's language. Neither fires when the owner asked for English.
 - **Scope table before code**: a change across repos or apps, or one that adds a field or behaviour to something existing, shows what changes and what stays unchanged, and waits for approval. A new API field goes in the detail response only unless the list is named.
 - **Files sent to the owner** are `.md` or `.pdf` with the key content repeated in the reply.
 - Skill-trigger evals (`--tag skill-fires`, `--tag skill-quiet`); `architecture-decision` now loads for any one-line technology choice; the self-maintenance note shows weekly.

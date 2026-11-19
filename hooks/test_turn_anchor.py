@@ -107,7 +107,8 @@ class TurnAnchorTest(unittest.TestCase):
 
     def test_large_transcript_reads_only_the_tail(self):
         self.profile(language="ar-eg")
-        filler = json.dumps({"type": "user", "message": {"content": "x" * 1000}}) + "\n"
+        filler = json.dumps({"type": "user", "message": {"content": [
+            {"type": "tool_result", "tool_use_id": "t", "content": "x" * 1000}]}}) + "\n"
         with open(self.transcript, "w", encoding="utf-8") as fh:
             fh.write(filler * 3000)
             fh.write(json.dumps({"type": "assistant", "message": {"content": [{"type": "text", "text": ENGLISH}]}}) + "\n")
@@ -139,6 +140,94 @@ class TurnAnchorTest(unittest.TestCase):
         self.profile(language="ar-eg")
         self.assertIn("Egyptian Arabic", self.run_hook())
         self.assertEqual(self.run_hook(SABRY_KIT_TURN_ANCHOR="0"), "")
+
+
+class InTurnTest(unittest.TestCase):
+    """--tool and --stop look at the current turn only: the owner's last prompt and the texts after it."""
+
+    def setUp(self):
+        self.base = TurnAnchorTest("test_anchor_carries_the_basics")
+        self.base.setUp()
+        self.base.profile(language="ar-eg")
+        self.short = "I'm stopping the stalled agent and starting a new one with smaller files. " * 2
+
+    def tearDown(self):
+        self.base.tearDown()
+
+    def turn(self, prompt, *texts, tool_between=True):
+        entries = [{"type": "user", "uuid": "p", "message": {"content": prompt}}]
+        for i, text in enumerate(texts):
+            entries.append({"type": "assistant", "uuid": f"a{i}", "message": {"content": [{"type": "text", "text": text}]}})
+            if tool_between:
+                entries.append({"type": "user", "message": {"content": [
+                    {"type": "tool_result", "tool_use_id": f"t{i}", "content": "ok"}]}})
+        self.base.write_entries(*entries)
+
+    def run_mode(self, mode, **extra):
+        payload = dict({"hook_event_name": "PostToolUse" if mode == "--tool" else "Stop", "cwd": self.base.proj,
+                        "transcript_path": self.base.transcript, "session_id": "s1"}, **extra)
+        p = subprocess.run([sys.executable, SCRIPT, mode], input=json.dumps(payload), capture_output=True,
+                           text=True, encoding="utf-8", env=self.base.env, timeout=30)
+        self.assertEqual(p.returncode, 0, p.stderr)
+        return p.stdout
+
+    def test_tool_flags_short_english_updates_once(self):
+        self.turn("طيب تأكد منه انه شغال فعلا", self.short, self.short)
+        first = self.run_mode("--tool")
+        self.assertIn("Switch back now to Egyptian Arabic", first)
+        self.assertEqual(self.run_mode("--tool"), "")
+        self.turn("طيب تأكد منه انه شغال فعلا", self.short, self.short, self.short)
+        self.assertIn("Switch back", self.run_mode("--tool"))
+
+    def test_tool_is_silent_on_arabic_and_on_english_requests(self):
+        self.turn("كمّل", ARABIC)
+        self.assertEqual(self.run_mode("--tool"), "")
+        self.turn("اكتب الـ README بالإنجليزي", ENGLISH)
+        self.assertEqual(self.run_mode("--tool"), "")
+        self.turn("Write the release notes for v2", ENGLISH)
+        self.assertEqual(self.run_mode("--tool"), "")
+
+    def test_tool_ignores_the_previous_turn(self):
+        self.base.write_entries(
+            {"type": "user", "message": {"content": "اعمل التقرير"}},
+            {"type": "assistant", "uuid": "old", "message": {"content": [{"type": "text", "text": ENGLISH}]}},
+            {"type": "user", "message": {"content": "كمّل"}})
+        self.assertEqual(self.run_mode("--tool"), "")
+
+    def test_stop_blocks_an_english_final_reply_once(self):
+        self.turn("تأكد إنه شغال", ARABIC, ENGLISH)
+        out = json.loads(self.run_mode("--stop"))
+        self.assertEqual(out["decision"], "block")
+        self.assertIn("Write the same reply again", out["reason"])
+        self.assertEqual(self.run_mode("--stop"), "")
+        self.assertEqual(self.run_mode("--stop", stop_hook_active=True), "")
+
+    def test_complaint_about_english_still_corrects(self):
+        self.turn("ليه بترد بالإنجليزي؟ كلمني عربي", self.short, self.short)
+        self.assertIn("Switch back", self.run_mode("--tool"))
+
+    def test_compaction_summary_is_not_the_owner_prompt(self):
+        self.base.write_entries(
+            {"type": "user", "message": {"content": "تأكد إنه شغال"}},
+            {"type": "user", "message": {"content": "This session is being continued from a previous conversation "
+                                                     "that ran out of context. " + ENGLISH}},
+            {"type": "assistant", "uuid": "x1", "message": {"content": [{"type": "text", "text": self.short * 2}]}})
+        self.assertIn("Switch back", self.run_mode("--tool"))
+
+    def test_prompt_outside_the_tail_still_checks(self):
+        filler = {"type": "user", "message": {"content": [{"type": "tool_result", "tool_use_id": "t",
+                                                            "content": "x" * 5000}]}}
+        english = {"type": "assistant", "uuid": "y1", "message": {"content": [{"type": "text", "text": self.short * 2}]}}
+        self.base.write_entries(*([{"type": "user", "message": {"content": "تأكد إنه شغال"}}] + [filler] * 600
+                                  + [english] + [filler] * 3))
+        self.assertIn("Switch back", self.run_mode("--tool"))
+
+    def test_stop_passes_arabic_and_english_profile(self):
+        self.turn("تأكد إنه شغال", ENGLISH, ARABIC)
+        self.assertEqual(self.run_mode("--stop"), "")
+        self.base.profile(language="en")
+        self.turn("تأكد إنه شغال", ENGLISH)
+        self.assertEqual(self.run_mode("--stop"), "")
 
 
 if __name__ == "__main__":
