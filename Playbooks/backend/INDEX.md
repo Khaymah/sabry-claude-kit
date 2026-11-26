@@ -1,6 +1,6 @@
 # Backend playbooks
 
-Pick 1–3 files whose situation matches the task. `planned` = not written yet: work without it and say so.
+Pick 1–3 files whose situation matches the task. File paths in this table are relative to this folder; paths inside playbooks are relative to `Playbooks/`. `planned` = not written yet: work without it and say so.
 
 Read first for any schema or query work: `Stacks/Database.md`. Default stack conventions: `Stacks/Bun-Hono.md`.
 

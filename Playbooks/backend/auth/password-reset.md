@@ -1,6 +1,6 @@
 # Password reset
 
-- **Situation:** "forgot password", reset link by email, magic sign-in link, email verification link. Any one-time token sent out of band. OTP codes typed by hand: `auth/otp.md`.
+- **Situation:** "forgot password", reset link by email, magic sign-in link, email verification link. Any one-time token sent out of band. OTP codes typed by hand: `backend/auth/otp.md`.
 - **Skip when:** auth is a managed service (Clerk, Auth0, Supabase Auth, Firebase Auth, Laravel's password broker): use its flow and only add what the Standard level lists that it lacks (usually session revocation).
 - **Decision:** a 32-byte random token, stored only as its SHA-256 hash, short-lived, consumed once by an atomic update; the response never reveals whether the account exists.
 
@@ -27,7 +27,7 @@
 
 - Revoke every session / refresh token of the user after the reset, and email "your password was changed".
 - Send the email from a queued job, so response time does not reveal whether the account exists.
-- Rate-limit the request endpoint per email and per IP (`reliability/rate-limit.md`).
+- Rate-limit the request endpoint per email and per IP (`backend/reliability/rate-limit.md`).
 - `Referrer-Policy: no-referrer` on the reset page; the token never reaches logs or analytics.
 - Lifetime, link base URL and template from `SystemSettings`.
 
@@ -130,4 +130,4 @@ Other stacks: Node `crypto.randomBytes(32)` + `createHash("sha256")`; Laravel ke
 
 ## Related
 
-`auth/sessions.md` · `auth/otp.md` · `reliability/rate-limit.md` · `reliability/background-jobs.md` · `Stacks/Bun-Hono.md` §Auth
+`backend/auth/sessions.md` · `backend/auth/otp.md` · `backend/reliability/rate-limit.md` · `backend/reliability/background-jobs.md` · `Stacks/Bun-Hono.md` §Auth

@@ -19,6 +19,17 @@ Acceptance: 3 sample backend playbooks reviewed and approved by the owner
 - [x] Samples: auth/password-reset.md · data/money.md · reliability/idempotency.md
 - [ ] Owner approves the format (or changes it)
 
+## Phase 2b: Qualities first (owner decision)
+Acceptance: quality/BASELINE.md + INDEX for quality, architecture, practices; Maintainability (6), Observability (7), Testability (5) written
+- [x] Three axes: situations · qualities · architecture + practices; root INDEX updated
+- [x] quality/BASELINE.md (all qualities per level, read on every code task)
+- [x] quality/, architecture/, practices/ INDEX files
+- [x] Maintainability: solid-pragmatic · module-boundaries · naming-structure · complexity-limits · refactoring · tech-debt
+- [x] Observability: logging · request-correlation · error-tracking · metrics · health-checks · alerting · tracing
+- [ ] Testability: test-strategy · integration-db · e2e · concurrency-tests · test-data
+- [ ] Reliability: error-handling · graceful-shutdown · timeouts-retries · backpressure
+- [x] Quality-Gate.md: one line per axis pointing to quality/<axis>/
+
 ## Phase 3: Backend
 Acceptance: ~20 playbooks (api, auth, data, reliability, files) + backend INDEX
 - [ ] List the ~20 files in backend/INDEX.md, then write them one by one
@@ -47,4 +58,6 @@ Acceptance: skill for non-programmers built on the playbooks (planned after Meas
 - Format v2 (owner feedback): Levels (Minimum/Standard/Advanced, project level recorded in .agents/memory) + "Skip when" + Edge cases table, separate from Pitfalls.
 - Content rule: only opinionated decisions, mistakes models actually make, and verify checklists. Nothing the model already knows.
 - Loading: never injected. Agent reads Playbooks/INDEX.md → domain INDEX → 1-3 files.
+- Quality-Gate.md stays as design-time questions and links to Playbooks/quality (owner decision).
+- Paths inside playbooks are relative to Playbooks/.
 - Patterns/ and Anti-patterns/ stay for now; merge decided after Measure.

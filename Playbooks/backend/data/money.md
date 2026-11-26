@@ -112,4 +112,4 @@ Other stacks: `numeric(19,4)` is acceptable where the codebase already uses it, 
 
 ## Related
 
-`reliability/idempotency.md` · `data/concurrency.md` · `Stacks/Database.md` §2 §5
+`backend/reliability/idempotency.md` · `backend/data/concurrency.md` · `Stacks/Database.md` §2 §5
