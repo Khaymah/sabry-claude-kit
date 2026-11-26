@@ -8,10 +8,10 @@ Read first for any schema or query work: `Stacks/Database.md`. Default stack con
 
 | Situation | File | Status |
 |---|---|---|
-| New endpoint, URL and status-code choices | `api/rest-design.md` | planned |
-| List endpoint, "load more", infinite scroll | `api/pagination.md` | planned |
-| Error shape, validation errors, error codes | `api/error-format.md` | planned |
-| Breaking change to a public or mobile API | `api/versioning.md` | planned |
+| New endpoint, URL and status-code choices | `api/rest-design.md` | ✅ |
+| List endpoint, "load more", infinite scroll | `api/pagination.md` | ✅ |
+| Error shape, validation errors, error codes | `api/error-format.md` | ✅ |
+| Breaking change to a public or mobile API | `api/versioning.md` | ✅ |
 
 ## Auth
 
