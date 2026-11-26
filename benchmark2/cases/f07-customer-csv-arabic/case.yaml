@@ -1,0 +1,4 @@
+schema_version: "1"
+name: f07-customer-csv-arabic
+context:
+  scaffold_script: fixture.sh

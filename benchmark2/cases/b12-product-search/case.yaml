@@ -1,0 +1,4 @@
+schema_version: "1"
+name: b12-product-search
+context:
+  scaffold_script: fixture.sh

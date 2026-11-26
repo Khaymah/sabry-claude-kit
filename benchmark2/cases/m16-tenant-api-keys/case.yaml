@@ -1,0 +1,4 @@
+schema_version: "1"
+name: m16-tenant-api-keys
+context:
+  scaffold_script: fixture.sh
