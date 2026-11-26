@@ -35,7 +35,9 @@ Acceptance: every cause from Diagnose and every dev-set failure fixed at the sou
 - [x] Fix each remaining Phase 1 cause: routing done (F1-F2); grader flaws replaced by benchmark2's hidden tests; the content gaps already existed in the playbooks (BOM, release tag, rotation, Retry-After)
 - [x] Dev round 1 ($4.42): kit b09 5/5,5/5 · y31 4/4,4/4 · y35 3/4,3/4 · m17 1/5,5/5 · y26 2/5,2/5. Router matched 1 of 5 dev prompts (plain requests carry no risk words; plurals; 'cash' routed to caching)
 - [x] Fix: plural matching, everyday words, refunds in money.md, legacy data in migrations.md, always-on four checks in every injection (PR commit 7318763)
-- [ ] Dev round 2: same five tasks (bench2/kit-dev2, tools/run-keep.sh keeps traces)
+- [x] Dev round 2 ($4.47): b09 5/5,5/5 · m17 5/5,5/5 (fixed) · y31 4/4,4/4 · y35 3/4,3/4 (query budget 7-8 vs 4) · y26 2/5,2/5
+- [ ] Benchmark flaw: y26 hidden tests query "Refunds"."PaymentId" (the reference design); a valid allocations-table design fails in every arm. Author audits all 35 hidden tests for design coupling, adds an alternative correct solution per changed case, and checks y35's budget is fair
+- [ ] After the audit: re-pilot changed separating tasks without the kit, then dev round 3
 - [ ] Rewrite weak playbooks to put the deciding rule first and give a worked fix for the failure seen
 - [ ] Run the dev set after each batch (kit arm only) until it beats no-plugin on the dev set
 - [ ] Run `evals/playbook-routing` and the skill-trigger evals
