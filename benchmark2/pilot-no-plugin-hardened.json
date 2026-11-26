@@ -1,0 +1,502 @@
+[
+ {
+  "case": "b08-coupon-redemption",
+  "hidden": {
+   "passed": 7,
+   "total": 7
+  },
+  "score": 1,
+  "cost": 0.337732,
+  "leak": false
+ },
+ {
+  "case": "b08-coupon-redemption",
+  "hidden": {
+   "passed": 7,
+   "total": 7
+  },
+  "score": 1,
+  "cost": 0.3755989,
+  "leak": false
+ },
+ {
+  "case": "b09-partial-refunds",
+  "hidden": {
+   "passed": 4,
+   "total": 5
+  },
+  "score": 1,
+  "cost": 0.30312680000000003,
+  "leak": false
+ },
+ {
+  "case": "b09-partial-refunds",
+  "hidden": {
+   "passed": 4,
+   "total": 5
+  },
+  "score": 1,
+  "cost": 0.3402994,
+  "leak": false
+ },
+ {
+  "case": "b10-password-reset",
+  "hidden": {
+   "passed": 8,
+   "total": 8
+  },
+  "score": 1,
+  "cost": 0.27516279999999993,
+  "leak": false
+ },
+ {
+  "case": "b10-password-reset",
+  "hidden": {
+   "passed": 8,
+   "total": 8
+  },
+  "score": 0,
+  "cost": 0.2500273,
+  "leak": false
+ },
+ {
+  "case": "b11-idempotency-keys",
+  "hidden": {
+   "passed": 7,
+   "total": 7
+  },
+  "score": 1,
+  "cost": 0.3539839,
+  "leak": false
+ },
+ {
+  "case": "b11-idempotency-keys",
+  "hidden": {
+   "passed": 7,
+   "total": 7
+  },
+  "score": 1,
+  "cost": 0.42287249999999993,
+  "leak": false
+ },
+ {
+  "case": "b12-product-search",
+  "hidden": {
+   "passed": 7,
+   "total": 7
+  },
+  "score": 1,
+  "cost": 0.269641,
+  "leak": false
+ },
+ {
+  "case": "b12-product-search",
+  "hidden": {
+   "passed": 7,
+   "total": 7
+  },
+  "score": 1,
+  "cost": 0.28633340000000007,
+  "leak": false
+ },
+ {
+  "case": "b13-sms-confirmation",
+  "hidden": {
+   "passed": 8,
+   "total": 8
+  },
+  "score": 1,
+  "cost": 0.2954405,
+  "leak": false
+ },
+ {
+  "case": "b13-sms-confirmation",
+  "hidden": {
+   "passed": 8,
+   "total": 8
+  },
+  "score": 1,
+  "cost": 0.33754500000000004,
+  "leak": false
+ },
+ {
+  "case": "b14-customer-report",
+  "hidden": {
+   "passed": 4,
+   "total": 4
+  },
+  "score": 1,
+  "cost": 0.2238749,
+  "leak": false
+ },
+ {
+  "case": "b14-customer-report",
+  "hidden": {
+   "passed": 2,
+   "total": 4
+  },
+  "score": 1,
+  "cost": 0.30250109999999997,
+  "leak": false
+ },
+ {
+  "case": "b15-product-import",
+  "hidden": {
+   "passed": 8,
+   "total": 8
+  },
+  "score": 1,
+  "cost": 0.5697766000000001,
+  "leak": false
+ },
+ {
+  "case": "b15-product-import",
+  "hidden": {
+   "passed": 8,
+   "total": 8
+  },
+  "score": 1,
+  "cost": 0.5091603,
+  "leak": false
+ },
+ {
+  "case": "f01-stock-oversell",
+  "hidden": {
+   "passed": 5,
+   "total": 5
+  },
+  "score": 1,
+  "cost": 0.17445370000000002,
+  "leak": false
+ },
+ {
+  "case": "f01-stock-oversell",
+  "hidden": {
+   "passed": 5,
+   "total": 5
+  },
+  "score": 0.5,
+  "cost": 0.15858180000000002,
+  "leak": false
+ },
+ {
+  "case": "f02-invoice-rounding",
+  "hidden": {
+   "passed": 8,
+   "total": 8
+  },
+  "score": 1,
+  "cost": 0.24204720000000002,
+  "leak": false
+ },
+ {
+  "case": "f02-invoice-rounding",
+  "hidden": {
+   "passed": 8,
+   "total": 8
+  },
+  "score": 1,
+  "cost": 0.2712183,
+  "leak": false
+ },
+ {
+  "case": "f03-tenant-leak",
+  "hidden": {
+   "passed": 8,
+   "total": 8
+  },
+  "score": 1,
+  "cost": 0.4103405,
+  "leak": false
+ },
+ {
+  "case": "f03-tenant-leak",
+  "hidden": {
+   "passed": 8,
+   "total": 8
+  },
+  "score": 1,
+  "cost": 0.3371578,
+  "leak": false
+ },
+ {
+  "case": "f04-session-revocation",
+  "hidden": {
+   "passed": 5,
+   "total": 5
+  },
+  "score": 1,
+  "cost": 0.23709510000000003,
+  "leak": false
+ },
+ {
+  "case": "f04-session-revocation",
+  "hidden": {
+   "passed": 5,
+   "total": 5
+  },
+  "score": 1,
+  "cost": 0.1978813,
+  "leak": false
+ },
+ {
+  "case": "f05-webhook-double-credit",
+  "hidden": {
+   "passed": 5,
+   "total": 5
+  },
+  "score": 1,
+  "cost": 0.3021183,
+  "leak": false
+ },
+ {
+  "case": "f05-webhook-double-credit",
+  "hidden": {
+   "passed": 5,
+   "total": 5
+  },
+  "score": 1,
+  "cost": 0.3355349,
+  "leak": false
+ },
+ {
+  "case": "f06-orders-list-slow",
+  "hidden": {
+   "passed": 5,
+   "total": 5
+  },
+  "score": 1,
+  "cost": 0.23015069999999999,
+  "leak": false
+ },
+ {
+  "case": "f06-orders-list-slow",
+  "hidden": {
+   "passed": 5,
+   "total": 5
+  },
+  "score": 1,
+  "cost": 0.19014279999999997,
+  "leak": false
+ },
+ {
+  "case": "f07-customer-csv-arabic",
+  "hidden": {
+   "passed": 7,
+   "total": 7
+  },
+  "score": 1,
+  "cost": 0.2414698,
+  "leak": false
+ },
+ {
+  "case": "f07-customer-csv-arabic",
+  "hidden": {
+   "passed": 7,
+   "total": 7
+  },
+  "score": 1,
+  "cost": 0.25485779999999997,
+  "leak": false
+ },
+ {
+  "case": "m16-tenant-api-keys",
+  "hidden": {
+   "passed": 7,
+   "total": 7
+  },
+  "score": 1,
+  "cost": 0.36076379999999997,
+  "leak": false
+ },
+ {
+  "case": "m16-tenant-api-keys",
+  "hidden": {
+   "passed": 7,
+   "total": 7
+  },
+  "score": 1,
+  "cost": 0.3879272,
+  "leak": false
+ },
+ {
+  "case": "m17-phone-backfill",
+  "hidden": {
+   "passed": 5,
+   "total": 5
+  },
+  "score": 0,
+  "cost": 0.2927065,
+  "leak": false
+ },
+ {
+  "case": "m17-phone-backfill",
+  "hidden": {
+   "passed": 3,
+   "total": 5
+  },
+  "score": 1,
+  "cost": 0.2933593,
+  "leak": false
+ },
+ {
+  "case": "m18-order-numbers",
+  "hidden": {
+   "passed": 6,
+   "total": 6
+  },
+  "score": 1,
+  "cost": 0.222411,
+  "leak": false
+ },
+ {
+  "case": "m18-order-numbers",
+  "hidden": {
+   "passed": 6,
+   "total": 6
+  },
+  "score": 1,
+  "cost": 0.289426,
+  "leak": false
+ },
+ {
+  "case": "m19-card-checkout",
+  "hidden": {
+   "passed": 4,
+   "total": 6
+  },
+  "score": 1,
+  "cost": 0.35599749999999997,
+  "leak": false
+ },
+ {
+  "case": "m19-card-checkout",
+  "hidden": {
+   "passed": 4,
+   "total": 6
+  },
+  "score": 1,
+  "cost": 0.38435469999999994,
+  "leak": false
+ },
+ {
+  "case": "m20-order-edit-bounds",
+  "hidden": {
+   "passed": 4,
+   "total": 5
+  },
+  "score": 1,
+  "cost": 0.3203399,
+  "leak": false
+ },
+ {
+  "case": "m20-order-edit-bounds",
+  "hidden": {
+   "passed": 4,
+   "total": 5
+  },
+  "score": 1,
+  "cost": 0.27749229999999997,
+  "leak": false
+ },
+ {
+  "case": "x21-loyalty-wallet",
+  "hidden": {
+   "passed": 8,
+   "total": 8
+  },
+  "score": 1,
+  "cost": 0.2659401,
+  "leak": false
+ },
+ {
+  "case": "x21-loyalty-wallet",
+  "hidden": {
+   "passed": 8,
+   "total": 8
+  },
+  "score": 1,
+  "cost": 0.32390470000000005,
+  "leak": false
+ },
+ {
+  "case": "x22-supplier-statement",
+  "hidden": {
+   "passed": 5,
+   "total": 5
+  },
+  "score": 1,
+  "cost": 0.3121674,
+  "leak": false
+ },
+ {
+  "case": "x22-supplier-statement",
+  "hidden": {
+   "passed": 5,
+   "total": 5
+  },
+  "score": 1,
+  "cost": 0.2657231,
+  "leak": false
+ },
+ {
+  "case": "x23-expenses-excel",
+  "hidden": {
+   "passed": 4,
+   "total": 5
+  },
+  "score": 1,
+  "cost": 0.30677630000000006,
+  "leak": false
+ },
+ {
+  "case": "x23-expenses-excel",
+  "hidden": {
+   "passed": 4,
+   "total": 5
+  },
+  "score": 1,
+  "cost": 0.3007297,
+  "leak": false
+ },
+ {
+  "case": "x24-staff-invites",
+  "hidden": {
+   "passed": 7,
+   "total": 7
+  },
+  "score": 1,
+  "cost": 0.30974250000000003,
+  "leak": false
+ },
+ {
+  "case": "x24-staff-invites",
+  "hidden": {
+   "passed": 7,
+   "total": 7
+  },
+  "score": 1,
+  "cost": 0.31757940000000007,
+  "leak": false
+ },
+ {
+  "case": "x25-courier-shipping",
+  "hidden": {
+   "passed": 5,
+   "total": 5
+  },
+  "score": 1,
+  "cost": 0.3849245,
+  "leak": false
+ },
+ {
+  "case": "x25-courier-shipping",
+  "hidden": {
+   "passed": 5,
+   "total": 5
+  },
+  "score": 1,
+  "cost": 0.40990669999999996,
+  "leak": false
+ }
+]

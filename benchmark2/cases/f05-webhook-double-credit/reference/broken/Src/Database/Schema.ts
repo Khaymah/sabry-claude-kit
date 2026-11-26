@@ -1,4 +1,4 @@
-import { pgTable, serial, integer, text, boolean, timestamp, numeric, jsonb, uniqueIndex, index } from "drizzle-orm/pg-core";
+import { pgTable, serial, integer, text, boolean, timestamp, numeric, jsonb, uniqueIndex, index, date } from "drizzle-orm/pg-core";
 
 export const Companies = pgTable("Companies", {
   Id: serial("Id").primaryKey(),
@@ -57,6 +57,63 @@ export const Products = pgTable(
   },
   (T) => [uniqueIndex("Products_CompanySku_Unique").on(T.CompanyId, T.Sku)],
 );
+
+export const Suppliers = pgTable("Suppliers", {
+  Id: serial("Id").primaryKey(),
+  CompanyId: integer("CompanyId").notNull().references(() => Companies.Id),
+  Name: text("Name").notNull(),
+  Phone: text("Phone"),
+  CreatedAt: timestamp("CreatedAt", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const PurchaseOrders = pgTable("PurchaseOrders", {
+  Id: serial("Id").primaryKey(),
+  CompanyId: integer("CompanyId").notNull().references(() => Companies.Id),
+  SupplierId: integer("SupplierId").notNull().references(() => Suppliers.Id),
+  Status: text("Status").notNull().default("Draft"),
+  Total: numeric("Total", { precision: 12, scale: 2 }).notNull(),
+  CreatedAt: timestamp("CreatedAt", { withTimezone: true }).notNull().defaultNow(),
+  ReceivedAt: timestamp("ReceivedAt", { withTimezone: true }),
+});
+
+export const PurchaseOrderItems = pgTable("PurchaseOrderItems", {
+  Id: serial("Id").primaryKey(),
+  PurchaseOrderId: integer("PurchaseOrderId").notNull().references(() => PurchaseOrders.Id),
+  ProductId: integer("ProductId").notNull().references(() => Products.Id),
+  Quantity: integer("Quantity").notNull(),
+  UnitCost: numeric("UnitCost", { precision: 12, scale: 2 }).notNull(),
+  LineTotal: numeric("LineTotal", { precision: 12, scale: 2 }).notNull(),
+});
+
+export const StockMovements = pgTable("StockMovements", {
+  Id: serial("Id").primaryKey(),
+  CompanyId: integer("CompanyId").notNull().references(() => Companies.Id),
+  ProductId: integer("ProductId").notNull().references(() => Products.Id),
+  Change: integer("Change").notNull(),
+  Reason: text("Reason").notNull(),
+  RefId: integer("RefId"),
+  CreatedAt: timestamp("CreatedAt", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const Expenses = pgTable("Expenses", {
+  Id: serial("Id").primaryKey(),
+  CompanyId: integer("CompanyId").notNull().references(() => Companies.Id),
+  Category: text("Category").notNull(),
+  Amount: numeric("Amount", { precision: 12, scale: 2 }).notNull(),
+  SpentOn: date("SpentOn").notNull(),
+  Note: text("Note"),
+  CreatedAt: timestamp("CreatedAt", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const AuditLogs = pgTable("AuditLogs", {
+  Id: serial("Id").primaryKey(),
+  CompanyId: integer("CompanyId").notNull().references(() => Companies.Id),
+  UserId: integer("UserId"),
+  Action: text("Action").notNull(),
+  Entity: text("Entity").notNull(),
+  EntityId: integer("EntityId"),
+  CreatedAt: timestamp("CreatedAt", { withTimezone: true }).notNull().defaultNow(),
+});
 
 export const Orders = pgTable(
   "Orders",

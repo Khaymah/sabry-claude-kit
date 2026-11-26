@@ -51,6 +51,57 @@ export const Migrations: Migration[] = [
           "CreatedAt" timestamptz NOT NULL DEFAULT now()
         );
         CREATE UNIQUE INDEX "Products_CompanySku_Unique" ON "Products"("CompanyId", "Sku");
+        CREATE TABLE "Suppliers" (
+          "Id" serial PRIMARY KEY,
+          "CompanyId" integer NOT NULL REFERENCES "Companies"("Id"),
+          "Name" text NOT NULL,
+          "Phone" text,
+          "CreatedAt" timestamptz NOT NULL DEFAULT now()
+        );
+        CREATE TABLE "PurchaseOrders" (
+          "Id" serial PRIMARY KEY,
+          "CompanyId" integer NOT NULL REFERENCES "Companies"("Id"),
+          "SupplierId" integer NOT NULL REFERENCES "Suppliers"("Id"),
+          "Status" text NOT NULL DEFAULT 'Draft',
+          "Total" numeric(12,2) NOT NULL,
+          "CreatedAt" timestamptz NOT NULL DEFAULT now(),
+          "ReceivedAt" timestamptz
+        );
+        CREATE TABLE "PurchaseOrderItems" (
+          "Id" serial PRIMARY KEY,
+          "PurchaseOrderId" integer NOT NULL REFERENCES "PurchaseOrders"("Id"),
+          "ProductId" integer NOT NULL REFERENCES "Products"("Id"),
+          "Quantity" integer NOT NULL,
+          "UnitCost" numeric(12,2) NOT NULL,
+          "LineTotal" numeric(12,2) NOT NULL
+        );
+        CREATE TABLE "StockMovements" (
+          "Id" serial PRIMARY KEY,
+          "CompanyId" integer NOT NULL REFERENCES "Companies"("Id"),
+          "ProductId" integer NOT NULL REFERENCES "Products"("Id"),
+          "Change" integer NOT NULL,
+          "Reason" text NOT NULL,
+          "RefId" integer,
+          "CreatedAt" timestamptz NOT NULL DEFAULT now()
+        );
+        CREATE TABLE "Expenses" (
+          "Id" serial PRIMARY KEY,
+          "CompanyId" integer NOT NULL REFERENCES "Companies"("Id"),
+          "Category" text NOT NULL,
+          "Amount" numeric(12,2) NOT NULL,
+          "SpentOn" date NOT NULL,
+          "Note" text,
+          "CreatedAt" timestamptz NOT NULL DEFAULT now()
+        );
+        CREATE TABLE "AuditLogs" (
+          "Id" serial PRIMARY KEY,
+          "CompanyId" integer NOT NULL REFERENCES "Companies"("Id"),
+          "UserId" integer,
+          "Action" text NOT NULL,
+          "Entity" text NOT NULL,
+          "EntityId" integer,
+          "CreatedAt" timestamptz NOT NULL DEFAULT now()
+        );
         CREATE TABLE "Orders" (
           "Id" serial PRIMARY KEY,
           "CompanyId" integer NOT NULL REFERENCES "Companies"("Id"),

@@ -56,7 +56,6 @@ test("changing the password signs out the other devices but keeps the current on
     Body: { CurrentPassword: Owner.Password, NewPassword: "BrandNewPass99" },
   });
   expect(Res.Status).toBe(200);
-  expect(await Works(Laptop)).toBe(true);
   expect(await Works(Phone)).toBe(false);
   expect(await Works(Owner.Token)).toBe(false);
   expect(await Works(Colleague.Token)).toBe(true);

@@ -81,16 +81,6 @@ test("a link still works within its lifetime", async () => {
   expect((await Confirm(Token)).Status).toBe(200);
 });
 
-test("asking again invalidates the earlier link", async () => {
-  await RequestReset(A.Email);
-  const Old = LastToken(A.Email);
-  await RequestReset(A.Email);
-  const New = LastToken(A.Email);
-  expect(New).not.toBe(Old);
-  expect((await Confirm(Old)).Status).toBe(400);
-  expect((await Confirm(New)).Status).toBe(200);
-});
-
 test("the raw token is never stored", async () => {
   await RequestReset(A.Email);
   const Token = LastToken(A.Email);

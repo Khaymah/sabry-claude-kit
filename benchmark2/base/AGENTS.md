@@ -1,6 +1,6 @@
 # Shop Backend
 
-Multi-tenant sales backend: companies (tenants), users and sessions, customers, products, orders, payments.
+Multi-tenant sales backend: companies (tenants), users and sessions, customers, products, orders, payments, suppliers and purchase orders, expenses.
 
 ## Stack
 Bun + Hono + Drizzle ORM + PostgreSQL (PGlite in-process) + zod.
@@ -10,7 +10,8 @@ Bun + Hono + Drizzle ORM + PostgreSQL (PGlite in-process) + zod.
 - `Src/Modules/<Module>/<Module>.Routes.ts | .Service.ts | .Schema.ts`: routes, business logic, zod schemas.
 - `Src/Database/Schema.ts`: Drizzle tables. `Src/Database/Migrations.ts`: ordered SQL migrations (append new ones, never edit applied ones). Keep both in sync.
 - `Src/Database/Db.ts`: the single PGlite client and the Drizzle `Db`.
-- `Src/Lib/`: response helpers, validation, money (`ToPiasters` / `FromPiasters`), pagination.
+- `Src/Lib/`: response helpers, validation, money (`ToPiasters` / `FromPiasters`), pagination, audit log, mailer (`SendEmail`, dev outbox), cache.
+- `Src/Jobs/`: scheduled jobs.
 - `Src/Test/Setup.ts` (`ResetDatabase`, `Api`) and `Src/Test/Seed.ts`: test helpers. Tests live in `Tests/`.
 
 ## Conventions

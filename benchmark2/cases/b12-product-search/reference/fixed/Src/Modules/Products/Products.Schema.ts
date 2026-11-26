@@ -38,8 +38,8 @@ export const SearchQuery = z
     MaxPrice: Decimal.optional(),
     InStock: z.enum(["true", "false"]).optional(),
     Sort: z.enum(["PriceAsc", "PriceDesc", "Newest", "Name"]).default("Newest"),
-    Page: WholeNumber(1, 1000).default(1),
-    PageSize: WholeNumber(1, 50).default(20),
+    Page: WholeNumber(1, 100000).default(1),
+    PageSize: WholeNumber(1, 100).default(20),
   })
   .refine((V) => V.MinPrice === undefined || V.MaxPrice === undefined || Number(V.MinPrice) <= Number(V.MaxPrice), {
     message: "MinPrice must not exceed MaxPrice",
