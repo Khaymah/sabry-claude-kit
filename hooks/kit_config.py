@@ -34,6 +34,7 @@ DEFAULTS = {
     "comment_discipline": True,
     "nextjs_structure": True,
     "duplication_warning": True,
+    "code_traps": True,
     "team_review_reminder": True,
     "deal_economics": False,
     "usage_meter": True,

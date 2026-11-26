@@ -197,6 +197,8 @@ def test_registration():
           "بدونها لا يمكن تمييز عمل الجلسة عن الدَنَس السابق")
     check("enforce-nextjs-structure مسجَّل (PreToolUse)", "enforce-nextjs-structure" in blob)
     check("warn-duplication مسجَّل (PostToolUse)", "warn-duplication" in blob)
+    check("enforce-code-traps مسجَّل (PreToolUse + PostToolUse --warn)",
+          blob.count("enforce-code-traps.py") >= 2 and "--warn" in blob)
     check("project-storage مسجَّل (SessionStart + SessionEnd)",
           "project-storage.py" in blob and "--save-transcript" in blob)
     check("project-storage --collect مسجَّل (Stop + SessionEnd)", blob.count("--collect") >= 2)

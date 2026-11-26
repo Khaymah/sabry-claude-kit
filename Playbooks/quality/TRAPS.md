@@ -6,6 +6,8 @@ One line per trap that agents (and people) fall into, with **how to detect it me
 - **Reviewing code** (`code-reviewer`, `team-review`): run the Detect column on the diff; each hit is a finding unless the line carries a reason.
 - **Growing it:** when a lesson (`lessons.py`) or a bug reveals a trap that is not here, add one row in the right section. Keep a row only if it can be detected or checked in under a minute.
 
+**Enforced while writing** (`hooks/enforce-code-traps.py`, switch `code_traps`): blocked: `update` / `delete` without `.where()`, `.forEach(async`, sync crypto or exec on request paths. Reported back to the agent: query in a loop or per-item callback, `Promise.all` over a list with DB calls, nested `.find` / `.includes`, `fetch` without `signal`, `z.array` without `.max`, `select()` with no columns, float on money, empty `catch`, `console.*` in server code, sync file I/O on request paths. A new trap that a regex can catch reliably goes into the hook with a pair of tests (trap / correct code).
+
 Detect legend: `grep` = a search on the diff · `lint` = an ESLint / Biome rule · `test` = a test that fails · `look` = a short reading check.
 
 ## Database round trips

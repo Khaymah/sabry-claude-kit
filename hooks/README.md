@@ -62,6 +62,7 @@
 | `git_signing` | ✅ | `git-signing`: يوقّع الـ commits بمفتاح المالك من `SABRY_SIGNING_KEY` في كل جلسة |
 | `comment_discipline` | ✅ | `enforce-comment-discipline` + قاعدتها |
 | `nextjs_structure` · `duplication_warning` | ✅ | hooks الـ Next.js |
+| `code_traps` | ✅ | `enforce-code-traps`: فخاخ الكود من `Playbooks/quality/TRAPS.md` |
 | `secret_scan` · `install_git_hook` | ✅ | `scan-secrets` + الـ git pre-commit |
 | `project_storage` · `keep_transcripts` | ✅ | `project-storage` + قاعدتها |
 | `team_review_reminder` | ✅ | `team-review-reminder` |
@@ -102,6 +103,8 @@
 | `scan-secrets.py` | PreToolUse · `Bash` + git pre-commit | يمنع commit فيه مفتاح أو token أو private key أو `.env` (قسم 6) | ✅ |
 | `enforce-comment-discipline.py` | PreToolUse · `Write\|Edit\|MultiEdit` | يرفض إضافة كومنت لملف كود (الاستثناءات: build directives و`IMPORTANT:`) | ✅ |
 | `enforce-nextjs-structure.py` | PreToolUse · `Write\|Edit\|MultiEdit` | مشاريع Next.js بس: حد 600 سطر (و300 لـ PageContent)، PascalCase للجديد تحت `src/`، وحالة الحروف متطابقة مع الموجود على القرص | ✅ |
+| `enforce-code-traps.py` | PreToolUse · `Write\|Edit\|MultiEdit` | ملفات JS/TS (مش tests ولا scripts ولا migrations): يرفض `db.update`/`db.delete` من غير `.where`، و`.forEach(async`، و`hashSync`/`execSync` في مسار request | ✅ |
+| `enforce-code-traps.py --warn` | PostToolUse · `Write\|Edit\|MultiEdit` | يرجّع للـ agent الفخاخ المحتملة: query جوه loop (N+1)، و`Promise.all` على list فيها DB، و`.find` جوه loop، و`fetch` من غير timeout، و`z.array` من غير `.max`، و`select()` كامل، وfloat على الفلوس، و`catch {}` فاضي، و`console.*` في السيرفر. الـ loops اللي بتمشي على chunks أو keyset batches مستثناة | يرجّع feedback |
 | `warn-duplication.py` | PostToolUse · `Write\|Edit\|MultiEdit` | مشاريع Next.js بس: يرجّع للـ agent كود مكرر عشان يوحّده | يرجّع feedback |
 | `read-budget.py` | PreToolUse · `Read` | يرفض قراءة ملف نصي أكبر من 800 سطر كله من غير `offset`/`limit`، ويوجّه لـ Grep + مدى محدد. `limit` صريح = مسموح | ✅ |
 | `stop-reminders.py` | Stop | بيشغّل التذكيرات التلاتة (التحقق · الخطة · المراجعة) ويبعت اللي عنده حاجة منهم كتنبيه **واحد**، مع تعليمة إن الرد عليهم يبقى إضافة قصيرة واحدة مش تكرار للتقرير | لا |
@@ -267,6 +270,7 @@ python3 ~/sabry-claude-kit/hooks/adapt.py <codex|gemini|cursor> <script> [args]
 | `project-storage` | ✅ | ✅ (`SessionStart`) | ✅ | ✅ |
 | `enforce-comment-discipline` | ✅ | ⚠️ لا (Codex بيعدّل بـ `apply_patch`) | ✅ (`write_file` · `replace`) | ⚠️ لا (`afterFileEdit` مش بيقدر يمنع) |
 | `enforce-nextjs-structure` | ✅ | ⚠️ لا | ✅ | ⚠️ لا |
+| `enforce-code-traps` | ✅ | ✅ (`apply_patch`) | ✅ | ⚠️ لا |
 | `inject-rules` | ✅ | ✅ | ✅ | ✅ (`additional_context`) |
 | الأصوات | ✅ | ✅ | ✅ | ✅ |
 | `team-review-reminder` | ✅ | ⚠️ لا (Codex مش بيوثّق `additionalContext` على Stop) | — | — |

@@ -7,8 +7,8 @@ const HOOKS = path.join(KIT, "hooks")
 const CACHE_MS = 60000
 const CHECKS = {
   Bash: ["enforce-commit-style.py", "scan-secrets.py"],
-  Write: ["enforce-comment-discipline.py", "enforce-nextjs-structure.py"],
-  Edit: ["enforce-comment-discipline.py", "enforce-nextjs-structure.py"],
+  Write: ["enforce-comment-discipline.py", "enforce-nextjs-structure.py", "enforce-code-traps.py"],
+  Edit: ["enforce-comment-discipline.py", "enforce-nextjs-structure.py", "enforce-code-traps.py"],
 }
 const cache = new Map()
 let python = null

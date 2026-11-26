@@ -47,7 +47,7 @@ python3 "<kit>/hooks/kit_profile.py" show
 
 | Question | Options | Key |
 |---|---|---|
-| القواعد اللي تتفرض بالـ hooks؟ (**multiSelect**) | commits بالإنجليزي وبلا توقيع AI · فحص الأسرار قبل الـ commit · كود بلا كومنتات · هيكل Next.js + تحذير التكرار | `settings.commit_style` · `secret_scan` · `comment_discipline` · `nextjs_structure` + `duplication_warning` (unselected = `false`) |
+| القواعد اللي تتفرض بالـ hooks؟ (**multiSelect**) | commits بالإنجليزي وبلا توقيع AI · فحص الأسرار قبل الـ commit · كود بلا كومنتات · هيكل Next.js + تحذير التكرار · فخاخ الكود (N+1، update من غير where…) | `settings.commit_style` · `secret_scan` · `comment_discipline` · `nextjs_structure` + `duplication_warning` · `code_traps` (unselected = `false`) |
 | ذاكرة المشروع؟ | جوه المشروع في `.agents/` وبتدخل git · افتراضي Claude Code (`~/.claude`) | `settings.project_storage` |
 | حاجات تانية؟ (**multiSelect**) | أصوات الإشعارات · نسخ الـ transcripts في `.agents/sessions/` · تذكير team review بعد تعديل كود · تنبيه Freelancer-Trap في الصفقات | `sounds` · `keep_transcripts` · `team_review_reminder` · `deal_economics` |
 | سياق شخصي؟ | أكتبه دلوقتي (أهداف، قيود، استضافة مفضّلة…) · استورد PersonalContext.md (لو لقيته) · لأ | `profile.md` |
@@ -57,7 +57,7 @@ python3 "<kit>/hooks/kit_profile.py" show
 Combine answers into one JSON and save it. Never edit the file by hand:
 
 ```bash
-python3 "<kit>/hooks/kit_profile.py" set '{"name":"…","git_name":"…","git_email":"…","language":"ar-eg","verbosity":"concise","role":"…","mode":"cto-pm","questions":"ask","cost_profile":"balanced","stack":"…","settings":{"commit_style":true,"git_identity":true,"git_signing":true,"secret_scan":true,"comment_discipline":true,"nextjs_structure":true,"duplication_warning":true,"project_storage":true,"sounds":true,"keep_transcripts":true,"team_review_reminder":true,"deal_economics":false}}'
+python3 "<kit>/hooks/kit_profile.py" set '{"name":"…","git_name":"…","git_email":"…","language":"ar-eg","verbosity":"concise","role":"…","mode":"cto-pm","questions":"ask","cost_profile":"balanced","stack":"…","settings":{"commit_style":true,"git_identity":true,"git_signing":true,"secret_scan":true,"comment_discipline":true,"nextjs_structure":true,"duplication_warning":true,"code_traps":true,"project_storage":true,"sounds":true,"keep_transcripts":true,"team_review_reminder":true,"deal_economics":false}}'
 ```
 
 - Personal context: `python3 "<kit>/hooks/kit_profile.py" context "<markdown>"`. Keep it short, with headings; it is read only for strategic decisions.
