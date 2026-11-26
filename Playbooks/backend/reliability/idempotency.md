@@ -49,6 +49,8 @@
 | Webhook arrives before our own order row is committed | The job fails with "not found yet" and retries with backoff; it is not dropped |
 | Webhooks out of order (refund before payment succeeded) | The handler checks the order's state machine and requeues or ignores transitions that don't apply yet |
 | Response is a file or a stream | Not cached: such endpoints use a natural key instead of the replay table |
+| 100×: Millions of stored keys | The unique `(Scope, Key)` index keeps lookups constant; expired rows are deleted daily in batches of 10k |
+| Twice / parallel: The same key from two devices at once | The unique constraint lets one claim it; the other gets `409` and retries into a replay |
 
 ## Example — Standard, Bun + Hono + Drizzle
 

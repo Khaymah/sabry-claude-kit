@@ -50,6 +50,8 @@
 | A long but flat function (mapping 40 fields) | Allowed: length without branching is not complexity; keep it, or move the mapping to a table |
 | Splitting would create a function used once with 6 parameters | Don't: that moves complexity, not removes it. Group the parameters into the concept they form |
 | State machine (order status) | A transition table `{ From, Event, To, Guard }` instead of nested ifs |
+| 100×: A rule table of 200 rows | Rules move to data (table or config) with one evaluator; tests are generated from the rows |
+| Twice / parallel: The same state-machine event arrives twice | The second hits `ORDER_INVALID_TRANSITION`; the status update is conditional on the current status |
 
 ## Example — Standard, Bun + Hono
 

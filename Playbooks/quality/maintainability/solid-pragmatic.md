@@ -49,6 +49,8 @@
 | A test needs to fake the clock or randomness | Inject `Now()` / `RandomBytes()` as parameters with defaults; no global mocking |
 | Two adapters cannot honour the same contract (one has refunds, one doesn't) | The port exposes the capability (`SupportsRefund`); callers check it, adapters don't throw "not implemented" |
 | Existing codebase uses classes and DI (NestJS, .NET) | Follow it; the rule of no single-implementation interfaces still applies to new code |
+| 100×: Twenty providers instead of two | The registry stays one map; adapters are imported lazily so boot time does not grow |
+| Twice / parallel: The active provider setting changes while requests run | Each request resolves the provider once, at its start, from the settings snapshot |
 
 ## Example — Standard, Bun + Hono
 

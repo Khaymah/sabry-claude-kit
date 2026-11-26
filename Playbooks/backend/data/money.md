@@ -51,6 +51,8 @@ A project at Minimum that takes real payments uses Standard here.
 | Cart in USD, user switches to EGP | The cart is repriced from the catalog in the new currency; amounts are never converted in place |
 | Sum passes 2^53 minor units | `bigint` end to end; `Number()` on an amount is a bug |
 | Negative amounts | Allowed only in ledger entries and refunds, with the sign convention documented on the table |
+| 100×: Ledger with millions of entries | Balances come from the cached column updated in the same transaction; full sums run only in the reconciliation job, on an index `(AccountId, CreatedAt)` |
+| Twice / parallel: Two debits on one balance at the same moment | `UPDATE … SET "Balance" = "Balance" - $1 WHERE "Balance" >= $1 RETURNING`: the second fails cleanly when funds run out |
 
 ## Example — Standard, Bun + Hono + Drizzle
 

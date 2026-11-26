@@ -18,7 +18,7 @@
 
 - Token from a CSPRNG (`crypto.getRandomValues`), 32 bytes, base64url. Never a UUID, a timestamp or a JWT.
 - Store `SHA-256(token)`, never the token. A fast hash is right here: the token has 256 bits of entropy, unlike a password.
-- Lifetime 30 minutes; one active token per user and purpose (issuing a new one deletes the old ones).
+- Lifetime 30 minutes; one token row per user (unique `UserId`): issuing a new one overwrites the old one, so only the newest link works.
 - Consume with one `UPDATE … WHERE "TokenHash" = $1 AND "UsedAt" IS NULL AND "ExpiresAt" > now() RETURNING`. No row means invalid, whatever the reason; one error message for all reasons.
 - The request endpoint returns the same body for known and unknown emails.
 - The link opens a frontend page; the page POSTs the token. A GET never consumes it.
@@ -51,17 +51,19 @@
 | Email client breaks the URL or changes case | base64url has no `+ / =`; the page trims whitespace; tokens compare exactly |
 | App server clock differs from the database | Expiry is compared with the database's `now()`, never the app's clock |
 | New password equals the old one or fails the policy | Rejected by the same validator as sign-up; the token is **not** consumed (validate first, then consume) |
+| 100×: Millions of users and old tokens | Lookups stay on the unique `TokenHash` index; a daily job deletes used and expired tokens in batches |
+| Twice / parallel: Two reset requests for one user at the same moment | A unique index on `UserId` makes the insert an upsert: one row survives and only the newest token works |
 
 ## Example — Standard, Bun + Hono + Drizzle
 
 ```ts
 export const PasswordResetTokens = pgTable("PasswordResetTokens", {
   ...BaseColumns,
-  UserId: uuid("UserId").notNull().references(() => Users.Id, { onDelete: "cascade" }),
+  UserId: uuid("UserId").notNull().unique().references(() => Users.Id, { onDelete: "cascade" }),
   TokenHash: text("TokenHash").notNull().unique(),
   ExpiresAt: timestamp("ExpiresAt", { withTimezone: true }).notNull(),
   UsedAt: timestamp("UsedAt", { withTimezone: true }),
-}, (T) => [index().on(T.UserId)])
+})
 
 const HashToken = async (Token: string) =>
   Buffer.from(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(Token.trim()))).toString("hex")
@@ -71,14 +73,10 @@ export async function RequestReset(Email: string) {
   if (!User) return
   const Token = Buffer.from(crypto.getRandomValues(new Uint8Array(32))).toString("base64url")
   const Minutes = GetSetting("Auth.ResetTokenMinutes")
-  await db.transaction(async (Tx) => {
-    await Tx.delete(PasswordResetTokens).where(eq(PasswordResetTokens.UserId, User.Id))
-    await Tx.insert(PasswordResetTokens).values({
-      UserId: User.Id,
-      TokenHash: await HashToken(Token),
-      ExpiresAt: sql`now() + make_interval(mins => ${Minutes})`,
-    })
-  })
+  const Fresh = { TokenHash: await HashToken(Token), ExpiresAt: sql`now() + make_interval(mins => ${Minutes})`, UsedAt: null }
+  await db.insert(PasswordResetTokens)
+    .values({ UserId: User.Id, ...Fresh })
+    .onConflictDoUpdate({ target: PasswordResetTokens.UserId, set: Fresh })
   await Jobs.Enqueue("Auth.SendResetEmail", { UserId: User.Id, Token })
 }
 

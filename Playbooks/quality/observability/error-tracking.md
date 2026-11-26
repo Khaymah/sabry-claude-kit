@@ -43,6 +43,8 @@
 | Error before the tracker initialises (bad config) | Process logs it and exits non-zero; PM2 or systemd restarts and the uptime alert fires |
 | The tracker is down or blocked | The SDK drops events without affecting requests; nothing awaits it on the request path |
 | Client asks for no third-party data processing | Self-hosted GlitchTip on our VPS, same SDK |
+| 100×: Error volume 100× higher | Sample rate and per-issue rate limits; a quota alert before the plan runs out |
+| Twice / parallel: The same error hits many users at once | One issue grouped by fingerprint, with a user count, not thousands of issues |
 
 ## Example — Standard, Bun + Hono
 

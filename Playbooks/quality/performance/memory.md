@@ -44,6 +44,8 @@
 | Cache keyed by user input (search terms) | LRU with a max, otherwise an attacker fills memory |
 | Closure captures a large object in a long-lived callback | Capture only the ids needed |
 | Process memory grows slowly over days | Heap snapshot diff; common causes: listeners not removed, unbounded maps, retained request objects in a global |
+| 100×: Ten users export at the same moment | Exports run as jobs with a concurrency of 1–2; extra requests wait in the queue |
+| Twice / parallel: The same export requested twice | The second request returns the running job's id instead of starting another |
 
 ## Example — Standard, Bun + Hono
 

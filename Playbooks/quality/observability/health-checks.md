@@ -40,6 +40,8 @@
 | Readiness checked thousands of times per minute | Results cached for 2–5 s so the check doesn't load the database |
 | Health endpoint behind auth middleware | Mounted before auth, rate limit and logging middleware |
 | Nginx up, app down | The external monitor hits a path that goes through Nginx to the app, so it sees the 502 |
+| 100×: Fifty instances checked every few seconds | Readiness results cached 2–5 s per instance, so checks never load the database |
+| Twice / parallel: A deploy and a health check race | `/ready` flips to 503 before shutdown starts, so the balancer stops sending first |
 
 ## Example — Standard, Bun + Hono
 

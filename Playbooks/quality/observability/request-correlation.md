@@ -39,6 +39,8 @@
 | Event listener runs after the response was sent | Still inside the same async context; carries the request id |
 | Webhook from a provider | Its delivery or event id is logged as `ProviderEventId`, alongside our request id |
 | Retry of a failed job | Same `ParentRequestId`, new attempt number |
+| 100×: Logs at 100× volume | The log store indexes `RequestId`; queries by id stay fast |
+| Twice / parallel: Many concurrent requests in one process | `AsyncLocalStorage` keeps each id separate; no module-level "current request" variable |
 
 ## Example — Standard, Bun + Hono
 

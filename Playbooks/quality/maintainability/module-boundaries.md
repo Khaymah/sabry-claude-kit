@@ -42,6 +42,8 @@
 | Shared type (Money, Pagination) | Lives in `Core/Types`; a type owned by a module stays in that module and is exported from its `index.ts` |
 | A transaction must span two modules | The owning module's service accepts the `Tx`; or redesign with an event plus an outbox at Advanced |
 | A helper used by only one module "might be reused" | Stays inside that module until a second module needs it |
+| 100×: Thirty modules instead of five | The dependency-cruiser rules still enforce direction; an events registry lists every emitter and listener |
+| Twice / parallel: Two listeners of one event change the same rows | Not allowed: each listener writes only its own module's tables, and no listener relies on running before another |
 
 ## Example — Standard, Bun + Hono
 

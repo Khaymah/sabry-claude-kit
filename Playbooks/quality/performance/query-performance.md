@@ -47,6 +47,8 @@
 | Search with `ILIKE '%term%'` | `pg_trgm` GIN index, or full-text search; never a sequential scan per keystroke |
 | ORM lazy relations (TypeORM, Prisma includes in loops, Eloquent) | Eager loading declared on the query (`with`, `include`, `with()` in Laravel) |
 | Data at 100× today's size | The query plan still uses an index (check with `EXPLAIN` on a generated dataset) |
+| 100×: The same list requested 1,000 times a second | The first page is cached or served from a replica; the query count per request stays constant |
+| Twice / parallel: Two requests page through a list while rows are inserted | Keyset pagination keeps pages stable; offset would skip or repeat rows |
 
 ## Example — Standard, Drizzle
 

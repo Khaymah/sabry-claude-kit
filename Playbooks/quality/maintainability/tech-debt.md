@@ -39,6 +39,8 @@
 | A shortcut's trigger is already reached when found | Treat it as a bug in the current task's report |
 | Debt in a dependency (old major version) | Register item with the version, the end-of-life date and the upgrade path |
 | A prototype becomes production | Run `kit-debt` and a `project-audit` before the first real user; Minimum items become Standard |
+| 100×: A register past 50 items | Triage: drop items with no cost, group the rest by module, keep a top five |
+| Twice / parallel: Two people start paying the same item | An item gets an owner before work starts; the owner is in the register |
 
 ## Example
 

@@ -41,6 +41,8 @@
 | Third-party API that doesn't propagate | Our client span still measures it; that is enough |
 | Exporter backend down | Spans dropped in batch, never blocking requests |
 | Very high traffic | Lower the head sample rate; keep errors |
+| 100×: Traffic 100× higher | Head sampling rate lowered; errors still kept |
+| Twice / parallel: Many jobs started by one request run in parallel | Each job is a linked span, so the request trace stays readable |
 
 ## Example — Advanced, Node / Bun
 

@@ -42,6 +42,8 @@
 | External API field names (`amount_cents`) | Keep them in the adapter's provider types; map to our names at the boundary |
 | Arabic business term with no good English word | Pick one English term, record the mapping in the glossary, use it everywhere |
 | Abbreviations | Only universal ones (`Id`, `Url`, `Api`, `Html`); `Qty`, `Amt`, `Usr` are spelled out |
+| 100×: A codebase of 500 files | Names stay findable because folders are by feature and the glossary fixes each term |
+| Twice / parallel: Two branches name the same new concept differently | The glossary is the tie-break; the later branch renames before merge |
 
 ## Example — Standard, Bun + Hono
 

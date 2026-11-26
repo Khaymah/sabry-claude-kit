@@ -46,6 +46,8 @@
 | Expected business outcomes (card declined) | `info` with the reason code, not `error` |
 | A log line would include a whole user or order object | Log ids and the 2–3 fields that matter |
 | Logging inside a hot loop | Aggregate: one line with counts after the loop |
+| 100×: Traffic 100× higher | 2xx access lines sampled, errors and warnings always kept; retention by size and days |
+| Twice / parallel: Concurrent requests write at the same time | Every line carries `RequestId`; no multi-line messages, so lines never interleave into one another |
 
 ## Example — Standard, Bun + Hono
 

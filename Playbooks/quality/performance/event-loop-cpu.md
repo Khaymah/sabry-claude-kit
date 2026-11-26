@@ -45,6 +45,8 @@
 | Generating a 200-page PDF on request | Job + "we'll email it" or a progress endpoint |
 | `Array.prototype.sort` on 1M items in a job | Fine in a job; never in a request handler |
 | Deep recursion on user-provided nested JSON | Depth limit in validation |
+| 100×: Many heavy requests at once (PDFs, images) | Job queue concurrency of cores − 1; requests return a job id immediately |
+| Twice / parallel: The same heavy job requested twice | Deduplicated by a job key (e.g. `Report:<Id>:<Date>`), so the work runs once |
 
 ## Example — Standard, TypeScript
 

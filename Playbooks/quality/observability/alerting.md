@@ -45,6 +45,8 @@
 | Alert channel itself down (bot token expired) | A weekly test alert proves the path |
 | Client wants their own status page | Public status page from the uptime tool, fed by the same checks |
 | Many alerts from one root cause (DB down) | Grouped: the uptime alert pages, dependent alerts are suppressed or batched |
+| 100×: Ten services instead of one | Alerts grouped by user journey and root cause; monthly review deletes alerts nobody acted on |
+| Twice / parallel: Two people act on the same alert | Acknowledge in the channel before acting; the runbook names who owns which alert |
 
 ## Example — Standard
 

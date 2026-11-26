@@ -46,6 +46,8 @@
 | Duplicate keys in the input | Deduplicated before the query (`new Set`), so `ON CONFLICT` doesn't hit the same row twice in one statement (Postgres errors on that) |
 | Empty list | No query at all (`IN ()` is invalid SQL in some drivers) |
 | Setting changed while a request is running | The request keeps the snapshot it started with |
+| 100×: Settings or reference data 100× larger | Still one query at boot; if it no longer fits in memory, it is not reference data and moves to a cached lookup |
+| Twice / parallel: The same import runs twice at once | The upsert on the natural key makes the second run a no-op; a Postgres advisory lock per import type when order matters |
 
 ## Example — Standard, Bun + Drizzle
 
@@ -57,6 +59,7 @@ const CHUNK = 1_000
 export async function UpsertProducts(Rows: TProductInput[]) {
   const Unique = [...new Map(Rows.map((R) => [R.Sku, R])).values()]
   for (let I = 0; I < Unique.length; I += CHUNK) {
+    // eslint-disable-next-line no-await-in-loop -- one bulk statement per chunk
     await db.insert(Products)
       .values(Unique.slice(I, I + CHUNK))
       .onConflictDoUpdate({ target: Products.Sku, set: { Name: sql`excluded."Name"`, PriceMinor: sql`excluded."PriceMinor"` } })

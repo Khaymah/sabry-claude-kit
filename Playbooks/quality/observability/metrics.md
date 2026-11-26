@@ -39,6 +39,8 @@
 | Very fast endpoints dominate the averages | Histograms and percentiles (p95, p99), never averages alone |
 | Long-running streams (SSE) | Duration measured to first byte plus a separate open-connections gauge |
 | Metric names change | Treated like an API: dashboards and alerts updated in the same change |
+| 100×: Request rate 100× higher | Metric cost stays flat because labels are bounded; scrape interval unchanged |
+| Twice / parallel: Several workers update the same counter | Per-worker registries, aggregated at scrape time |
 
 ## Example — Advanced, Bun + Hono
 

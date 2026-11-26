@@ -43,6 +43,8 @@
 | Refactor reveals dead code | Delete it in its own commit after confirming no caller (`grep`, route logs) |
 | Generated code or vendor code | Never hand-refactor; change the generator or wrap it |
 | Refactor grows beyond the plan | Stop, commit the green part, list the rest as debt |
+| 100×: A rename across 300 files | A codemod (`ts-morph`) in one commit, verified by typecheck; no hand edits |
+| Twice / parallel: Feature branches keep landing during a refactor | Small refactor PRs merged quickly; a long one lives behind a flag instead of a long-lived branch |
 
 ## Example — Standard
 
