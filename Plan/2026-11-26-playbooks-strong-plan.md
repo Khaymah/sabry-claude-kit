@@ -42,7 +42,7 @@ Acceptance: every cause from Diagnose and every dev-set failure fixed at the sou
 - [x] Final held-out ($12.94): runs passing every hidden test 2/18 no kit vs 8/18 kit; mean 69% vs 81%; cost +36%. Kit wins b14 (3/3 vs 0/3), x23 (2/3 vs 0/3), m19 (2/3 vs 1/3); ties y28; both fail m20, y33 (all-or-nothing edits). PR commit 9b6cdb6, benchmark2/RESULTS.md
 - [x] Rewrite weak playbooks for the failures seen: money (refunds across payments), migrations (legacy data, backfill through the project's migrations), new batch-edits
 - [x] Run the dev set after each batch (kit arm only) until it beats no-plugin on the dev set (rounds 1-3; final: kit full on all five dev tasks)
-- [ ] Run `evals/playbook-routing` and the skill-trigger evals
+- [x] Run `evals/playbook-routing` and the skill-trigger evals on the branch ($2.39): all pass; moonflower-fires missed once, then 3/3 on rerun (the prompt routes to no playbook, so noise)
 - [x] Check session-start context did not grow: 14,531 chars on the branch vs 14,151 on main (+380, the longer Playbooks rule); playbook excerpts are injected per request only
 
 ## Phase 4: Measure
