@@ -1,30 +1,69 @@
 # Money
 
-- **Situation:** prices, carts, orders, invoices, balances, wallets, discounts, taxes, refunds, payouts, any currency. Not for display formatting only on the frontend (`frontend/i18n-rtl.md`).
-- **Decision:** store and compute money as integers in the currency's minor unit (`bigint`) with an ISO 4217 currency code next to it; round once, at a named step, with a stated rule.
+- **Situation:** prices, carts, orders, invoices, discounts, taxes, refunds, balances, wallets, payouts, any currency. Display formatting only: `frontend/i18n-rtl.md`.
+- **Skip when:** the app never stores an amount (it only links to a hosted checkout whose prices live in the provider, e.g. Stripe Price IDs). Then store the provider's ids and amounts as received.
+- **Decision:** amounts are integers in the currency's minor unit (`bigint`) next to an ISO 4217 code; rounding happens once, at a named step, with a stated rule.
+
+## Levels
+
+| Level | Pick when |
+|---|---|
+| Minimum | One currency, fixed prices, no discounts or tax logic in our code |
+| Standard | Orders with discounts, tax or a payment provider; refunds |
+| Advanced | Stored balances, wallets, payouts, marketplaces, more than one currency |
+
+A project at Minimum that takes real payments uses Standard here.
 
 ## Rules
 
-- Column pair: `AmountMinor bigint NOT NULL` + `Currency text NOT NULL CHECK (char_length("Currency") = 3)`. Never `float`, `real`, `double` or JS `number` arithmetic on decimal amounts.
-- Minor-unit exponent comes from a table, not an assumption: `EGP`/`USD`/`SAR` = 2, `JPY` = 0, `KWD`/`BHD`/`OMR` = 3.
-- Parse user input from a decimal string to minor units once, at the edge. Inside the system only integers move.
-- In TypeScript, use `bigint` when sums can pass 2^53 (≈ 90 trillion minor units); `number` is acceptable only for single item prices validated with `Number.isSafeInteger`.
-- Percentages (tax, discount, commission) are basis points (`1500` = 15%) as integers. Rounding: half-up per line, then sum the lines; write the rule in the code's name (`RoundHalfUp`).
-- Splitting an amount (installments, refunds across items): allocate the remainder to the last parts so the parts sum exactly to the total.
-- An order stores its own computed `SubtotalMinor`, `DiscountMinor`, `TaxMinor`, `TotalMinor` and the price snapshot of each line. Never recompute a past order from today's prices.
-- Never add amounts of different currencies. Conversion uses a stored rate with its date, and the converted row keeps the original amount.
-- Balances: an append-only `LedgerEntries` table (signed amounts); the balance is the sum, or a cached column updated in the same transaction. Never `UPDATE Balance = $new` computed in app code.
-- The payment provider's amount is compared with the order total, in minor units and the same currency, before marking paid.
+### Minimum — always, never cut
 
-## Example — Bun + Hono + Drizzle
+- Column pair `AmountMinor bigint NOT NULL` + `Currency text NOT NULL`. Never `float`, `real`, `double`, or JS `number` arithmetic on decimal amounts.
+- Parse user input from a decimal string to minor units once, at the edge. Inside the system only integers move.
+- An order line stores its own unit price and quantity at purchase time. Never recompute a past order from today's prices.
+- APIs send amounts as strings (`"15050"`), so no JSON client turns them into floats.
+
+### Standard — adds
+
+- Minor-unit exponent from a table, not an assumption: `EGP`/`USD`/`SAR` = 2, `JPY` = 0, `KWD`/`BHD`/`OMR` = 3.
+- Percentages are basis points (`1500` = 15%). One rounding rule (half-up per line, then sum lines), named in the code.
+- The order stores `SubtotalMinor`, `DiscountMinor`, `TaxMinor`, `TotalMinor`, with a `CHECK` that they add up.
+- Splits (installments, partial refunds) allocate the remainder so parts sum exactly to the total.
+- Before marking an order paid, compare the provider's amount and currency with the order total.
+
+### Advanced — adds
+
+- Balances are an append-only `LedgerEntries` table (signed amounts, `ReferenceType` + `ReferenceId`); a cached balance column changes only in the same transaction as its entry, by `SET "Balance" = "Balance" + $1`.
+- Never add different currencies. Conversion stores the rate, its source and date; the converted row keeps the original amount.
+- A daily reconciliation job compares ledger totals with the provider's settlement report and alerts on any difference.
+
+## Edge cases
+
+| Case | Expected behaviour |
+|---|---|
+| Input `"1,000.50"`, `"١٥٠"` (Arabic-Indic digits), `" 150 "` | Normalised at the edge (digits mapped, separators per locale, trimmed); anything else is a 400 |
+| More decimals than the currency allows (`"10.999"` EGP) | 400, never silently rounded |
+| Discount larger than the subtotal | Discount is clamped to the subtotal; total never goes below zero |
+| 100% coupon, total zero | Order is paid without calling the provider (most reject zero) |
+| Tax-inclusive prices (VAT already in the shelf price) | `Tax = Total × Rate ÷ (1 + Rate)`, rounded once; subtotal = total − tax |
+| Partial refund of a line bought with an order-level discount | Refund the line's share of the discount using the same allocation, not the list price |
+| Provider uses major units (some gateways send `"150.50"`) | The provider adapter converts both ways; the core never sees a decimal |
+| Cart in USD, user switches to EGP | The cart is repriced from the catalog in the new currency; amounts are never converted in place |
+| Sum passes 2^53 minor units | `bigint` end to end; `Number()` on an amount is a bug |
+| Negative amounts | Allowed only in ledger entries and refunds, with the sign convention documented on the table |
+
+## Example — Standard, Bun + Hono + Drizzle
 
 ```ts
 export const CURRENCY_EXPONENT: Record<string, number> = { EGP: 2, USD: 2, SAR: 2, AED: 2, EUR: 2, JPY: 0, KWD: 3, BHD: 3, OMR: 3 }
 
-export function ToMinor(Decimal: string, Currency: string): bigint {
+const ARABIC_DIGITS = /[٠-٩]/g
+
+export function ToMinor(Input: string, Currency: string): bigint {
   const Exp = CURRENCY_EXPONENT[Currency]
   if (Exp === undefined) throw new AppError("MONEY_CURRENCY_UNSUPPORTED", 400)
-  const Match = /^(\d+)(?:\.(\d+))?$/.exec(Decimal.trim())
+  const Clean = Input.trim().replace(ARABIC_DIGITS, (D) => String(D.charCodeAt(0) - 0x0660)).replace(/,/g, "")
+  const Match = /^(\d+)(?:\.(\d+))?$/.exec(Clean)
   if (!Match || (Match[2]?.length ?? 0) > Exp) throw new AppError("MONEY_INVALID_AMOUNT", 400)
   return BigInt(Match[1] + (Match[2] ?? "").padEnd(Exp, "0"))
 }
@@ -33,8 +72,8 @@ export const ApplyBasisPoints = (Amount: bigint, Bps: bigint) => (Amount * Bps +
 
 export function Allocate(Total: bigint, Parts: number): bigint[] {
   const Base = Total / BigInt(Parts)
-  const Rest = Total - Base * BigInt(Parts)
-  return Array.from({ length: Parts }, (_, I) => Base + (BigInt(I) >= BigInt(Parts) - Rest ? 1n : 0n))
+  const Rest = Number(Total - Base * BigInt(Parts))
+  return Array.from({ length: Parts }, (_, I) => Base + (I >= Parts - Rest ? 1n : 0n))
 }
 
 export const Orders = pgTable("Orders", {
@@ -44,30 +83,32 @@ export const Orders = pgTable("Orders", {
   DiscountMinor: bigint("DiscountMinor", { mode: "bigint" }).notNull().default(0n),
   TaxMinor: bigint("TaxMinor", { mode: "bigint" }).notNull(),
   TotalMinor: bigint("TotalMinor", { mode: "bigint" }).notNull(),
-}, (T) => [check("OrdersTotalCheck", sql`${T.TotalMinor} = ${T.SubtotalMinor} - ${T.DiscountMinor} + ${T.TaxMinor}`)])
+}, (T) => [
+  check("OrdersTotalCheck", sql`${T.TotalMinor} = ${T.SubtotalMinor} - ${T.DiscountMinor} + ${T.TaxMinor}`),
+  check("OrdersNonNegative", sql`${T.TotalMinor} >= 0 AND ${T.DiscountMinor} <= ${T.SubtotalMinor}`),
+])
 ```
 
-API responses send `{ AmountMinor: "15050", Currency: "EGP" }` with the amount as a string, so JSON clients never parse it as a float; the frontend formats with `Intl.NumberFormat`.
+The `,` removal assumes `.` as the decimal separator; a locale that writes `1.000,50` needs the separator from the user's locale, not a guess.
 
-Other stacks: Postgres `numeric(19,4)` is acceptable when the codebase already uses it, with a decimal library (`decimal.js`, Python `Decimal`, C# `decimal`), never native floats. Stripe and Paymob already take minor units: pass the stored integer as is.
+Other stacks: `numeric(19,4)` is acceptable where the codebase already uses it, with a decimal library (`decimal.js`, Python `Decimal`, C# `decimal`), never native floats. Stripe and Paymob take minor units: pass the stored integer as is.
 
 ## Verify
 
-- [ ] `grep -rn "parseFloat\|toFixed\|Number(.*[Pp]rice" src/` finds nothing on money paths.
-- [ ] No money column of type `real`, `double precision` or `numeric` without scale.
-- [ ] Test: three items at 0.10 + 0.20 sum to exactly 0.30 in minor units.
-- [ ] Test: 100.00 split in 3 gives 33.33 + 33.33 + 33.34.
-- [ ] Test: 15% tax on 9.99 rounds per the stated rule (1.50).
-- [ ] Changing a product price leaves existing order totals unchanged.
-- [ ] A webhook with a different amount or currency than the order does not mark it paid.
+- [ ] `[M]` `grep -rnE "parseFloat|toFixed|Number\(.*(Price|Amount|Total)" src/` finds nothing on money paths.
+- [ ] `[M]` No money column of type `real`, `double precision` or unscaled `numeric`.
+- [ ] `[M]` Changing a product price leaves existing order totals unchanged.
+- [ ] `[S]` 0.10 + 0.20 sums to exactly 30 minor units; 100.00 split in 3 is 33.33 + 33.33 + 33.34.
+- [ ] `[S]` 15% on 9.99 is 1.50 under the stated rule; `"10.999"` EGP is rejected; `"١٥٠"` parses to 15000.
+- [ ] `[S]` A webhook whose amount or currency differs from the order does not mark it paid.
+- [ ] `[A]` Sum of `LedgerEntries` per account equals the cached balance after a concurrent test of 100 credits and debits.
 
 ## Pitfalls
 
-- **`0.1 + 0.2` in JS** → 0.30000000000000004 → integers in minor units.
-- **Rounding each step differently (line vs total)** → invoice totals disagree by one cent with the provider → one rounding rule, one place.
+- **`0.1 + 0.2` in JS** → `0.30000000000000004` → integers in minor units.
+- **Rounding at different steps (line vs total)** → invoice off by one cent from the provider → one rule, one place.
 - **Assuming two decimals** → KWD amounts off by a factor of ten → the exponent table.
-- **Balance overwritten from app code** → lost updates under concurrency → ledger entries or an atomic `SET "Balance" = "Balance" + $1`.
-- **Amount as JSON number above 2^53** → silent precision loss in clients → string in the API.
+- **Balance overwritten from app code** → lost updates under concurrency → ledger or atomic increment.
 
 ## Related
 

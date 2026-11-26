@@ -44,6 +44,7 @@ Acceptance: skill for non-programmers built on the playbooks (planned after Meas
 - Language: English files; INDEX may carry Arabic keywords for routing.
 - Examples: rule is stack-agnostic, full example in Bun + Hono + Drizzle, one line per other stack when it differs.
 - Scope v1: Backend · Frontend · Security + DevOps. Mobile + AI later.
+- Format v2 (owner feedback): Levels (Minimum/Standard/Advanced, project level recorded in .agents/memory) + "Skip when" + Edge cases table, separate from Pitfalls.
 - Content rule: only opinionated decisions, mistakes models actually make, and verify checklists. Nothing the model already knows.
 - Loading: never injected. Agent reads Playbooks/INDEX.md → domain INDEX → 1-3 files.
 - Patterns/ and Anti-patterns/ stay for now; merge decided after Measure.
