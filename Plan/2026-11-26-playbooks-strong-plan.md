@@ -21,6 +21,7 @@ Acceptance: 20+ hard tasks on Bun + Hono + Drizzle + Postgres (PGlite), written 
 - [x] Validate each hidden test against a broken and a correct reference before use
 - [x] Split: 8 dev tasks (used while fixing) and 12+ held-out tasks (sealed until Phase 4)
 - [ ] Pilot: no-plugin, 2 runs per task; drop or harden tasks it passes above 80%
+- [ ] Copy /home/user/bench2 (without node_modules, with a script that rebuilds them) into the PR branch as `benchmark2/`, since the container is ephemeral
 
 ## Phase 3: Fix the playbooks
 Acceptance: every cause from Diagnose and every dev-set failure fixed at the source; routing eval green; no growth in session-start context
