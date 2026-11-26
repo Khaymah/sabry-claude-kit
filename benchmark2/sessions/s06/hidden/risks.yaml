@@ -1,0 +1,5 @@
+r01: "concurrency (double tap on open); payments must be tied to the shift"
+r02: "money and concurrency (drawer below zero)"
+r03: "none"
+r04: "tenant isolation and roles"
+r05: "legacy data (cash taken before shifts existed)"

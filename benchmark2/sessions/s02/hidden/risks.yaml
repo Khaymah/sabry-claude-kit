@@ -1,0 +1,5 @@
+r01: "all-or-nothing multi-line receipt"
+r02: "keep earlier behaviour after partial receipts"
+r03: "tenant isolation (fix with a wrong guess)"
+r04: "none"
+r05: "query budget at volume, legacy data"

@@ -1,0 +1,14 @@
+name: s05
+description: "Pricing day: bulk price list, percent increase, price history, low stock, price change report"
+requests:
+  - id: r01
+    prompt: requests/r01.md
+  - id: r02
+    prompt: requests/r02.md
+  - id: r03
+    prompt: requests/r03.md
+  - id: r04
+    prompt: requests/r04.md
+  - id: r05
+    prompt: requests/r05.md
+compact_after: [2, 4]
