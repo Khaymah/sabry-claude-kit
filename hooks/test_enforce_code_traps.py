@@ -118,6 +118,9 @@ class WarnTier(unittest.TestCase):
                    "  await db.insert(Products).values(Rows.slice(I, I + CHUNK))\n}\n")
         keyset = ("while (true) {\n  const Batch = await db.select({ Id: Orders.Id }).from(Orders)"
                   ".where(gt(Orders.Id, Last)).limit(1000)\n  if (!Batch.length) break\n}\n")
+        raw_sql = ("while (true) {\n  const Rows = await db.execute(sql`UPDATE \"Users\" SET \"A\" = 1 WHERE \"Id\" IN "
+                   "(SELECT \"Id\" FROM \"Users\" WHERE \"A\" IS NULL LIMIT 2000) RETURNING \"Id\"`)\n  if (!Rows.length) break\n}\n")
+        self.assertIsNone(run(w(raw_sql), warn=True))
         self.assertIsNone(run(w(chunked), warn=True))
         self.assertIsNone(run(w(keyset), warn=True))
 

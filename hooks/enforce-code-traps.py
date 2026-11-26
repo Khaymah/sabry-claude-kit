@@ -184,7 +184,7 @@ def warn_findings(src, path):
     spans = _bodies(src)
     for a, b, kind, header in spans:
         body = src[a:b]
-        if kind == "loop" and (BATCH_LOOP.search(header) or ".limit(" in body):
+        if kind == "loop" and (BATCH_LOOP.search(header) or re.search(r"\.limit\s*\(|\bLIMIT\s+\$?\{?\w", body)):
             continue
         if kind in ("reduce", "some", "every") or not DB_CALL.search(body):
             continue

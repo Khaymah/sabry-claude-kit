@@ -29,11 +29,11 @@ Read first for any schema or query work: `Stacks/Database.md`. Default stack con
 | Situation | File | Status |
 |---|---|---|
 | Prices, balances, invoices, discounts, currency | `data/money.md` | ✅ |
-| Schema change on a live database | `data/migrations.md` | planned |
-| Delete, archive, restore, "trash" | `data/soft-delete.md` | planned |
-| Several companies or stores in one app (SaaS) | `data/multi-tenancy.md` | planned |
-| Stock, seats, coupons, anything two users can grab at once | `data/concurrency.md` | planned |
-| Who changed what, history, audit log | `data/audit-log.md` | planned |
+| Schema change on a live database | `data/migrations.md` | ✅ |
+| Delete, archive, restore, "trash" | `data/soft-delete.md` | ✅ |
+| Several companies or stores in one app (SaaS) | `data/multi-tenancy.md` | ✅ |
+| Stock, seats, coupons, anything two users can grab at once | `data/concurrency.md` | ✅ |
+| Who changed what, history, audit log | `data/audit-log.md` | ✅ |
 
 ## Reliability
 
