@@ -38,7 +38,8 @@ Acceptance: every cause from Diagnose and every dev-set failure fixed at the sou
 - [x] Dev round 2 ($4.47): b09 5/5,5/5 · m17 5/5,5/5 (fixed) · y31 4/4,4/4 · y35 3/4,3/4 (query budget 7-8 vs 4) · y26 2/5,2/5
 - [x] Benchmark flaw: y26 hidden tests query "Refunds"."PaymentId" (the reference design); a valid allocations-table design fails in every arm. Author audits all 35 hidden tests for design coupling, adds an alternative correct solution per changed case, and checks y35's budget is fair
 - [x] Audit done: six cases decoupled (y26, b09, x21, y35, b14, f06), each with an alternative correct solution in reference/alt; y35 budget 5 and its stale-report suggestion replaced
-- [ ] Re-pilot y26, b09, y35, b14 without the kit, then dev round 3 with the kit on y26, b09, y35 (bench2/repilot, bench2/kit-dev3)
+- [x] Re-pilot after the audit ($2.13, no kit): b09 5/5,5/5 · y26 5/5,5/5 · y35 4/4,4/4 · b14 2/4,4/4. Dev round 3 ($2.53, kit): b09, y26, y35 all full. The earlier failures on b09, y26, y35 were benchmark coupling, not the model. Dev tasks that still separate: m17, y31 (legacy data), both fixed by the kit
+- [ ] Final: held-out m19, m20, x23, b14, y28, y33; no kit and kit, 3 runs each (bench2/final-nokit, bench2/final-kit)
 - [ ] Rewrite weak playbooks to put the deciding rule first and give a worked fix for the failure seen
 - [ ] Run the dev set after each batch (kit arm only) until it beats no-plugin on the dev set
 - [ ] Run `evals/playbook-routing` and the skill-trigger evals
