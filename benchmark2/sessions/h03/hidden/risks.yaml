@@ -1,0 +1,8 @@
+r01: "legacy rows land in the main branch; branch scoping on every orders/expenses endpoint; staff forcing another BranchId; foreign/huge BranchId -> 400/404 not 500"
+r02: "privilege escalation: manager hands out Admin/Owner/BranchManager or another branch; manager deactivating outside their branch or company-wide users"
+r03: "stale session context (starting code caches auth for 30s) after a transfer; transfer race keeps history chained; foreign/huge ids"
+r04: "cached session survives deactivation; reactivation must not revive old sessions; manager scope on Activate"
+r05: "memory: report must be branch-scoped for managers though the prompt does not repeat the rule; legacy rows; cancelled and out-of-range rows; inclusive To; invalid calendar date -> 400"
+r06: "memory: managers see only their branch's log; failed/refused/concurrent actions not logged; tenant isolation; bad filters -> 400"
+r07: "memory: the new Cashier role and the new Pay endpoint are branch-scoped; double-click pay charges once; cashier cannot add users or reach another branch"
+r08: "interaction: closed branch refused by r01/r02/r03 endpoints; moved users' sessions switch branch; transfers history and report keep working; close vs transfer race"

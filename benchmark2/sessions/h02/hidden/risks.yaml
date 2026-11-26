@@ -1,0 +1,8 @@
+r01: "concurrency (double click on subscribe → one Active); tenant isolation of customer and plan ids; huge ids and big prices never 500"
+r02: "owner's money rule stated here (integer piasters, floor, leftover on LAST invoice); catch-up of missed months; parallel Billing/Run issues nothing twice"
+r03: "concurrency (double click on pay → one payment); tenant isolation; huge ids"
+r04: "money rule recalled after 1 compaction (payable floored, integer math: 43% of 10000 = 5700 not 5699); coupon MaxRedemptions under parallel use; per-company codes"
+r05: "money rule recalled after 2 compactions (proration floored and in integer piasters, 4666 not 4667 / \"46.67\"); next period at new price; foreign plan → 404"
+r06: "refunds never exceed what was paid across partial and parallel refunds; limit is the discounted/proration amount (interaction with r04, r05); bad amounts → 400"
+r07: "money rule recalled after 3 compactions (leftover on the LAST part: [3333,3333,3334], [1666,1667]); Billing/Run must not re-issue the voided period (interaction with r02)"
+r08: "report = payments minus refunds, Cairo day boundaries, payment time from Now() not SQL now(); depends on r03 double-pay being one payment; tenant isolation"

@@ -5,7 +5,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import run_session as rs
 OUT = sys.argv[1]
 ARMS = json.loads(sys.argv[2])
-SESSIONS = sorted(d for d in os.listdir(rs.SESSIONS) if d.startswith("s"))
+SESSIONS = sorted(d for d in os.listdir(rs.SESSIONS) if d.startswith(os.environ.get("SESSION_PREFIX", "s")))
 JOBS = []
 for arm in ARMS:
     for run in range(arm["runs"]):
@@ -30,7 +30,7 @@ def one(job):
         data = {"error": p.stderr[-2000:]}
     data.update({"arm": name, "model": model, "run": run})
     json.dump(data, open(res, "w"), ensure_ascii=False, indent=1)
-    shutil.rmtree(ws, ignore_errors=True)
+    if not os.environ.get("KEEP_WS"): shutil.rmtree(ws, ignore_errors=True)
 moved = rs.seal()
 try:
     with ThreadPoolExecutor(max_workers=int(os.environ.get("PAR", "6"))) as pool:
