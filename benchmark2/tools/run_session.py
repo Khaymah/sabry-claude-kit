@@ -150,6 +150,7 @@ def main():
     p.add_argument("--model", default="sonnet")
     p.add_argument("--max-budget-usd", type=float)
     p.add_argument("--request-timeout", type=int, default=1500)
+    p.add_argument("--no-seal", action="store_true", help="the caller already sealed the references")
     args = p.parse_args()
     name = os.path.basename(os.path.normpath(args.session))
     session_dir = os.path.join(SESSIONS, name)
@@ -160,7 +161,7 @@ def main():
     shutil.rmtree(stream_dir, ignore_errors=True)
     os.makedirs(stream_dir)
     spec = load_yaml(os.path.join(session_dir, "session.yaml"))
-    moved = seal()
+    moved = [] if args.no_seal else seal()
     summary = {"session": name, "requests": {}, "cost_usd": 0.0, "compactions": 0, "compactions_requested": len(spec["compact_after"]), "turns": []}
     spent = {"total": 0.0}
 
@@ -187,7 +188,8 @@ def main():
         summary["requests"] = check(hidden, workspace)
         summary["session_id"] = session_id
     finally:
-        unseal(moved)
+        if not args.no_seal:
+            unseal(moved)
     leaks = scan_leaks(stream_dir)
     summary["leak"] = bool(leaks)
     summary["leaks"] = leaks[:20]
