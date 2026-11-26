@@ -1,0 +1,852 @@
+{
+  "old": {
+    "Context": {
+      "SessionStartChars": 13190,
+      "PerMessageChars": 215,
+      "SubagentStartChars": 2850
+    },
+    "Knowledge": {
+      "GuidanceFiles": 42,
+      "GuidanceLines": 5450,
+      "Playbooks": 0,
+      "EdgeCaseRows": 0,
+      "VerifyChecks": 0,
+      "TrapRows": 0,
+      "TopicsMentioned": 42,
+      "TopicsWithDedicatedPlaybook": 0,
+      "TopicsTotal": 49,
+      "Topics": {
+        "Password reset": {
+          "Mentioned": true,
+          "Dedicated": false
+        },
+        "Sessions / refresh tokens": {
+          "Mentioned": true,
+          "Dedicated": false
+        },
+        "Roles / permissions / IDOR": {
+          "Mentioned": true,
+          "Dedicated": false
+        },
+        "OAuth (Google/Apple)": {
+          "Mentioned": true,
+          "Dedicated": false
+        },
+        "API keys": {
+          "Mentioned": true,
+          "Dedicated": false
+        },
+        "OTP / 2FA": {
+          "Mentioned": true,
+          "Dedicated": false
+        },
+        "Money as minor units": {
+          "Mentioned": true,
+          "Dedicated": false
+        },
+        "Race conditions / stock": {
+          "Mentioned": true,
+          "Dedicated": false
+        },
+        "Live migrations": {
+          "Mentioned": true,
+          "Dedicated": false
+        },
+        "Soft delete": {
+          "Mentioned": true,
+          "Dedicated": false
+        },
+        "Multi-tenancy / RLS": {
+          "Mentioned": true,
+          "Dedicated": false
+        },
+        "Audit log": {
+          "Mentioned": true,
+          "Dedicated": false
+        },
+        "Idempotency / webhooks": {
+          "Mentioned": true,
+          "Dedicated": false
+        },
+        "Background jobs": {
+          "Mentioned": true,
+          "Dedicated": false
+        },
+        "Third-party integrations": {
+          "Mentioned": true,
+          "Dedicated": false
+        },
+        "Rate limiting": {
+          "Mentioned": true,
+          "Dedicated": false
+        },
+        "Caching": {
+          "Mentioned": true,
+          "Dedicated": false
+        },
+        "Uploads": {
+          "Mentioned": true,
+          "Dedicated": false
+        },
+        "Import / export (CSV, Excel)": {
+          "Mentioned": true,
+          "Dedicated": false
+        },
+        "REST design": {
+          "Mentioned": true,
+          "Dedicated": false
+        },
+        "Pagination": {
+          "Mentioned": true,
+          "Dedicated": false
+        },
+        "Error format": {
+          "Mentioned": false,
+          "Dedicated": false
+        },
+        "API versioning": {
+          "Mentioned": true,
+          "Dedicated": false
+        },
+        "N+1 queries": {
+          "Mentioned": true,
+          "Dedicated": false
+        },
+        "Batching / round trips": {
+          "Mentioned": true,
+          "Dedicated": false
+        },
+        "Memory bounds": {
+          "Mentioned": true,
+          "Dedicated": false
+        },
+        "Event loop / CPU": {
+          "Mentioned": true,
+          "Dedicated": false
+        },
+        "Logging": {
+          "Mentioned": true,
+          "Dedicated": false
+        },
+        "Request correlation": {
+          "Mentioned": true,
+          "Dedicated": false
+        },
+        "Error tracking": {
+          "Mentioned": false,
+          "Dedicated": false
+        },
+        "Metrics": {
+          "Mentioned": true,
+          "Dedicated": false
+        },
+        "Health checks": {
+          "Mentioned": true,
+          "Dedicated": false
+        },
+        "Alerting / SLOs": {
+          "Mentioned": true,
+          "Dedicated": false
+        },
+        "Tracing": {
+          "Mentioned": true,
+          "Dedicated": false
+        },
+        "Error handling": {
+          "Mentioned": true,
+          "Dedicated": false
+        },
+        "Graceful shutdown": {
+          "Mentioned": false,
+          "Dedicated": false
+        },
+        "Timeouts / retries": {
+          "Mentioned": true,
+          "Dedicated": false
+        },
+        "Backpressure / load shedding": {
+          "Mentioned": true,
+          "Dedicated": false
+        },
+        "Test strategy": {
+          "Mentioned": true,
+          "Dedicated": false
+        },
+        "Integration tests on a real DB": {
+          "Mentioned": false,
+          "Dedicated": false
+        },
+        "E2E tests": {
+          "Mentioned": false,
+          "Dedicated": false
+        },
+        "Concurrency tests": {
+          "Mentioned": false,
+          "Dedicated": false
+        },
+        "Test data / factories": {
+          "Mentioned": false,
+          "Dedicated": false
+        },
+        "SOLID (pragmatic)": {
+          "Mentioned": true,
+          "Dedicated": false
+        },
+        "Module boundaries": {
+          "Mentioned": true,
+          "Dedicated": false
+        },
+        "Naming": {
+          "Mentioned": true,
+          "Dedicated": false
+        },
+        "Complexity limits": {
+          "Mentioned": true,
+          "Dedicated": false
+        },
+        "Refactoring": {
+          "Mentioned": true,
+          "Dedicated": false
+        },
+        "Tech debt": {
+          "Mentioned": true,
+          "Dedicated": false
+        }
+      }
+    },
+    "Enforcement": {
+      "WriteHooks": 5,
+      "TrapsCaught": 0,
+      "TrapsBlocked": 0,
+      "TrapsTotal": 22,
+      "FalsePositives": 0,
+      "CleanTotal": 20,
+      "LatencyMsMedian": 186.8,
+      "Traps": [
+        {
+          "Name": "update without where",
+          "Category": "Data",
+          "Verdict": null
+        },
+        {
+          "Name": "delete without where",
+          "Category": "Data",
+          "Verdict": null
+        },
+        {
+          "Name": "forEach(async)",
+          "Category": "Async",
+          "Verdict": null
+        },
+        {
+          "Name": "sync hashing on a request path",
+          "Category": "CPU",
+          "Verdict": null
+        },
+        {
+          "Name": "execSync on a request path",
+          "Category": "CPU",
+          "Verdict": null
+        },
+        {
+          "Name": "query in a for loop (N+1)",
+          "Category": "Round trips",
+          "Verdict": null
+        },
+        {
+          "Name": "query in a map callback (N+1)",
+          "Category": "Round trips",
+          "Verdict": null
+        },
+        {
+          "Name": "insert per row in a loop",
+          "Category": "Round trips",
+          "Verdict": null
+        },
+        {
+          "Name": "Promise.all over queries",
+          "Category": "Round trips",
+          "Verdict": null
+        },
+        {
+          "Name": "nested scan O(n*m)",
+          "Category": "CPU",
+          "Verdict": null
+        },
+        {
+          "Name": "fetch without timeout",
+          "Category": "Reliability",
+          "Verdict": null
+        },
+        {
+          "Name": "unbounded z.array",
+          "Category": "Input bounds",
+          "Verdict": null
+        },
+        {
+          "Name": "select every column",
+          "Category": "Round trips",
+          "Verdict": null
+        },
+        {
+          "Name": "float money",
+          "Category": "Money",
+          "Verdict": null
+        },
+        {
+          "Name": "toFixed on money",
+          "Category": "Money",
+          "Verdict": null
+        },
+        {
+          "Name": "empty catch",
+          "Category": "Errors",
+          "Verdict": null
+        },
+        {
+          "Name": "console in server code",
+          "Category": "Observability",
+          "Verdict": null
+        },
+        {
+          "Name": "readFileSync on a request path",
+          "Category": "CPU",
+          "Verdict": null
+        },
+        {
+          "Name": "read-check-write on stock (needs semantics)",
+          "Category": "Concurrency",
+          "Verdict": null
+        },
+        {
+          "Name": "IDOR: load by id only (needs semantics)",
+          "Category": "Security",
+          "Verdict": null
+        },
+        {
+          "Name": "JWT in localStorage (needs semantics)",
+          "Category": "Security",
+          "Verdict": null
+        },
+        {
+          "Name": "SQL built by string (needs semantics)",
+          "Category": "Security",
+          "Verdict": null
+        }
+      ],
+      "Clean": [
+        {
+          "Name": "update with where",
+          "Verdict": null
+        },
+        {
+          "Name": "chunked bulk insert",
+          "Verdict": null
+        },
+        {
+          "Name": "keyset batch loop",
+          "Verdict": null
+        },
+        {
+          "Name": "Map lookup",
+          "Verdict": null
+        },
+        {
+          "Name": "small literal includes",
+          "Verdict": null
+        },
+        {
+          "Name": "constant list includes",
+          "Verdict": null
+        },
+        {
+          "Name": "fetch with timeout",
+          "Verdict": null
+        },
+        {
+          "Name": "bounded z.array",
+          "Verdict": null
+        },
+        {
+          "Name": "select named columns",
+          "Verdict": null
+        },
+        {
+          "Name": "minor units",
+          "Verdict": null
+        },
+        {
+          "Name": "handled catch",
+          "Verdict": null
+        },
+        {
+          "Name": "structured log",
+          "Verdict": null
+        },
+        {
+          "Name": "async password hash",
+          "Verdict": null
+        },
+        {
+          "Name": "async file read",
+          "Verdict": null
+        },
+        {
+          "Name": "bounded Promise.all",
+          "Verdict": null
+        },
+        {
+          "Name": "destructured Promise.all on a fixed pair",
+          "Verdict": null
+        },
+        {
+          "Name": "select inside exists",
+          "Verdict": null
+        },
+        {
+          "Name": "atomic stock decrement",
+          "Verdict": null
+        },
+        {
+          "Name": "owner-scoped lookup",
+          "Verdict": null
+        },
+        {
+          "Name": "delete with where",
+          "Verdict": null
+        }
+      ]
+    },
+    "OnDemandChars": {
+      "Design a password reset": 24827,
+      "Fix an N+1 admin page": 28889,
+      "Review a diff": 16773
+    },
+    "Commit": "c21f85b"
+  },
+  "new": {
+    "Context": {
+      "SessionStartChars": 13448,
+      "PerMessageChars": 215,
+      "SubagentStartChars": 2872
+    },
+    "Knowledge": {
+      "GuidanceFiles": 99,
+      "GuidanceLines": 10553,
+      "Playbooks": 49,
+      "EdgeCaseRows": 360,
+      "VerifyChecks": 260,
+      "TrapRows": 46,
+      "TopicsMentioned": 49,
+      "TopicsWithDedicatedPlaybook": 49,
+      "TopicsTotal": 49,
+      "Topics": {
+        "Password reset": {
+          "Mentioned": true,
+          "Dedicated": true
+        },
+        "Sessions / refresh tokens": {
+          "Mentioned": true,
+          "Dedicated": true
+        },
+        "Roles / permissions / IDOR": {
+          "Mentioned": true,
+          "Dedicated": true
+        },
+        "OAuth (Google/Apple)": {
+          "Mentioned": true,
+          "Dedicated": true
+        },
+        "API keys": {
+          "Mentioned": true,
+          "Dedicated": true
+        },
+        "OTP / 2FA": {
+          "Mentioned": true,
+          "Dedicated": true
+        },
+        "Money as minor units": {
+          "Mentioned": true,
+          "Dedicated": true
+        },
+        "Race conditions / stock": {
+          "Mentioned": true,
+          "Dedicated": true
+        },
+        "Live migrations": {
+          "Mentioned": true,
+          "Dedicated": true
+        },
+        "Soft delete": {
+          "Mentioned": true,
+          "Dedicated": true
+        },
+        "Multi-tenancy / RLS": {
+          "Mentioned": true,
+          "Dedicated": true
+        },
+        "Audit log": {
+          "Mentioned": true,
+          "Dedicated": true
+        },
+        "Idempotency / webhooks": {
+          "Mentioned": true,
+          "Dedicated": true
+        },
+        "Background jobs": {
+          "Mentioned": true,
+          "Dedicated": true
+        },
+        "Third-party integrations": {
+          "Mentioned": true,
+          "Dedicated": true
+        },
+        "Rate limiting": {
+          "Mentioned": true,
+          "Dedicated": true
+        },
+        "Caching": {
+          "Mentioned": true,
+          "Dedicated": true
+        },
+        "Uploads": {
+          "Mentioned": true,
+          "Dedicated": true
+        },
+        "Import / export (CSV, Excel)": {
+          "Mentioned": true,
+          "Dedicated": true
+        },
+        "REST design": {
+          "Mentioned": true,
+          "Dedicated": true
+        },
+        "Pagination": {
+          "Mentioned": true,
+          "Dedicated": true
+        },
+        "Error format": {
+          "Mentioned": true,
+          "Dedicated": true
+        },
+        "API versioning": {
+          "Mentioned": true,
+          "Dedicated": true
+        },
+        "N+1 queries": {
+          "Mentioned": true,
+          "Dedicated": true
+        },
+        "Batching / round trips": {
+          "Mentioned": true,
+          "Dedicated": true
+        },
+        "Memory bounds": {
+          "Mentioned": true,
+          "Dedicated": true
+        },
+        "Event loop / CPU": {
+          "Mentioned": true,
+          "Dedicated": true
+        },
+        "Logging": {
+          "Mentioned": true,
+          "Dedicated": true
+        },
+        "Request correlation": {
+          "Mentioned": true,
+          "Dedicated": true
+        },
+        "Error tracking": {
+          "Mentioned": true,
+          "Dedicated": true
+        },
+        "Metrics": {
+          "Mentioned": true,
+          "Dedicated": true
+        },
+        "Health checks": {
+          "Mentioned": true,
+          "Dedicated": true
+        },
+        "Alerting / SLOs": {
+          "Mentioned": true,
+          "Dedicated": true
+        },
+        "Tracing": {
+          "Mentioned": true,
+          "Dedicated": true
+        },
+        "Error handling": {
+          "Mentioned": true,
+          "Dedicated": true
+        },
+        "Graceful shutdown": {
+          "Mentioned": true,
+          "Dedicated": true
+        },
+        "Timeouts / retries": {
+          "Mentioned": true,
+          "Dedicated": true
+        },
+        "Backpressure / load shedding": {
+          "Mentioned": true,
+          "Dedicated": true
+        },
+        "Test strategy": {
+          "Mentioned": true,
+          "Dedicated": true
+        },
+        "Integration tests on a real DB": {
+          "Mentioned": true,
+          "Dedicated": true
+        },
+        "E2E tests": {
+          "Mentioned": true,
+          "Dedicated": true
+        },
+        "Concurrency tests": {
+          "Mentioned": true,
+          "Dedicated": true
+        },
+        "Test data / factories": {
+          "Mentioned": true,
+          "Dedicated": true
+        },
+        "SOLID (pragmatic)": {
+          "Mentioned": true,
+          "Dedicated": true
+        },
+        "Module boundaries": {
+          "Mentioned": true,
+          "Dedicated": true
+        },
+        "Naming": {
+          "Mentioned": true,
+          "Dedicated": true
+        },
+        "Complexity limits": {
+          "Mentioned": true,
+          "Dedicated": true
+        },
+        "Refactoring": {
+          "Mentioned": true,
+          "Dedicated": true
+        },
+        "Tech debt": {
+          "Mentioned": true,
+          "Dedicated": true
+        }
+      }
+    },
+    "Enforcement": {
+      "WriteHooks": 7,
+      "TrapsCaught": 18,
+      "TrapsBlocked": 5,
+      "TrapsTotal": 22,
+      "FalsePositives": 0,
+      "CleanTotal": 20,
+      "LatencyMsMedian": 265.7,
+      "Traps": [
+        {
+          "Name": "update without where",
+          "Category": "Data",
+          "Verdict": "deny"
+        },
+        {
+          "Name": "delete without where",
+          "Category": "Data",
+          "Verdict": "deny"
+        },
+        {
+          "Name": "forEach(async)",
+          "Category": "Async",
+          "Verdict": "deny"
+        },
+        {
+          "Name": "sync hashing on a request path",
+          "Category": "CPU",
+          "Verdict": "deny"
+        },
+        {
+          "Name": "execSync on a request path",
+          "Category": "CPU",
+          "Verdict": "deny"
+        },
+        {
+          "Name": "query in a for loop (N+1)",
+          "Category": "Round trips",
+          "Verdict": "warn"
+        },
+        {
+          "Name": "query in a map callback (N+1)",
+          "Category": "Round trips",
+          "Verdict": "warn"
+        },
+        {
+          "Name": "insert per row in a loop",
+          "Category": "Round trips",
+          "Verdict": "warn"
+        },
+        {
+          "Name": "Promise.all over queries",
+          "Category": "Round trips",
+          "Verdict": "warn"
+        },
+        {
+          "Name": "nested scan O(n*m)",
+          "Category": "CPU",
+          "Verdict": "warn"
+        },
+        {
+          "Name": "fetch without timeout",
+          "Category": "Reliability",
+          "Verdict": "warn"
+        },
+        {
+          "Name": "unbounded z.array",
+          "Category": "Input bounds",
+          "Verdict": "warn"
+        },
+        {
+          "Name": "select every column",
+          "Category": "Round trips",
+          "Verdict": "warn"
+        },
+        {
+          "Name": "float money",
+          "Category": "Money",
+          "Verdict": "warn"
+        },
+        {
+          "Name": "toFixed on money",
+          "Category": "Money",
+          "Verdict": "warn"
+        },
+        {
+          "Name": "empty catch",
+          "Category": "Errors",
+          "Verdict": "warn"
+        },
+        {
+          "Name": "console in server code",
+          "Category": "Observability",
+          "Verdict": "warn"
+        },
+        {
+          "Name": "readFileSync on a request path",
+          "Category": "CPU",
+          "Verdict": "warn"
+        },
+        {
+          "Name": "read-check-write on stock (needs semantics)",
+          "Category": "Concurrency",
+          "Verdict": null
+        },
+        {
+          "Name": "IDOR: load by id only (needs semantics)",
+          "Category": "Security",
+          "Verdict": null
+        },
+        {
+          "Name": "JWT in localStorage (needs semantics)",
+          "Category": "Security",
+          "Verdict": null
+        },
+        {
+          "Name": "SQL built by string (needs semantics)",
+          "Category": "Security",
+          "Verdict": null
+        }
+      ],
+      "Clean": [
+        {
+          "Name": "update with where",
+          "Verdict": null
+        },
+        {
+          "Name": "chunked bulk insert",
+          "Verdict": null
+        },
+        {
+          "Name": "keyset batch loop",
+          "Verdict": null
+        },
+        {
+          "Name": "Map lookup",
+          "Verdict": null
+        },
+        {
+          "Name": "small literal includes",
+          "Verdict": null
+        },
+        {
+          "Name": "constant list includes",
+          "Verdict": null
+        },
+        {
+          "Name": "fetch with timeout",
+          "Verdict": null
+        },
+        {
+          "Name": "bounded z.array",
+          "Verdict": null
+        },
+        {
+          "Name": "select named columns",
+          "Verdict": null
+        },
+        {
+          "Name": "minor units",
+          "Verdict": null
+        },
+        {
+          "Name": "handled catch",
+          "Verdict": null
+        },
+        {
+          "Name": "structured log",
+          "Verdict": null
+        },
+        {
+          "Name": "async password hash",
+          "Verdict": null
+        },
+        {
+          "Name": "async file read",
+          "Verdict": null
+        },
+        {
+          "Name": "bounded Promise.all",
+          "Verdict": null
+        },
+        {
+          "Name": "destructured Promise.all on a fixed pair",
+          "Verdict": null
+        },
+        {
+          "Name": "select inside exists",
+          "Verdict": null
+        },
+        {
+          "Name": "atomic stock decrement",
+          "Verdict": null
+        },
+        {
+          "Name": "owner-scoped lookup",
+          "Verdict": null
+        },
+        {
+          "Name": "delete with where",
+          "Verdict": null
+        }
+      ]
+    },
+    "OnDemandChars": {
+      "Design a password reset": 19459,
+      "Fix an N+1 admin page": 26794,
+      "Review a diff": 29429
+    },
+    "Commit": "1a55d21"
+  }
+}
