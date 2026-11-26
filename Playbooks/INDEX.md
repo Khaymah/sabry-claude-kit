@@ -4,7 +4,7 @@ Three axes: **situations** (backend, frontend, security, devops: "I am building 
 
 ## How to use
 
-1. Writing or reviewing code: read `quality/BASELINE.md` (one file, all qualities, per level).
+1. Writing or reviewing code: read `quality/BASELINE.md` (one file, all qualities, per level); before calling it done, run the Detect column of `quality/TRAPS.md` on what you touched.
 2. Find the domain below from the task (keywords are matched in English or Arabic).
 3. Read that domain's `INDEX.md` and pick **1–3 files** whose "Situation" matches the task. Check each file's "Skip when" first.
 4. **Pick the project's level** (below) and apply that level's rules plus every level under it. Never apply a higher level "to be safe": that is the over-engineering this step exists to stop.

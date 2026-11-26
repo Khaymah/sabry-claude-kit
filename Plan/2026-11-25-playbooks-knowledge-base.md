@@ -26,6 +26,10 @@ Acceptance: quality/BASELINE.md + INDEX for quality, architecture, practices; Ma
 - [x] quality/, architecture/, practices/ INDEX files
 - [x] Maintainability: solid-pragmatic · module-boundaries · naming-structure · complexity-limits · refactoring · tech-debt
 - [x] Observability: logging · request-correlation · error-tracking · metrics · health-checks · alerting · tracing
+- [x] Performance: query-performance · round-trips · memory · event-loop-cpu
+- [x] quality/TRAPS.md: mechanical trap catalog (Detect column), run by code-reviewer and senior-engineer
+- [x] Template: two required edge-case rows (100× data, same action twice / in parallel)
+- [ ] Backfill the two required rows into the 19 files written before the rule
 - [ ] Testability: test-strategy · integration-db · e2e · concurrency-tests · test-data
 - [ ] Reliability: error-handling · graceful-shutdown · timeouts-retries · backpressure
 - [x] Quality-Gate.md: one line per axis pointing to quality/<axis>/

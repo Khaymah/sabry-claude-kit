@@ -32,6 +32,8 @@
 | Case | Expected behaviour |
 |---|---|
 | An input, state or timing the happy path ignores | What the system does, concretely |
+| Data at 100× today's size (required row) | What still holds: query plan, memory, response time |
+| The same action twice, or in parallel (required row) | Exactly what happens to the second one |
 
 ## Example — Standard, Bun + Hono + Drizzle
 
@@ -54,4 +56,4 @@ Other stacks: one line each, only where the approach differs.
 
 `<domain>/<folder>/<file>` · `Stacks/<file>.md` §<section>
 
-<!-- Limits: 160 lines max. English. No code comments in examples (owner rule). Edge cases are inputs and states; Pitfalls are mistakes in the code. -->
+<!-- Limits: 160 lines max. English. No code comments in examples (owner rule). Edge cases are inputs and states; Pitfalls are mistakes in the code. A new trap that can be detected mechanically also gets a row in quality/TRAPS.md. -->

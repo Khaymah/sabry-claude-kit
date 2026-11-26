@@ -1,6 +1,6 @@
 # Quality playbooks — the "-ilities"
 
-Start with `BASELINE.md` on every code task. Open a file below only when the task touches its area. `planned` = not written yet.
+Start with `BASELINE.md` on every code task, and scan `TRAPS.md` (mechanical checks for the common traps) before calling it done. Open a file below only when the task touches its area. `planned` = not written yet.
 
 Design-time questions for each quality stay in `Quality-Gate.md`; these files are the implementation at each level.
 
@@ -56,9 +56,12 @@ Design-time questions for each quality stay in `Quality-Gate.md`; these files ar
 
 | Situation | File | Status |
 |---|---|---|
+| Slow queries, N+1, EXPLAIN, indexes, related rows | `performance/query-performance.md` | ✅ |
+| Many items: batching, bulk insert, settings snapshot, `Promise.all`, concurrency limits | `performance/round-trips.md` | ✅ |
+| Exports, uploads, caches, memory growth, OOM | `performance/memory.md` | ✅ |
+| Heavy computation, nested loops, regex, sync APIs, event-loop lag | `performance/event-loop-cpu.md` | ✅ |
 | "It's slow", performance targets | `performance/performance-budget.md` | planned |
 | Finding the slow part, profiling | `performance/profiling.md` | planned |
-| Slow queries, N+1, EXPLAIN, indexes | `performance/query-performance.md` | planned |
 
 ## Testability
 

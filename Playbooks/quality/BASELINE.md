@@ -12,7 +12,9 @@ Paths are relative to `Playbooks/`. Read with **every** task that writes or revi
 - **Health:** a `GET /health` that answers without touching dependencies. → `quality/observability/health-checks.md`
 - **Tests:** new logic with a branch, money, security or parsing has a test; the suite is green before "done". → `quality/testability/test-strategy.md`
 - **Security floor:** input validated at the boundary, authorization on every resource, no secrets in code. → `security/INDEX.md`
-- **Performance floor:** no query in a loop; lists are paginated and capped. → `quality/performance/query-performance.md`
+- **Performance floor:** no query in a loop (N+1); many items cost one round trip, not one per item; settings and reference data read from memory; lists paginated and capped; input arrays and strings have a `.max()`; no `*Sync` call or nested list scan on a request path. → `quality/performance/query-performance.md` · `quality/performance/round-trips.md` · `quality/performance/event-loop-cpu.md`
+- **Memory floor:** body size limits; no whole-table loads; no global collection that grows without eviction. → `quality/performance/memory.md`
+- **Traps:** run the Detect column of `quality/TRAPS.md` on what you touched. → `quality/TRAPS.md`
 
 ## Standard — adds (production, real users)
 
@@ -22,6 +24,7 @@ Paths are relative to `Playbooks/`. Read with **every** task that writes or revi
 - **Error tracking:** unhandled errors reach an error tracker tagged with release and environment. → `quality/observability/error-tracking.md`
 - **Alerting:** an external uptime check and an error-rate alert reach a human. → `quality/observability/alerting.md`
 - **Shutdown:** SIGTERM drains requests and jobs before exit. → `quality/reliability/graceful-shutdown.md`
+- **Batching:** bulk writes chunked, `Promise.all` over dynamic lists bounded, query-count tests on list endpoints, exports streamed, caches LRU-bounded. → `quality/performance/round-trips.md` · `quality/performance/memory.md`
 - **Slow work:** anything over ~1 s or scheduled runs in a background job. → `backend/reliability/background-jobs.md`
 - **Tests:** each endpoint has an integration test for its happy path and main failure, on a real database, in CI. → `quality/testability/integration-db.md`
 - **Deploys:** zero-downtime reload; backups with a rehearsed restore. → `quality/availability/zero-downtime-deploy.md` · `devops/INDEX.md`
