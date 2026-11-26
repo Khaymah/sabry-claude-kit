@@ -47,9 +47,9 @@ Acceptance: every cause from Diagnose and every dev-set failure fixed at the sou
 
 ## Phase 4: Measure
 Acceptance: held-out set, 3 arms x 5 runs on Sonnet (plus a smaller Opus check); report with confidence intervals
-- [ ] Unseal the held-out set; run no-plugin, old kit, new kit, 5 runs each, Sonnet
-- [ ] Opus check: new kit vs no-plugin, 2 runs each
-- [ ] Report: per task, per difficulty, hidden-test pass rate with 95% intervals, cost and time; publish to `benchmark/RESULTS.md`
+- [x] Held-out measured in Phase 3 (no kit vs kit, 3 runs; budget kept it to 6 tasks). Old kit and 5 runs move to the Phase 4b measurement on fresh tasks
+- [ ] Opus check: new kit vs no-plugin, 2 runs each (with the Phase 4b measurement, if the owner approves the spend)
+- [x] Report for the held-out round: `benchmark2/RESULTS.md` on the PR branch (intervals come with the larger Phase 4b run)
 
 ## Phase 4b: Much stronger, and stable in long sessions
 Acceptance: the kit beats a plain model by a wider margin on fresh held-out tasks, including multi-request sessions with a forced compaction
