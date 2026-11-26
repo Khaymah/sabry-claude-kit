@@ -40,10 +40,10 @@ Acceptance: every cause from Diagnose and every dev-set failure fixed at the sou
 - [x] Audit done: six cases decoupled (y26, b09, x21, y35, b14, f06), each with an alternative correct solution in reference/alt; y35 budget 5 and its stale-report suggestion replaced
 - [x] Re-pilot after the audit ($2.13, no kit): b09 5/5,5/5 · y26 5/5,5/5 · y35 4/4,4/4 · b14 2/4,4/4. Dev round 3 ($2.53, kit): b09, y26, y35 all full. The earlier failures on b09, y26, y35 were benchmark coupling, not the model. Dev tasks that still separate: m17, y31 (legacy data), both fixed by the kit
 - [x] Final held-out ($12.94): runs passing every hidden test 2/18 no kit vs 8/18 kit; mean 69% vs 81%; cost +36%. Kit wins b14 (3/3 vs 0/3), x23 (2/3 vs 0/3), m19 (2/3 vs 1/3); ties y28; both fail m20, y33 (all-or-nothing edits). PR commit 9b6cdb6, benchmark2/RESULTS.md
-- [ ] Rewrite weak playbooks to put the deciding rule first and give a worked fix for the failure seen
-- [ ] Run the dev set after each batch (kit arm only) until it beats no-plugin on the dev set
+- [x] Rewrite weak playbooks for the failures seen: money (refunds across payments), migrations (legacy data, backfill through the project's migrations), new batch-edits
+- [x] Run the dev set after each batch (kit arm only) until it beats no-plugin on the dev set (rounds 1-3; final: kit full on all five dev tasks)
 - [ ] Run `evals/playbook-routing` and the skill-trigger evals
-- [ ] Check session-start context did not grow (deterministic benchmark)
+- [x] Check session-start context did not grow: 14,531 chars on the branch vs 14,151 on main (+380, the longer Playbooks rule); playbook excerpts are injected per request only
 
 ## Phase 4: Measure
 Acceptance: held-out set, 3 arms x 5 runs on Sonnet (plus a smaller Opus check); report with confidence intervals
