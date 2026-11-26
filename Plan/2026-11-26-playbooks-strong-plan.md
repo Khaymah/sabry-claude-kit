@@ -7,10 +7,10 @@
 
 ## Phase 1: Diagnose
 Acceptance: every failed grader and hidden test of the Playbooks arm has a written cause (playbook missing, playbook wrong, not routed, not read, or grader flaw)
-- [ ] Re-run the 6 failing cases of the Playbooks arm with `--keep-temp` (h1, h2, h3, h5, m3, m4; 3 runs each) to get traces
-- [ ] Per failure: which playbook was routed and read, which rule was missed or missing, or whether the grader is wrong
-- [ ] Known from the first run: h1 quality fails 3/3 (lock or atomic decrement not applied), h5 quality 3/3 (no alert on a missing success, no external uptime), m4 quality 2/3 (per-account limit missing), h2 query-count test 1/3, h3 scoped 1/3, m3 BOM 1/3
-- [ ] Write the causes to `Plan/2026-11-26-playbooks-diagnosis.md`
+- [x] Re-run the 6 failing cases of the Playbooks arm with `--keep-temp` (h1, h2, h3, h5, m3, m4; 3 runs each) to get traces
+- [x] Per failure: which playbook was routed and read, which rule was missed or missing, or whether the grader is wrong
+- [x] Known from the first run: h1 quality fails 3/3 (lock or atomic decrement not applied), h5 quality 3/3 (no alert on a missing success, no external uptime), m4 quality 2/3 (per-account limit missing), h2 query-count test 1/3, h3 scoped 1/3, m3 BOM 1/3
+- [x] Write the causes to `Plan/2026-11-26-playbooks-diagnosis.md`
 
 ## Phase 2: Strong benchmark design
 Acceptance: 20+ hard tasks on Bun + Hono + Drizzle + Postgres (PGlite), written by an agent that never read Playbooks, split into a dev set and a sealed held-out set; a pilot shows no-plugin passes under 60% of the held-out hidden tests
@@ -41,6 +41,7 @@ Acceptance: owner decides merge and whether phases 4-7 of the original Playbooks
 - [ ] Brief for the owner with the decision and its numbers
 
 ## Notes
+- Diagnosis 2026-11-26 ($3.36): playbooks read in 3 of 18 runs (only h5). Main cause is routing, then strict Haiku rubrics and a Bash allow-list that blocked test runs, then content gaps (CSV BOM, no security domain). Fixes F1-F5 in Plan/2026-11-26-playbooks-diagnosis.md.
 - Owner, 2026-11-26: fix everything weak first, then be far stronger than both no-plugin and the old kit, measured by a very strong benchmark focused on complex tasks.
 - The first benchmark was written by the same session as the Playbooks; the new tasks must come from an agent that never read them, and the held-out set stays sealed while fixing, so the playbooks are not tuned to the test.
 - Bun and PGlite are available in the cloud container.
