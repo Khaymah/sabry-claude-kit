@@ -47,3 +47,5 @@ Decisions
 .agents/*
 !.agents/plugins/
 evals/results/
+
+benchmark/results/raw/

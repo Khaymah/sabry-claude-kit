@@ -1,0 +1,5 @@
+schema_version: "1.1"
+name: m2-webhook-handler
+tags: [medium, build, payments]
+context:
+  scaffold_script: fixture.sh
