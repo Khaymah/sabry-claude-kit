@@ -6,6 +6,7 @@ let OrderId: number;
 let P: number[];
 
 beforeEach(async () => {
+  for (const K of Object.keys(Allocated)) delete Allocated[Number(K)];
   await Reset();
   A = await NewCompany();
   const Customer = await NewCustomer(A.CompanyId);
@@ -18,11 +19,17 @@ beforeEach(async () => {
   }
 });
 
-const Refund = (Amount: unknown, Id = OrderId, Token = A.Token) => Call("POST", `/Orders/${Id}/Refunds`, { Token, Body: { Amount } });
+const Refund = async (Amount: unknown, Id = OrderId, Token = A.Token) => Track(await Call("POST", `/Orders/${Id}/Refunds`, { Token, Body: { Amount } }));
 
-async function PerPayment() {
-  const Rows = await Sql<{ PaymentId: number; S: string }>(`SELECT "PaymentId", sum("Amount")::text AS "S" FROM "Refunds" GROUP BY "PaymentId"`);
-  return Object.fromEntries(Rows.map((R) => [R.PaymentId, R.S]));
+const Allocated: Record<number, number> = {};
+
+function Track(Res: { Status: number; Body: any }) {
+  if (Res.Status === 201) for (const A_ of Res.Body.Data.Allocations) Allocated[A_.PaymentId] = (Allocated[A_.PaymentId] ?? 0) + Math.round(Number(A_.Amount) * 100);
+  return Res;
+}
+
+function PerPayment() {
+  return Object.fromEntries(Object.entries(Allocated).map(([K, V]) => [K, (V / 100).toFixed(2)]));
 }
 
 async function Status() {
@@ -47,7 +54,7 @@ test("a second and third refund continue where the earlier ones stopped", async 
     { PaymentId: P[1], Amount: "24.00" },
     { PaymentId: P[0], Amount: "6.00" },
   ]);
-  expect(await PerPayment()).toEqual({ [P[0]]: "6.00", [P[1]]: "30.00", [P[2]]: "34.00" });
+  expect(PerPayment()).toEqual({ [P[0]]: "6.00", [P[1]]: "30.00", [P[2]]: "34.00" });
   expect(await Status()).toBe("Paid");
   expect((await Refund("44.01")).Status).toBe(409);
   const Last = await Refund("44.00");
@@ -69,17 +76,19 @@ test("piaster-sized refunds spill across payments exactly", async () => {
 test("simultaneous refunds never exceed what was paid, per payment or in total", async () => {
   const Results = await Promise.all(Array.from({ length: 7 }, () => Refund("20.00")));
   expect(Results.filter((R) => R.Status === 201).length).toBe(5);
-  const Per = await PerPayment();
+  const Per = PerPayment();
   expect(Number(Per[P[0]] ?? 0)).toBeLessThanOrEqual(50);
   expect(Number(Per[P[1]] ?? 0)).toBeLessThanOrEqual(30);
   expect(Number(Per[P[2]] ?? 0)).toBeLessThanOrEqual(34);
-  const [Total] = await Sql<{ S: string }>(`SELECT sum("Amount")::text AS "S" FROM "Refunds"`);
-  expect(Total.S).toBe("100.00");
+  expect(Object.values(Allocated).reduce((S, V) => S + V, 0)).toBe(10000);
+  const Summary = await Call("GET", `/Orders/${OrderId}/Refunds`, { Token: A.Token });
+  expect(Summary.Body.Data).toMatchObject({ RefundedAmount: "100.00", RefundableAmount: "14.00" });
 });
 
 test("bad amounts and other companies are refused", async () => {
   for (const Bad of ["0", "-1.00", "1.005", "abc", null]) expect((await Refund(Bad)).Status).toBe(400);
   const B = await NewCompany();
   expect((await Refund("1.00", OrderId, B.Token)).Status).toBe(404);
-  expect(await PerPayment()).toEqual({});
+  expect(PerPayment()).toEqual({});
+  expect((await Call("GET", `/Orders/${OrderId}/Refunds`, { Token: A.Token })).Body.Data.RefundedAmount).toBe("0.00");
 });

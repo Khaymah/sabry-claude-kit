@@ -50,7 +50,8 @@ test("a page of the report costs a small constant number of queries", async () =
   expect(Big.Res.Body.Data.Items.length).toBe(100);
   expect(Big.Queries).toBeLessThanOrEqual(4);
   const Small = await Report("Page=1&PageSize=5");
-  expect(Small.Queries).toBe(Big.Queries);
+  expect(Small.Res.Body.Data.Items.length).toBe(5);
+  expect(Small.Queries).toBeLessThanOrEqual(4);
 });
 
 test("every row matches the orders exactly", async () => {

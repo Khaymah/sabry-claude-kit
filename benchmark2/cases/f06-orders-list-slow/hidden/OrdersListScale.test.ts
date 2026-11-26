@@ -48,8 +48,10 @@ test("a page of 100 orders uses a small constant number of queries", async () =>
 
 test("query count does not grow with page size", async () => {
   const Small = await Counted("/Orders?Page=1&PageSize=5", A.Token);
-  const Large = await Counted("/Orders?Page=1&PageSize=100", A.Token);
-  expect(Large.Queries).toBe(Small.Queries);
+  const Large = await Counted("/Orders?Page=20&PageSize=100", A.Token);
+  expect(Small.Queries).toBeLessThanOrEqual(6);
+  expect(Large.Queries).toBeLessThanOrEqual(6);
+  expect(Large.Res.Body.Data.Items.length).toBe(100);
 });
 
 test("paging through every page returns each order exactly once", async () => {

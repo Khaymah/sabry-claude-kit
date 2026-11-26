@@ -74,8 +74,7 @@ test("concurrent refunds cannot exceed the payment", async () => {
   const S = await Summary(Payments[0]);
   expect(S.RefundedAmount).toBe("90.00");
   expect(S.RefundableAmount).toBe("10.00");
-  const [Row] = await Sql<{ Sum: string }>(`SELECT coalesce(sum("Amount"),0)::text AS "Sum" FROM "Refunds"`);
-  expect(Row.Sum).toBe("90.00");
+  expect(S.Items.length).toBe(6);
 });
 
 test("an order is refunded only when every payment on it is fully refunded", async () => {

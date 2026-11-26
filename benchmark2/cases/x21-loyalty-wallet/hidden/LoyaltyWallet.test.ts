@@ -13,7 +13,14 @@ beforeEach(async () => {
 const Pay = (OrderId: number, Amount: string, Method = "Cash") => Call("POST", "/Payments", { Token: A.Token, Body: { OrderId, Amount, Method } });
 const Loyalty = async (Id = Customer, Token = A.Token) => Call("GET", `/Customers/${Id}/Loyalty`, { Token });
 const Redeem = (Points: unknown, Id = Customer, Token = A.Token) => Call("POST", `/Customers/${Id}/Loyalty/Redeem`, { Token, Body: { Points } });
-const SetPoints = (Points: number, Wallet = "0.00") => Sql(`UPDATE "Customers" SET "LoyaltyPoints" = $1, "WalletBalance" = $2 WHERE "Id" = $3`, [Points, Wallet, Customer]);
+async function SetPoints(Points: number, Wallet = "0.00") {
+  if (Points > 0) {
+    const OrderId = await NewOrder(A.CompanyId, Customer, `${Points * 10}.00`);
+    expect((await Pay(OrderId, `${Points * 10}.00`)).Status).toBe(201);
+    expect((await Loyalty()).Body.Data.Points).toBe(Points);
+  }
+  await Sql(`UPDATE "Customers" SET "WalletBalance" = $1 WHERE "Id" = $2`, [Wallet, Customer]);
+}
 
 async function Wallet() {
   const [Row] = await Sql<{ W: string }>(`SELECT "WalletBalance"::text AS "W" FROM "Customers" WHERE "Id" = $1`, [Customer]);
