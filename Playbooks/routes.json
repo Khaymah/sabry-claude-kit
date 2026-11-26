@@ -178,7 +178,13 @@
     "تغيير نوع العمود",
     "add an index",
     "نضيف index",
-    "نضيف اندكس"
+    "نضيف اندكس",
+    "normalized",
+    "الموجودين ياخدوا",
+    "البيانات القديمه",
+    "الداتا القديمه",
+    "existing rows",
+    "legacy data"
   ],
   "backend/data/money.md": [
     "price",
@@ -206,7 +212,17 @@
     "استرداد",
     "محفظه",
     "رصيد",
-    "اجمالي السله"
+    "اجمالي السله",
+    "payment",
+    "مرتجع",
+    "مرتجعات",
+    "ترجيع",
+    "يرجع فلوس",
+    "دفعه",
+    "دفعات",
+    "كاش وكارت",
+    "مدفوع",
+    "المدفوع"
   ],
   "backend/data/multi-tenancy.md": [
     "tenant",
@@ -275,7 +291,10 @@
     "مهمه في الخلفيه",
     "كرون",
     "تقرير يومي",
-    "جدوله"
+    "جدوله",
+    "بالليل",
+    "nightly",
+    "يتحسب بالليل"
   ],
   "backend/reliability/caching.md": [
     "cache",
@@ -283,7 +302,6 @@
     "redis",
     "cdn",
     "slow endpoint",
-    "كاش",
     "ريديس"
   ],
   "backend/reliability/idempotency.md": [
@@ -508,7 +526,13 @@
     "الاف الصفوف",
     "الاف العملاء",
     "thousands of orders",
-    "thousands of rows"
+    "thousands of rows",
+    "report",
+    "تقرير",
+    "تقارير",
+    "بياخد دقايق",
+    "بيقع",
+    "timeout"
   ],
   "quality/performance/round-trips.md": [
     "promise.all",

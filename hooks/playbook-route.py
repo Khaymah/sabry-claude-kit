@@ -63,7 +63,7 @@ def hits(text, keyword):
     if ARABIC.search(keyword):
         pattern = f"(?<![{AR}]){AR_PREFIX}{re.escape(keyword)}{AR_SUFFIX}(?![{AR}])"
     else:
-        pattern = r"(?<![a-z0-9])" + re.escape(keyword) + r"(?![a-z0-9])"
+        pattern = r"(?<![a-z0-9])" + re.escape(keyword) + r"(?:s|es)?(?![a-z0-9])"
     return len(re.findall(pattern, text))
 
 
@@ -142,6 +142,10 @@ def render(files, seen, header):
             continue
     if again:
         lines.append("Still applies, given earlier this session: " + " · ".join(f"`Playbooks/{r}`" for r in again))
+    lines.append("Always, whatever the playbook: every new query and endpoint filters by the tenant column when the "
+                 "project has one; every input (ids, amounts, counts, dates) is validated at the edge; a read-check-write "
+                 "on shared rows is one atomic statement or runs under a row lock; old rows are checked for the cases "
+                 "the new rule rejects.")
     lines.append("The project's own code and the owner's profile win over a playbook. Pick the project's level "
                  "(Playbooks/INDEX.md) and do not apply a higher level to be safe.")
     return "\n\n".join(lines)

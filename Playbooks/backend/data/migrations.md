@@ -30,7 +30,8 @@
 - Each migration starts with `SET lock_timeout = '5s'; SET statement_timeout = '60s';`.
 - Indexes on existing tables: `CREATE INDEX CONCURRENTLY` in its own migration, outside a transaction.
 - `NOT NULL` on an existing column: add `CHECK (… IS NOT NULL) NOT VALID`, `VALIDATE CONSTRAINT`, then `SET NOT NULL`, then drop the check.
-- Backfills of more than ~10k rows run as a batched job or script (1,000–5,000 rows per transaction), not inside the migration.
+- Backfills of more than ~10k rows run in batches (1,000–5,000 rows per transaction). When the project's migrations are the agreed way to change data (or the owner asks for it), the batched backfill lives in a migration; otherwise in a job or script.
+- Legacy data is never assumed clean: before a `UNIQUE` index or a `NOT NULL`, query for duplicates, nulls, blanks and values the new rule rejects, and decide in the migration what happens to each (normalise, null out, keep the oldest and report the rest, or a partial unique index). A unique index that fails halfway through a deploy is the usual outage.
 - Migrations run with a role that has DDL rights; the app role has none.
 - Each migration has a written rollback (a down file or the exact steps), tried on a copy of real data for risky ones.
 

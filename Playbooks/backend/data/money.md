@@ -30,6 +30,8 @@ A project at Minimum that takes real payments uses Standard here.
 - The order stores `SubtotalMinor`, `DiscountMinor`, `TaxMinor`, `TotalMinor`, with a `CHECK` that they add up.
 - Splits (installments, partial refunds) allocate the remainder so parts sum exactly to the total.
 - Before marking an order paid, compare the provider's amount and currency with the order total.
+- Refunds are rows (`Refunds` + `RefundAllocations(PaymentId, AmountMinor)`), never a mutated amount. What is refundable per payment is its amount minus the sum of its earlier allocations, read in the same transaction that writes the new refund, with the order or its payments locked (`SELECT … FOR UPDATE`) so two refunds at once cannot both pass the check.
+- A refund amount is validated at the edge: positive, in minor units, not above what is refundable (409), and the order is loaded through the tenant filter like any other read.
 
 ### Advanced — adds
 
