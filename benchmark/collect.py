@@ -23,6 +23,8 @@ import statistics
 import subprocess
 import tempfile
 
+INFRA_ERROR = re.compile(r"hit your .*limit|rate.?limit|overloaded|authentication|credit balance", re.I)
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 HIDDEN = os.path.join(HERE, "hidden")
 CASES = os.path.join(HERE, "cases")
@@ -101,6 +103,8 @@ def collect(label, data, arm):
     rows = []
     for case in data.get("cases", []):
         for run in case.get("arms", {}).get(arm, []) or []:
+            if run.get("error") and INFRA_ERROR.search(str(run["error"])):
+                continue
             trace = run.get("tracePath") or ""
             base = os.path.dirname(os.path.dirname(trace)) if trace else ""
             workspace = os.path.join(base, "home", "cwd")
@@ -151,20 +155,25 @@ def main():
     ap.add_argument("--run", action="append", required=True, help="new=path.json or old=path.json")
     ap.add_argument("--out", default=os.path.join(HERE, "results"))
     ap.add_argument("--cleanup", action="store_true")
+    ap.add_argument("--merge-rows", action="append", default=[], help="model-runs.json of an earlier pass; its infrastructure failures are dropped")
     a = ap.parse_args()
     rows = []
     meta = {}
     for spec_ in a.run:
         side, path = spec_.split("=", 1)
         data = json.load(open(path, encoding="utf-8"))
-        meta[side] = {k: data.get(k) for k in ("claudeVersion", "startedAt", "durationSeconds", "costUsd", "partial", "partialReason")}
-        meta[side]["Model"] = (data.get("suite") or {}).get("modelOverride")
+        side_key = side if side not in meta else f"{side}-{len(meta)}"
+        meta[side_key] = {k: data.get(k) for k in ("claudeVersion", "startedAt", "durationSeconds", "costUsd", "partial", "partialReason")}
+        meta[side_key]["Model"] = (data.get("suite") or {}).get("modelOverride")
         if side == "new":
             rows += collect("kit-new", data, "with") + collect("baseline", data, "without")
         else:
             rows += collect("kit-old", data, "with")
+    for f in a.merge_rows:
+        rows += [dict(r, KeptDir="") for r in json.load(open(f, encoding="utf-8")) if not (r.get("Error") and INFRA_ERROR.search(str(r["Error"])))]
     summary = {
         "Meta": meta,
+        "Totals": {"Runs": len(rows), "CostUsd": round(sum(r["CostUsd"] or 0 for r in rows), 2)},
         "Overall": summarise([dict(r, All="All") for r in rows], "All"),
         "ByTier": summarise(rows, "Tier"),
         "ByKind": summarise(rows, "Kind"),
