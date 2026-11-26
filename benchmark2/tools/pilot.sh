@@ -2,7 +2,7 @@
 set -uo pipefail
 B=/home/user/bench2; OUT=$B/pilot; mkdir -p $OUT
 $B/tools/seal.sh seal
-rm -rf $B/empty-plugin/cases; cp -R $B/cases $B/empty-plugin/cases
+rm -rf $B/empty-plugin/cases; mkdir -p $B/empty-plugin/cases; for c in $B/cases/${CASES:-*}/; do cp -R "$c" $B/empty-plugin/cases/; done
 for c in $B/empty-plugin/cases/*/; do rm -rf "$c/reference/fixed" "$c/hidden"; done
 cd $B/empty-plugin
 claude plugin eval . --eval-dir cases --runs "${RUNS:-2}" --scaffold --keep-temp --trust-plugin --ablation none \

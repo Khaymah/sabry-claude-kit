@@ -19,3 +19,5 @@ The fixtures copy a prepared base with its `node_modules` from `/home/user/bench
 Pilot 2026-11-26, Sonnet without the kit, 2 runs per task: 39 of 40 runs passed every hidden test (`pilot-no-plugin.json`). The tasks state their problem too clearly to separate a strong setup from a plain one; see `Plan/2026-11-26-playbooks-strong-plan.md` on `main`.
 
 Hardened 2026-11-26: prompts carry only the contract or a misleading symptom, never the risk the hidden tests check. Pilot, Sonnet without the kit, 2 runs per task: 40 of 50 runs passed every hidden test, mean 94% (`pilot-no-plugin-hardened.json`). The runs that fail cluster in b09, m19, m20 and x23, with single failures in b14 and m17.
+
+Focused set 2026-11-26: ten tasks y26-y35 in the areas Sonnet missed. Pilot without the kit, 2 runs each: 12 of 20 runs passed every hidden test, mean 81% (`pilot-no-plugin-focused.json`). Tasks that separate (failed at least once without the kit): dev b09, m17, y26, y31, y35; held-out m19, m20, x23, b14, y28, y33.

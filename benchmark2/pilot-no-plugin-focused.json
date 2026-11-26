@@ -1,0 +1,202 @@
+[
+ {
+  "case": "y26-order-refund-allocation",
+  "hidden": {
+   "passed": 2,
+   "total": 5
+  },
+  "score": 1,
+  "cost": 0.37801170000000006,
+  "leak": false
+ },
+ {
+  "case": "y26-order-refund-allocation",
+  "hidden": {
+   "passed": 2,
+   "total": 5
+  },
+  "score": 1,
+  "cost": 0.34329350000000003,
+  "leak": false
+ },
+ {
+  "case": "y27-gateway-refund-retry",
+  "hidden": {
+   "passed": 5,
+   "total": 5
+  },
+  "score": 1,
+  "cost": 0.39481409999999995,
+  "leak": false
+ },
+ {
+  "case": "y27-gateway-refund-retry",
+  "hidden": {
+   "passed": 5,
+   "total": 5
+  },
+  "score": 1,
+  "cost": 0.37324890000000005,
+  "leak": false
+ },
+ {
+  "case": "y28-checkout-webhook-race",
+  "hidden": {
+   "passed": 0,
+   "total": 5
+  },
+  "score": 0,
+  "cost": 0.2914704,
+  "leak": false
+ },
+ {
+  "case": "y28-checkout-webhook-race",
+  "hidden": {
+   "passed": 5,
+   "total": 5
+  },
+  "score": 1,
+  "cost": 0.2324537,
+  "leak": false
+ },
+ {
+  "case": "y29-receipt-vat-split",
+  "hidden": {
+   "passed": 5,
+   "total": 5
+  },
+  "score": 1,
+  "cost": 0.21745779999999998,
+  "leak": false
+ },
+ {
+  "case": "y29-receipt-vat-split",
+  "hidden": {
+   "passed": 5,
+   "total": 5
+  },
+  "score": 1,
+  "cost": 0.21007460000000003,
+  "leak": false
+ },
+ {
+  "case": "y30-expense-dates-fix",
+  "hidden": {
+   "passed": 6,
+   "total": 6
+  },
+  "score": 0,
+  "cost": 0.3421572,
+  "leak": false
+ },
+ {
+  "case": "y30-expense-dates-fix",
+  "hidden": {
+   "passed": 6,
+   "total": 6
+  },
+  "score": 1,
+  "cost": 0.2124655,
+  "leak": false
+ },
+ {
+  "case": "y31-email-backfill",
+  "hidden": {
+   "passed": 4,
+   "total": 4
+  },
+  "score": 1,
+  "cost": 0.2802542,
+  "leak": false
+ },
+ {
+  "case": "y31-email-backfill",
+  "hidden": {
+   "passed": 2,
+   "total": 4
+  },
+  "score": 1,
+  "cost": 0.2667408,
+  "leak": false
+ },
+ {
+  "case": "y32-cairo-monthly-report",
+  "hidden": {
+   "passed": 4,
+   "total": 4
+  },
+  "score": 1,
+  "cost": 0.2527171,
+  "leak": false
+ },
+ {
+  "case": "y32-cairo-monthly-report",
+  "hidden": {
+   "passed": 4,
+   "total": 4
+  },
+  "score": 1,
+  "cost": 0.23455510000000002,
+  "leak": false
+ },
+ {
+  "case": "y33-stock-adjust-rollback",
+  "hidden": {
+   "passed": 4,
+   "total": 5
+  },
+  "score": 1,
+  "cost": 0.30955279999999996,
+  "leak": false
+ },
+ {
+  "case": "y33-stock-adjust-rollback",
+  "hidden": {
+   "passed": 4,
+   "total": 5
+  },
+  "score": 1,
+  "cost": 0.2618712,
+  "leak": false
+ },
+ {
+  "case": "y34-cancel-vs-webhook",
+  "hidden": {
+   "passed": 3,
+   "total": 3
+  },
+  "score": 0,
+  "cost": 0.1418721,
+  "leak": false
+ },
+ {
+  "case": "y34-cancel-vs-webhook",
+  "hidden": {
+   "passed": 3,
+   "total": 3
+  },
+  "score": 1,
+  "cost": 0.20484839999999999,
+  "leak": false
+ },
+ {
+  "case": "y35-product-report-budget",
+  "hidden": {
+   "passed": 3,
+   "total": 4
+  },
+  "score": 1,
+  "cost": 0.3512834999999999,
+  "leak": false
+ },
+ {
+  "case": "y35-product-report-budget",
+  "hidden": {
+   "passed": 2,
+   "total": 4
+  },
+  "score": 1,
+  "cost": 0.3507809,
+  "leak": false
+ }
+]
