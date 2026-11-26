@@ -58,7 +58,8 @@ Acceptance: the kit beats a plain model by a wider margin on fresh held-out task
 - [x] B: playbook for all-or-nothing multi-line edits (validate all, one transaction, idempotent resubmit, per-line errors). A, B, C in PR commit after 9b6cdb6
 - [x] D: long-session benchmark: 6-8 requests in one session with a forced compaction, hidden tests per request, fresh held-out tasks by the independent author
   - 2026-11-26: author building bench2/sessions/s01-s06 (5-6 requests each, forced /compact, hidden tests per request run together at the end) and tools/run_session.py (claude -p --resume, seals references in /root/.bench2-sealed). Done: 6 sessions x 5 requests, broken/fixed/alt verified, compaction confirmed by compact_boundary events; smoke s01 without the kit passed everything ($0.68). PR commit f36b3bf
-- [ ] Measure A+B+C on the fresh held-out set and the long sessions; owner approves the spend first
+- [x] Owner approved the measurement with no budget cap (2026-11-26): results first
+- [ ] Long sessions running (bench2/final-sessions, tools/batch_sessions.py, 6 in parallel): Sonnet no kit / new kit / old kit (main) x 5 runs, Opus no kit / new kit x 2 runs, 6 sessions each = 114 session runs. Resumable: finished results are skipped on rerun
 
 ## Phase 5: Decide
 Acceptance: owner decides merge and whether phases 4-7 of the original Playbooks plan start
