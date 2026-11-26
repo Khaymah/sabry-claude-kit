@@ -57,6 +57,7 @@ Acceptance: the kit beats a plain model by a wider margin on fresh held-out task
 - [x] A: before "done", a Stop check turns the used playbooks' edge-case rows into tests the model writes and runs (once per change set)
 - [x] B: playbook for all-or-nothing multi-line edits (validate all, one transaction, idempotent resubmit, per-line errors). A, B, C in PR commit after 9b6cdb6
 - [ ] D: long-session benchmark: 6-8 requests in one session with a forced compaction, hidden tests per request, fresh held-out tasks by the independent author
+  - 2026-11-26: author building bench2/sessions/s01-s06 (5-6 requests each, forced /compact, hidden tests per request run together at the end) and tools/run_session.py (claude -p --resume, seals references in /root/.bench2-sealed)
 - [ ] Measure A+B+C on the fresh held-out set and the long sessions; owner approves the spend first
 
 ## Phase 5: Decide
