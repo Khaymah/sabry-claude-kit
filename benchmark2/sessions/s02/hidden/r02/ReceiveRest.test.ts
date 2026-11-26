@@ -13,7 +13,7 @@ test("r02: the old receive button receives only what is still missing", async ()
   const P1 = await NewProduct(A.CompanyId, { Stock: 1 });
   const P2 = await NewProduct(A.CompanyId, { Stock: 1 });
   const Po = await NewPurchaseOrder(A.Token, Supplier, [{ ProductId: P1, Quantity: 10, UnitCost: "1.00" }, { ProductId: P2, Quantity: 5, UnitCost: "1.00" }]);
-  expect((await Call("POST", `/PurchaseOrders/${Po}/Receipts`, { Token: A.Token, Body: { Lines: [{ ProductId: P1, Quantity: 7 }] } })).Status).toBe(200);
+  expect([200, 201]).toContain((await Call("POST", `/PurchaseOrders/${Po}/Receipts`, { Token: A.Token, Body: { Lines: [{ ProductId: P1, Quantity: 7 }] } })).Status);
   expect((await Call("POST", `/PurchaseOrders/${Po}/Receive`, { Token: A.Token })).Status).toBe(200);
   expect([await StockOf(P1), await StockOf(P2)]).toEqual([11, 6]);
   expect((await Call("GET", `/PurchaseOrders/${Po}`, { Token: A.Token })).Body.Data.Status).toBe("Received");

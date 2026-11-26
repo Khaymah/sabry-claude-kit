@@ -36,4 +36,6 @@ Six sessions of five requests on one codebase, `/compact` after requests 2 and 4
 
 Four of the six sessions score the same in every setup (ceiling). The only session that separates is s03, where Sonnet without the kit drops to 9 of 14 checks in two runs of five; both kits stay at 12 or more. The differences between setups are within one run's noise.
 
+Correction after the run: s02 r01 and r02 lost one check in every run of every setup because the hidden test required `200` where the new endpoint creates a receipt and correctly answers `201`. The test now accepts both (re-verified: broken fails, fixed and alt pass). The failure hit all setups equally, so the comparison stands; with it removed, five of the six sessions score the same in every setup.
+
 Raw rows: `results/`. Method and history: `Plan/2026-11-26-playbooks-strong-plan.md` and `Plan/2026-11-26-playbooks-diagnosis.md` on `main`.

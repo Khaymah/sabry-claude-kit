@@ -23,7 +23,7 @@ const Get = async (Id = Po) => (await Call("GET", `/PurchaseOrders/${Id}`, { Tok
 
 test("r01: a partial delivery adds what arrived and marks the order partially received", async () => {
   const Res = await Receive([{ ProductId: P[0], Quantity: 6 }, { ProductId: P[2], Quantity: 6 }]);
-  expect(Res.Status).toBe(200);
+  expect([200, 201]).toContain(Res.Status);
   expect([await StockOf(P[0]), await StockOf(P[1]), await StockOf(P[2])]).toEqual([6, 0, 6]);
   const Order = await Get();
   expect(Order.Status).toBe("PartiallyReceived");
