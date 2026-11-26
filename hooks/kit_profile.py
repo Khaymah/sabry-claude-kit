@@ -56,6 +56,7 @@ SWITCH_LABELS = {
     "nextjs_structure": "Next.js layout (600-line cap, PascalCase)",
     "duplication_warning": "duplication (DRY) warning",
     "code_traps": "code traps (update without where, N+1, sync I/O, unbounded input)",
+    "playbooks": "the matching playbooks with each request and coding subagent",
     "secret_scan": "secret scan before commit",
     "team_review_reminder": "team review reminder",
     "deal_economics": "Freelancer-Trap warning on deals",

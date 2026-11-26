@@ -418,6 +418,7 @@ def main():
     test_suite("🗺  خطط المهام الطويلة", "test_kit_plans.py")
     test_suite("🔔 تذكيرات آخر الدور في تنبيه واحد", "test_stop_reminders.py")
     test_suite("⚓ الأساسيات مع كل رسالة + تصحيح اللغة", "test_turn_anchor.py")
+    test_suite("📚 الـ playbooks المناسبة مع كل طلب", "test_playbook_route.py")
     test_suite("⬆️  تحديث الكيت مع profile موجود", "test_kit_update.py")
     test_suite("🚫 حارس توقيع الـ AI على GitHub", "test_attribution_guard.py")
     test_suite("🧾 عروض الأسعار (quote)", "test_quote.py")

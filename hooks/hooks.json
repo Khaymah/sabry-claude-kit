@@ -169,6 +169,16 @@
             "timeout": 10
           }
         ]
+      },
+      {
+        "matcher": "Agent|Task",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$(command -v python3 || command -v python)\" \"${CLAUDE_PLUGIN_ROOT}/hooks/playbook-route.py\" --agent",
+            "timeout": 10
+          }
+        ]
       }
     ],
     "PostToolUse": [
@@ -313,6 +323,15 @@
             "timeout": 10
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$(command -v python3 || command -v python)\" \"${CLAUDE_PLUGIN_ROOT}/hooks/playbook-route.py\"",
+            "timeout": 10
+          }
+        ]
       }
     ],
     "PreCompact": [
@@ -332,6 +351,15 @@
           {
             "type": "command",
             "command": "\"$(command -v python3 || command -v python)\" \"${CLAUDE_PLUGIN_ROOT}/hooks/inject-rules.py\" --subagent",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$(command -v python3 || command -v python)\" \"${CLAUDE_PLUGIN_ROOT}/hooks/playbook-route.py\" --subagent",
             "timeout": 10
           }
         ]

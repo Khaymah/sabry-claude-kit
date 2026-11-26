@@ -63,6 +63,7 @@
 | `comment_discipline` | ✅ | `enforce-comment-discipline` + قاعدتها |
 | `nextjs_structure` · `duplication_warning` | ✅ | hooks الـ Next.js |
 | `code_traps` | ✅ | `enforce-code-traps`: فخاخ الكود من `Playbooks/quality/TRAPS.md` |
+| `playbooks` | ✅ | `playbook-route`: الـ playbooks المطابقة مع كل طلب ومع الـ subagents اللي بتكتب كود |
 | `secret_scan` · `install_git_hook` | ✅ | `scan-secrets` + الـ git pre-commit |
 | `project_storage` · `keep_transcripts` | ✅ | `project-storage` + قاعدتها |
 | `team_review_reminder` | ✅ | `team-review-reminder` |
@@ -111,6 +112,7 @@
 | `verify-reminder.py` | عن طريق `stop-reminders` | لو اتعدّل كود ومفيش test/typecheck/lint/build اشتغل بعد آخر تعديل: يطلب التحقق (بأوامر المشروع نفسه من `package.json`) أو يقول إيه اللي ما اتحققش. مرة لكل change-set | feedback |
 | `lessons.py --prompt` | UserPromptSubmit | أول رسالة في الجلسة: يعرض الدروس العامة. رسالة شكلها تصحيح ("غلط" · "قلتلك" · "مش كده" · "wrong" · "I told you"): يطلب من الـ agent يسجّل درس بـ `lessons.py add` | لا |
 | `turn-anchor.py` | UserPromptSubmit | مع كل رسالة: سطر واحد (حوالي 60 token) بلغة الرد، والأسئلة بـ `AskUserQuestion`، ومفيش كود من غير "نفّذ"، ومفيش نسبة للـ AI. لو الـ profile عربي وآخر رد كان إنجليزي في أغلبه (الكود والمسارات مش محسوبة)، يضيف تصحيح صريح | لا |
+| `playbook-route.py` | UserPromptSubmit · PreToolUse `Agent\|Task` (`--agent`) · SubagentStart (`--subagent`) | يطابق كلامك (عربي وإنجليزي) على `Playbooks/routes.json` ويحقن لحد 3 playbooks مناسبين: الـ Decision وقواعد Minimum و Standard والـ Pitfalls، بحد أقصى 2,500 حرف للملف. الـ playbook اللي اتحقن قبل كده في نفس الجلسة بيتذكر اسمه بس. والـ subagents اللي بتكتب كود بياخدوا الـ playbooks المطابقة للـ brief بتاعهم. مفيش تطابق يبقى مفيش حقن | لا |
 | `turn-anchor.py --tool` | PostToolUse · كل الأدوات | ساكت طول ما الكلام عربي. لو النص اللي اتكتب في الدور الحالي طلع إنجليزي في أغلبه، يحقن تصحيح فوري مرة واحدة لكل نص | لا |
 | `turn-anchor.py --stop` | Stop | لو الرد النهائي طلع إنجليزي، يرجّعه مرة واحدة يكتبه بالعربي. مايشتغلش لو صاحب الكيت طالب إنجليزي (email · README · ترجمة · أو كاتب بالإنجليزي) | لا |
 | `lessons.py --start` | SessionStart | يعرض الدروس العامة أول الجلسة. بعد compact أو `/clear` بينسى اللي عرضه قبل كده، فالدروس العامة ترجع فوراً والمحددة بملف أو أمر تظهر تاني عند أول تطابق | لا |
