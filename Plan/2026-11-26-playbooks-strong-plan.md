@@ -26,8 +26,8 @@ Acceptance: 20+ hard tasks on Bun + Hono + Drizzle + Postgres (PGlite), written 
 - [x] Re-sync bench2 into `benchmark2/` (commit 12298cc); hardened pilot ($15.42): 40 of 50 runs pass every hidden test, mean 94%. Tasks that separate: b09, m19, m20, x23 (fail 2/2), b14, m17 (fail 1/2)
 - [x] Owner decides: focus on the separating classes (2026-11-26)
 - [x] Author adds 10 tasks y26-y35 in the failing areas (payments after timeouts, refunds, legacy data, dates and timezones, all-or-nothing edits, query budgets); 4 dev, 6 held-out
-- [ ] Pilot the new 10 without the kit (2 runs); keep those it fails at least once
-- [ ] Final set = the separating tasks (old six + kept new ones); dev part drives Phase 3
+- [x] Pilot the new 10 without the kit ($5.65): 12 of 20 runs pass; separating y26, y28, y31, y33, y35
+- [x] Final set (11 tasks): dev b09, m17, y26, y31, y35; held-out m19, m20, x23, b14, y28, y33 (PR commit c182727)
 
 ## Phase 3: Fix the playbooks
 Acceptance: every cause from Diagnose and every dev-set failure fixed at the source; routing eval green; no growth in session-start context
