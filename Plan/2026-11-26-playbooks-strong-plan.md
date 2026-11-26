@@ -22,7 +22,8 @@ Acceptance: 20+ hard tasks on Bun + Hono + Drizzle + Postgres (PGlite), written 
 - [x] Split: 8 dev tasks (used while fixing) and 12+ held-out tasks (sealed until Phase 4)
 - [x] Pilot: no-plugin, 2 runs per task ($12.96): 39 of 40 runs passed every hidden test; every task is above 80%, so all need hardening
 - [x] Copy /home/user/bench2 (without node_modules, with a script that rebuilds them) into the PR branch as `benchmark2/`, since the container is ephemeral (commit 2baccef)
-- [ ] Harden: owner decides how (implicit requirements, larger tasks), then re-pilot until no-plugin passes under 60%
+- [x] Harden: owner chose implicit requirements + larger tasks (2026-11-26); author agent rewriting prompts, misleading symptoms for fix tasks, 5 two-feature tasks (2 dev, 3 held-out)
+- [ ] Re-sync bench2 into `benchmark2/` on the PR branch, then re-pilot no-plugin until it passes under 60%
 
 ## Phase 3: Fix the playbooks
 Acceptance: every cause from Diagnose and every dev-set failure fixed at the source; routing eval green; no growth in session-start context
