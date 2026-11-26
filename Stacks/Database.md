@@ -163,7 +163,7 @@ export function Decrypt(Stored: string, Key: Buffer): string {
 
 ## 9. Testing
 
-Integration tests run against a real PostgreSQL (a test database or a container), each test in a transaction rolled back at the end. No database mocks for queries, constraints or concurrency; a race is tested with real concurrent requests.
+Integration tests run against a real PostgreSQL (a test database or a container), each test in a transaction rolled back at the end. Setup, the template-database alternative, and when a rolled-back transaction cannot work (services that open their own transaction, concurrency tests): `Playbooks/quality/testability/integration-db.md`. No database mocks for queries, constraints or concurrency; a race is tested with real concurrent requests.
 
 ---
 

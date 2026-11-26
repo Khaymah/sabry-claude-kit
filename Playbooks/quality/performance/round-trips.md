@@ -72,7 +72,7 @@ export const SyncAll = (Ids: string[]) => Promise.all(Ids.map((Id) => Limit(() =
 let Snapshot = new Map<string, unknown>()
 
 export async function ReloadSettings() {
-  const Rows = await db.select().from(SystemSettings)
+  const Rows = await db.select({ Key: SystemSettings.Key, Value: SystemSettings.Value, SecretValue: SystemSettings.SecretValue, IsSecret: SystemSettings.IsSecret }).from(SystemSettings)
   Snapshot = new Map(Rows.map((R) => [R.Key, ReadValue(R)]))
 }
 

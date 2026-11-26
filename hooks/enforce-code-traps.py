@@ -218,6 +218,8 @@ def warn_findings(src, path):
             found.append((m.start(), "`z.array(...)` with no `.max(...)`: one request can send 100,000 items. "
                                      "Cap it to what the feature needs."))
     for m in SELECT_STAR.finditer(src):
+        if re.search(r"exists\s*\(\s*[\w$.]*$", src[max(0, m.start() - 40):m.start()]):
+            continue
         found.append((m.start(), "`select().from(...)` reads every column. On lists and exports select the "
                                  "fields the response shows."))
     for m in MONEY_FLOAT.finditer(src):

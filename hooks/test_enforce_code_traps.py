@@ -126,6 +126,10 @@ class WarnTier(unittest.TestCase):
         code += "const Paid = Orders.filter((O) => PAID_STATUSES.includes(O.Status))\n"
         self.assertIsNone(run(w(code), warn=True))
 
+    def test_select_inside_exists_is_fine(self):
+        code = "const Q = await db.select({ Id: T.Id }).from(T).where(exists(Tx.select().from(Users).where(eq(Users.Id, T.UserId))))\n"
+        self.assertIsNone(run(w(code), warn=True))
+
     def test_console_allowed_in_client_components(self):
         self.assertIsNone(run(w("console.error(E)\n", "src/components/Form.tsx"), warn=True))
 

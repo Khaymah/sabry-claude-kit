@@ -32,8 +32,9 @@ Acceptance: quality/BASELINE.md + INDEX for quality, architecture, practices; Ma
 - [x] Enforcement: hooks/enforce-code-traps.py (deny tier PreToolUse + warn tier PostToolUse), switch code_traps, Codex/Kimi/OpenCode wiring, 11 paired tests
 - [x] ESLint preset shipped with the kit (no-await-in-loop, no-floating-promises, regexp, complexity limits)
 - [x] Backfill the two required rows into the 20 files written before the rule
-- [ ] Testability: test-strategy · integration-db · e2e · concurrency-tests · test-data
-- [ ] Reliability: error-handling · graceful-shutdown · timeouts-retries · backpressure
+- [x] Testability: test-strategy · integration-db · e2e · concurrency-tests · test-data
+- [x] Reliability: error-handling · graceful-shutdown · timeouts-retries · backpressure
+- [x] Self-check: every ts example in Playbooks run through enforce-code-traps (only test-file code flagged)
 - [x] Quality-Gate.md: one line per axis pointing to quality/<axis>/
 
 ## Phase 3: Backend

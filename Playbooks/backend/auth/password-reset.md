@@ -90,7 +90,7 @@ export async function ResetPassword(Token: string, NewPassword: string) {
         eq(PasswordResetTokens.TokenHash, await HashToken(Token)),
         isNull(PasswordResetTokens.UsedAt),
         gt(PasswordResetTokens.ExpiresAt, sql`now()`),
-        exists(Tx.select().from(Users).where(and(eq(Users.Id, PasswordResetTokens.UserId), NotDeleted(Users), eq(Users.IsActive, true)))),
+        exists(Tx.select({ Id: Users.Id }).from(Users).where(and(eq(Users.Id, PasswordResetTokens.UserId), NotDeleted(Users), eq(Users.IsActive, true)))),
       ))
       .returning({ UserId: PasswordResetTokens.UserId })
     if (!Row) throw new AppError("AUTH_RESET_INVALID", 400)

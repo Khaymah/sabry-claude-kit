@@ -31,10 +31,10 @@ Design-time questions for each quality stay in `Quality-Gate.md`; these files ar
 
 | Situation | File | Status |
 |---|---|---|
-| try/catch, error classes, error middleware, unhandled rejections | `reliability/error-handling.md` | planned |
-| Shutdown, restarts, deploys dropping requests | `reliability/graceful-shutdown.md` | planned |
-| Timeouts, retries, backoff, circuit breaker | `reliability/timeouts-retries.md` | planned |
-| Overload, queues growing, load shedding | `reliability/backpressure.md` | planned |
+| try/catch, error classes, error middleware, unhandled rejections | `reliability/error-handling.md` | ✅ |
+| Shutdown, restarts, deploys dropping requests | `reliability/graceful-shutdown.md` | ✅ |
+| Timeouts, retries, backoff, circuit breaker | `reliability/timeouts-retries.md` | ✅ |
+| Overload, queues growing, load shedding | `reliability/backpressure.md` | ✅ |
 
 ## Availability
 
@@ -67,11 +67,11 @@ Design-time questions for each quality stay in `Quality-Gate.md`; these files ar
 
 | Situation | File | Status |
 |---|---|---|
-| What to test, how much, test pyramid | `testability/test-strategy.md` | planned |
-| Tests against a real database | `testability/integration-db.md` | planned |
-| End-to-end and browser tests | `testability/e2e.md` | planned |
-| Races, double spending, parallel requests | `testability/concurrency-tests.md` | planned |
-| Fixtures, factories, seeds | `testability/test-data.md` | planned |
+| What to test, how much, test pyramid | `testability/test-strategy.md` | ✅ |
+| Tests against a real database | `testability/integration-db.md` | ✅ |
+| End-to-end and browser tests | `testability/e2e.md` | ✅ |
+| Races, double spending, parallel requests | `testability/concurrency-tests.md` | ✅ |
+| Fixtures, factories, seeds | `testability/test-data.md` | ✅ |
 
 ## Cost
 
