@@ -39,7 +39,7 @@ Acceptance: quality/BASELINE.md + INDEX for quality, architecture, practices; Ma
 
 ## Phase 3: Backend
 Acceptance: ~20 playbooks (api, auth, data, reliability, files) + backend INDEX
-- [ ] List the ~20 files in backend/INDEX.md, then write them one by one
+- [x] Backend: 23 playbooks written (api 4 · auth 6 · data 6 · reliability 5 · files 2); every ts example passes enforce-code-traps
 
 ## Phase 4: Security + DevOps
 Acceptance: ~15 playbooks (secrets, headers, VPS+Nginx deploy, backups, monitoring) + INDEX

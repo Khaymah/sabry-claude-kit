@@ -40,14 +40,14 @@ Read first for any schema or query work: `Stacks/Database.md`. Default stack con
 | Situation | File | Status |
 |---|---|---|
 | Payments, webhooks, any write the client or a provider may retry | `reliability/idempotency.md` | ✅ |
-| Emails, reports, imports, anything slow or scheduled | `reliability/background-jobs.md` | planned |
-| Calling a third-party API | `reliability/outbound-calls.md` | planned |
-| Abuse limits, brute force, quotas | `reliability/rate-limit.md` | planned |
-| Caching reads, Redis, invalidation | `reliability/caching.md` | planned |
+| Emails, reports, imports, anything slow or scheduled | `reliability/background-jobs.md` | ✅ |
+| Calling a third-party API | `reliability/outbound-calls.md` | ✅ |
+| Abuse limits, brute force, quotas | `reliability/rate-limit.md` | ✅ |
+| Caching reads, Redis, invalidation | `reliability/caching.md` | ✅ |
 
 ## Files
 
 | Situation | File | Status |
 |---|---|---|
-| User uploads: images, documents, avatars | `files/uploads.md` | planned |
-| CSV / Excel import and export | `files/import-export.md` | planned |
+| User uploads: images, documents, avatars | `files/uploads.md` | ✅ |
+| CSV / Excel import and export | `files/import-export.md` | ✅ |
