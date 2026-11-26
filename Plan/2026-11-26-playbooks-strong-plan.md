@@ -14,12 +14,12 @@ Acceptance: every failed grader and hidden test of the Playbooks arm has a writt
 
 ## Phase 2: Strong benchmark design
 Acceptance: 20+ hard tasks on Bun + Hono + Drizzle + Postgres (PGlite), written by an agent that never read Playbooks, split into a dev set and a sealed held-out set; a pilot shows no-plugin passes under 60% of the held-out hidden tests
-- [ ] Fixture base: Bun + Hono + Drizzle + PGlite project with the owner's structure (Modules, PascalCase, SystemSettings), seed data, a test harness
-- [ ] Task author agent briefed from production failure classes only (concurrency, money, tenancy, auth, idempotency, migrations, performance at 100x, observability, file handling, integrations), never from Playbooks
-- [ ] Each task: an Arabic prompt as the owner writes it, hidden tests (instrumented: query counter, concurrent clients, clock control, tampered input), and a rubric only where no test can judge
-- [ ] Multi-step tasks: features that touch several modules, a bug with a misleading symptom, a change that must keep old behaviour
-- [ ] Validate each hidden test against a broken and a correct reference before use
-- [ ] Split: 8 dev tasks (used while fixing) and 12+ held-out tasks (sealed until Phase 4)
+- [x] Fixture base: Bun + Hono + Drizzle + PGlite project with the owner's structure (Modules, PascalCase, SystemSettings), seed data, a test harness
+- [x] Task author agent briefed from production failure classes only (concurrency, money, tenancy, auth, idempotency, migrations, performance at 100x, observability, file handling, integrations), never from Playbooks
+- [x] Each task: an Arabic prompt as the owner writes it, hidden tests (instrumented: query counter, concurrent clients, clock control, tampered input), and a rubric only where no test can judge
+- [x] Multi-step tasks: features that touch several modules, a bug with a misleading symptom, a change that must keep old behaviour
+- [x] Validate each hidden test against a broken and a correct reference before use
+- [x] Split: 8 dev tasks (used while fixing) and 12+ held-out tasks (sealed until Phase 4)
 - [ ] Pilot: no-plugin, 2 runs per task; drop or harden tasks it passes above 80%
 
 ## Phase 3: Fix the playbooks
@@ -42,6 +42,7 @@ Acceptance: owner decides merge and whether phases 4-7 of the original Playbooks
 - [ ] Brief for the owner with the decision and its numbers
 
 ## Notes
+- 2026-11-26: 20 tasks in /home/user/bench2 (7 fix, 8 build, 5 feature; 8 dev, 12 held-out). Every hidden test fails on broken and passes on fixed (VERIFY.md); spot-checked b08, f06, m17. Fixed references and hidden tests are moved out (tools/seal.sh) while models run; traces are scanned for reads of bench2 paths.
 - 2026-11-26: task author agent started in /home/user/bench2 (outside the kit, never reads Playbooks): 20 tasks, PGlite fixtures, broken/fixed references, dev/held-out split, one offline smoke run. Results go to bench2/VERIFY.md and SPLIT.md; copy into the PR branch as benchmark2/ when verified.
 - Diagnosis 2026-11-26 ($3.36): playbooks read in 3 of 18 runs (only h5). Main cause is routing, then strict Haiku rubrics and a Bash allow-list that blocked test runs, then content gaps (CSV BOM, no security domain). Fixes F1-F5 in Plan/2026-11-26-playbooks-diagnosis.md.
 - Owner, 2026-11-26: fix everything weak first, then be far stronger than both no-plugin and the old kit, measured by a very strong benchmark focused on complex tasks.
