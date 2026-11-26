@@ -613,5 +613,28 @@
     "coverage",
     "اختبر ايه",
     "استراتيجيه الاختبار"
+  ],
+  "backend/data/batch-edits.md": [
+    "order lines",
+    "invoice lines",
+    "edit lines",
+    "bulk update",
+    "bulk edit",
+    "stocktake",
+    "stock adjustment",
+    "price list",
+    "save all",
+    "line items",
+    "سطور الطلب",
+    "سطور الفاتوره",
+    "تعديل السطور",
+    "تعديل الطلب",
+    "تعديل الفاتوره",
+    "جرد",
+    "تسويه المخزون",
+    "تعديل المخزون",
+    "تعديل جماعي",
+    "قائمه الاسعار",
+    "حفظ الكل"
   ]
 }

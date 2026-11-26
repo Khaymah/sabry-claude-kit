@@ -34,6 +34,7 @@ Read first for any schema or query work: `Stacks/Database.md`. Default stack con
 | Several companies or stores in one app (SaaS) | `data/multi-tenancy.md` | ✅ |
 | Stock, seats, coupons, anything two users can grab at once | `data/concurrency.md` | ✅ |
 | Who changed what, history, audit log | `data/audit-log.md` | ✅ |
+| One request changes many rows: order or invoice lines, stocktake, bulk edits | `data/batch-edits.md` | ✅ |
 
 ## Reliability
 

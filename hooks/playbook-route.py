@@ -7,6 +7,11 @@ remembering to open Playbooks/INDEX.md (it did in 3 of 18 benchmark runs).
     playbook-route.py --agent    PreToolUse on Agent / Task: match the brief a subagent gets
     playbook-route.py --subagent SubagentStart: hand the coding subagent the playbooks matched
                                  for its brief, or else for the session
+    playbook-route.py --compact  SessionStart after a compaction: the session's latest playbooks
+                                 come back in full (a compaction drops the earlier excerpts)
+    playbook-route.py --stop     Stop: code was edited for a request that matched playbooks →
+                                 once per change set, the model turns the playbooks' edge-case
+                                 rows into tests, runs them and fixes what fails before it stops
 
 Matching: `Playbooks/routes.json` maps each playbook to keywords (English and Arabic; Arabic
 compared after normalising alef, ya, ta marbuta, tatweel and diacritics). Up to three files with
@@ -16,6 +21,7 @@ this session is named, not repeated. No match, no output.
 
 Switch: `playbooks` (on by default). Any failure exits 0 with no output.
 """
+import hashlib
 import json
 import os
 import re
@@ -39,6 +45,11 @@ CODING_AGENTS = {"senior-engineer", "backend-architect", "Frontend Developer", "
 DIACRITICS = re.compile(r"[ً-ْـ]")
 ARABIC = re.compile(r"[؀-ۿ]")
 KEEP_SECTIONS = ("Minimum", "Standard")
+CODE_EXT = (".ts", ".tsx", ".mts", ".cts", ".js", ".jsx", ".mjs", ".cjs", ".py", ".go", ".rs", ".cs", ".php", ".java", ".kt", ".sql")
+EDIT_TOOLS = ("Write", "Edit", "MultiEdit")
+TAIL_BYTES = 2 * 1024 * 1024
+MAX_EDGE_ROWS = 6
+REQUIRED_ROW = re.compile(r"100\s*[×x]|twice|parallel|same action", re.I)
 
 
 def normalise(text):
@@ -129,6 +140,88 @@ def write_state(path, items):
         pass
 
 
+def edge_rows(rel):
+    with open(os.path.join(PLAYBOOKS, *rel.split("/")), encoding="utf-8") as fh:
+        text = fh.read()
+    m = re.search(r"^## Edge cases\s*$(.*?)(?=^## |\Z)", text, re.M | re.S)
+    rows = []
+    for line in (m.group(1) if m else "").splitlines():
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        if len(cells) < 2 or set(cells[0]) <= set("-: ") or cells[0].lower() == "case":
+            continue
+        rows.append(f"{cells[0]} → {cells[1]}")
+    required = [r for r in rows if REQUIRED_ROW.search(r.split(" → ")[0])]
+    return (required + [r for r in rows if r not in required])[:MAX_EDGE_ROWS]
+
+
+def tail_entries(path):
+    try:
+        with open(path, "rb") as fh:
+            fh.seek(0, os.SEEK_END)
+            fh.seek(max(0, fh.tell() - TAIL_BYTES))
+            lines = fh.read().decode("utf-8", "replace").splitlines()
+    except Exception:
+        return []
+    out = []
+    for line in lines:
+        try:
+            entry = json.loads(line)
+        except ValueError:
+            continue
+        if isinstance(entry, dict):
+            out.append(entry)
+    return out
+
+
+def turn_edits(path):
+    """Code files edited after the owner's last message."""
+    edited = []
+    for entry in tail_entries(path):
+        content = (entry.get("message") or {}).get("content")
+        if entry.get("type") == "user" and not entry.get("isMeta") and not entry.get("isSidechain"):
+            if isinstance(content, str) or not any(isinstance(c, dict) and c.get("type") == "tool_result"
+                                                   for c in content or []):
+                edited = []
+            continue
+        if entry.get("type") != "assistant" or entry.get("isSidechain"):
+            continue
+        for c in content or []:
+            if isinstance(c, dict) and c.get("type") == "tool_use" and c.get("name") in EDIT_TOOLS:
+                f = str((c.get("input") or {}).get("file_path") or "")
+                if f.lower().endswith(CODE_EXT):
+                    edited.append(f)
+    return sorted(set(edited))
+
+
+def stop_check(payload, session):
+    if payload.get("stop_hook_active"):
+        return ""
+    files = read_state(state_path(session, "turn"))
+    if not files:
+        return ""
+    edited = turn_edits(payload.get("transcript_path") or "")
+    if not edited:
+        return ""
+    key = hashlib.sha1(json.dumps([files, edited]).encode()).hexdigest()
+    done = state_path(session, "stopped")
+    if key in read_state(done):
+        return ""
+    write_state(done, read_state(done) + [key])
+    lines = ["[playbooks] Before you stop: the playbooks for this request list these cases. For each one this "
+             "change can meet, add a test (or point to an existing one), run the tests, and fix what fails. "
+             "The 100x-data and same-action-twice-or-in-parallel rows apply to almost every change."]
+    for rel in files:
+        try:
+            rows = edge_rows(rel)
+        except OSError:
+            continue
+        if rows:
+            lines.append(f"`Playbooks/{rel}`:\n" + "\n".join(f"- {r[:220]}" for r in rows))
+    lines.append("Then end with one line per case: covered by which test, or why it does not apply. No new "
+                 "report; this is an addition to the one you gave.")
+    return "\n\n".join(lines) if len(lines) > 2 else ""
+
+
 def render(files, seen, header):
     fresh = [f for f in files if f not in seen]
     again = [f for f in files if f in seen]
@@ -176,6 +269,18 @@ def main():
             files = match(str(ti.get("prompt") or "") + " " + str(ti.get("description") or ""), routes)
             write_state(state_path(session, "brief"), files)
             return 0
+        if "--stop" in args:
+            reason = stop_check(payload, session)
+            if reason:
+                print(json.dumps({"decision": "block", "reason": reason}, ensure_ascii=False))
+            return 0
+        if "--compact" in args:
+            if payload.get("source") != "compact":
+                return 0
+            files = read_state(given)[-MAX_FILES:]
+            emit("SessionStart", render(files, set(), "[playbooks] Restored after the compaction: the playbooks "
+                                                      "this session was working with. Keep applying them:"))
+            return 0
         if "--subagent" in args:
             agent = str(payload.get("agent_type") or "").split(":")[-1]
             if agent not in CODING_AGENTS:
@@ -185,10 +290,11 @@ def main():
                                          "[playbooks] The kit's playbooks for this brief. Apply them:"))
             return 0
         files = match(payload.get("prompt"), routes)
-        seen = set(read_state(given))
-        text = render(files, seen, "[playbooks] This request matches the kit's playbooks. Apply them, and say "
-                                   "which ones you used in the report:")
-        write_state(given, list(dict.fromkeys(list(seen) + files)))
+        earlier = read_state(given)
+        text = render(files, set(earlier), "[playbooks] This request matches the kit's playbooks. Apply them, and "
+                                           "say which ones you used in the report:")
+        write_state(given, [f for f in earlier if f not in files] + files)
+        write_state(state_path(session, "turn"), files)
         emit("UserPromptSubmit", text)
     except Exception:
         return 0
