@@ -17,12 +17,12 @@ Read first for any schema or query work: `Stacks/Database.md`. Default stack con
 
 | Situation | File | Status |
 |---|---|---|
-| Sign-in, sign-out, sessions, refresh tokens | `auth/sessions.md` | planned |
+| Sign-in, sign-out, sessions, refresh tokens | `auth/sessions.md` | ✅ |
 | Forgot password, reset link, magic link, email verification token | `auth/password-reset.md` | ✅ |
-| Roles, permissions, "only the owner can edit" | `auth/rbac.md` | planned |
-| Sign in with Google / Apple | `auth/oauth.md` | planned |
-| API keys for customers or integrations | `auth/api-keys.md` | planned |
-| OTP by SMS or email, 2FA | `auth/otp.md` | planned |
+| Roles, permissions, "only the owner can edit" | `auth/rbac.md` | ✅ |
+| Sign in with Google / Apple | `auth/oauth.md` | ✅ |
+| API keys for customers or integrations | `auth/api-keys.md` | ✅ |
+| OTP by SMS or email, 2FA | `auth/otp.md` | ✅ |
 
 ## Data
 
