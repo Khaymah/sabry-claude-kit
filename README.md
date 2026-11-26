@@ -20,11 +20,12 @@
 6. [الإعدادات بتاعتك (الـ profile)](#الإعدادات-بتاعتك-الـ-profile)
 7. [جلسات السحابة](#جلسات-السحابة-claude-code-على-الويب)
 8. [التكلفة والأداء](#التكلفة-والأداء)
-8. [هيكل الريبو](#هيكل-الريبو)
-9. [طرق تنصيب تانية](#طرق-تنصيب-تانية)
-10. [التحديث](#التحديث)
-11. [التخصيص](#التخصيص)
-12. [الأمان والخصوصية](#الأمان-والخصوصية)
+9. [الـ Benchmark](#الـ-benchmark)
+10. [هيكل الريبو](#هيكل-الريبو)
+11. [طرق تنصيب تانية](#طرق-تنصيب-تانية)
+12. [التحديث](#التحديث)
+13. [التخصيص](#التخصيص)
+14. [الأمان والخصوصية](#الأمان-والخصوصية)
 
 ---
 
@@ -71,6 +72,8 @@
 | 🎼 **تنسيق الفريق** | `/sabry-kit:kit-orchestrate`: 7 playbooks بتسلسل ثابت، ملف handoff واحد، وجدول في الآخر بيقفل كل بند في المطلوب |
 | ✅ **معيار "خلصت"** | لكل نوع مهمة (feature · bugfix · refactor · migration)، مع مراجعة بسياق نضيف للتغييرات الكبيرة أو الحساسة |
 | 🔌 **أي AI agent** | `kit_install.py` بيثبّت التعليمات والـ skills والـ agents في Codex · Kimi · OpenCode · Kilo Code · Cline بصيغة كل أداة، و`hooks/adapt.py` بيشغّل نفس الـ hooks في Codex و Kimi و Gemini CLI و Cursor |
+| 📚 **Playbooks** | مكتبة best practices في `Playbooks/`: باك اند، والـ ilities (Maintainability · Observability · Performance · Testability · Reliability)، وكل ملف فيه حالة واحدة وقرار واحد و3 مستويات (Minimum · Standard · Advanced) وedge cases وVerify. الـ agent بيقرا الـ INDEX وبعدين من 1 لـ 3 ملفات بس. ومعاها `quality/BASELINE.md` لكل مهمة كود، و`quality/TRAPS.md` |
+| 🪤 **فخاخ الكود** | `enforce-code-traps` بيمنع `update` من غير `where`، و`forEach(async)`، والـ sync I/O، وبينبّه على N+1، و`fetch` من غير timeout، والـ input اللي مالوش حد، والفلوس بالـ float. ومعاه ESLint preset في `Templates/eslint/` ([الـ benchmark](#الـ-benchmark)) |
 | 💸 **تكلفة أقل** | context أصغر في كل جلسة، و agents أخف، وافتراضيات أوفر ([التفاصيل](#التكلفة-والأداء)) |
 
 ---
@@ -216,6 +219,30 @@ your-project/
 | `lessons`: تصحيح المالك بيتسجّل سطر في `.agents/memory/lessons.md` وبيظهر في الجلسات اللي بعدها عند نفس الملف أو الأمر | الغلط مايتكررش، ومن غير إعادة شرح |
 | `kit_plans`: المهمة الطويلة ليها خطة بـ checkboxes في `.agents/plans/<slug>/plan.md`، بتظهر في ملخص كل جلسة وبتتحفظ حالتها قبل ضغط الـ context | الجلسة الجديدة بتكمّل من أول بند مش متعلّم بدل ما تعيد الاستكشاف |
 
+## الـ Benchmark
+
+قارنّا 3 إعدادات على **12 مهمة** من السهل للصعب (بناء، إصلاح، تصميم، مراجعة كود)، مكتوبة بالعربي بالشكل اللي المالك بيكتب بيه: **من غير plugin**، و**الكيت قبل الـ Playbooks**، و**الكيت الحالي**. كل إعداد اتشغّل 3 مرات على كل مهمة (108 run على Sonnet، بتكلفة $19). وفوق الـ graders، فيه **tests مخفية** بتشتغل على الكود اللي الـ agent كتبه فعلاً بعد ما يخلص: race على المخزون، وN+1، وتسريب بين الـ tenants، وwebhook متلاعب فيه، وCSV فيه formula injection، والفلوس.
+
+| المقياس | من غير plugin | الكيت (قبل) | الكيت (Playbooks) |
+|---|---|---|---|
+| درجة الـ graders | 84% | 79% | **85%** |
+| الـ tests المخفية (مهام البناء والإصلاح) | 99% | 96% | **100%** |
+| المهام المتوسطة (درجة) | 69% | 71% | **81%** |
+| مهام التصميم (درجة) | 61% | 62% | **71%** |
+| المهام الصعبة (درجة) | **85%** | 82% | 79% |
+| التكلفة لكل run | **$0.098** | $0.209 | $0.221 |
+| الـ input tokens لكل run | **60K** | 153K | 173K |
+
+**الخلاصة بصراحة:**
+- **الـ Playbooks صلّحت حاجة كانت بايظة:** الكيت القديم كان **أسوأ** من Claude من غير plugin (79% مقابل 84%). الكيت الحالي رجع فوقه، وده بنفس تكلفة الكيت القديم تقريباً (+6%).
+- **المكسب الحقيقي في المتوسط والتصميم** (+10 إلى +12 نقطة). في المهام السهلة الكل جاب 100%، وفي الصعبة الفرق جوه الـ noise وفي الاتجاه العكسي بشوية.
+- **التمن:** الكيت بيكلّف حوالي **2.25×** من Claude من غير plugin، وبيستهلك حوالي 3× input tokens، لأن الـ agent بيقرا القواعد والـ playbooks. ده اللي الخطوة الجاية لازم تقلّله.
+- 3 runs لكل إعداد يعني فروق النقطتين-تلاتة مش حاسمة. خليك على الـ tests المخفية وعلى تقسيم المهام.
+
+**من غير موديل (deterministic):** الكيت الحالي بيمسك **18 من 22** فخ أثناء الكتابة (5 منهم بيتمنعوا قبل الكتابة)، والقديم **0 من 22**، ومن غير ولا false positive على 20 snippet سليم. والـ context اللي بيتحقن أول الجلسة زي ما هو (≈13.4K حرف)، لأن المكتبة بتتقري عند الحاجة بس.
+
+التقرير الكامل (لكل مهمة، وبالصعوبة، وبنوع المهمة، والمنهجية والحدود): [`benchmark/RESULTS.md`](benchmark/RESULTS.md). وعشان تعيد التجربة: `benchmark/run.sh origin/main 3 sonnet`.
+
 ---
 
 ## هيكل الريبو
@@ -231,6 +258,9 @@ your-project/
 | `hooks/` | كل الـ hooks + `kit_profile.py` + `doctor.py` + `adapt.py` + الاختبارات. **دليلها الكامل: [hooks/README.md](hooks/README.md)** |
 | `sounds/` | أصوات الإشعارات + `play.py` (Windows · macOS · Linux) |
 | `Stacks/` | إرشادات لكل stack (Next.js · Bun/Hono · Node · React · Go · Rust · PHP · .NET · Astro · GraphQL) · ومعاهم `Stacks/Database.md` لقواعد البيانات في كل الـ stacks، والـ config في جدول `SystemSettings` مش في env vars |
+| `Playbooks/` | مكتبة الـ best practices: `INDEX.md` للتوجيه · `backend/` · `quality/` (`BASELINE.md` · `TRAPS.md` · الـ ilities) · `architecture/` · `practices/` |
+| `Templates/eslint/` | ESLint preset للفخاخ اللي محتاجة types |
+| `benchmark/` | الـ benchmark: المهام · الـ tests المخفية · `run.sh` · [`RESULTS.md`](benchmark/RESULTS.md) |
 | `Patterns/` · `Anti-patterns/` · `Decisions/` | المعرفة المتراكمة: اللي نجح، واللي نتجنبه، وأسباب القرارات (ADR) |
 | `Quality-Gate.md` | المحاور الثمانية للقرارات المعمارية |
 | `CommunicationProfiles.md` | أسلوب الكتابة حسب الجمهور |

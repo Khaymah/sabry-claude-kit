@@ -1,0 +1,812 @@
+{
+ "Meta": {
+  "new": {
+   "claudeVersion": "2.1.332",
+   "startedAt": "2026-11-26T01:12:54.317Z",
+   "durationSeconds": 100,
+   "costUsd": 1.007936,
+   "partial": false,
+   "partialReason": null,
+   "Model": "sonnet"
+  },
+  "new-1": {
+   "claudeVersion": "2.1.332",
+   "startedAt": "2026-11-26T01:14:34.751Z",
+   "durationSeconds": 79,
+   "costUsd": 0.8353948,
+   "partial": false,
+   "partialReason": null,
+   "Model": "sonnet"
+  },
+  "new-2": {
+   "claudeVersion": "2.1.332",
+   "startedAt": "2026-11-26T01:15:54.990Z",
+   "durationSeconds": 84,
+   "costUsd": 0.8130474999999999,
+   "partial": false,
+   "partialReason": null,
+   "Model": "sonnet"
+  },
+  "old": {
+   "claudeVersion": "2.1.332",
+   "startedAt": "2026-11-26T01:17:19.422Z",
+   "durationSeconds": 561,
+   "costUsd": 7.5124504000000005,
+   "partial": false,
+   "partialReason": null,
+   "Model": "sonnet"
+  }
+ },
+ "Totals": {
+  "Runs": 108,
+  "CostUsd": 19.0
+ },
+ "Overall": {
+  "All": {
+   "baseline": {
+    "Runs": 36,
+    "GraderScore": 0.836,
+    "HiddenScore": 0.988,
+    "CodeTraps": 0,
+    "CostUsd": 0.098,
+    "Turns": 4.667,
+    "DurationSeconds": 38.417,
+    "InputTokens": 60125.361,
+    "OutputTokens": 4314.028,
+    "Errors": 0
+   },
+   "kit-new": {
+    "Runs": 36,
+    "GraderScore": 0.852,
+    "HiddenScore": 1.0,
+    "CodeTraps": 0,
+    "CostUsd": 0.221,
+    "Turns": 7.306,
+    "DurationSeconds": 60.333,
+    "InputTokens": 173352.083,
+    "OutputTokens": 6725.25,
+    "Errors": 0
+   },
+   "kit-old": {
+    "Runs": 36,
+    "GraderScore": 0.789,
+    "HiddenScore": 0.964,
+    "CodeTraps": 0,
+    "CostUsd": 0.209,
+    "Turns": 6.722,
+    "DurationSeconds": 60.278,
+    "InputTokens": 153259.278,
+    "OutputTokens": 6465.361,
+    "Errors": 0
+   }
+  }
+ },
+ "ByTier": {
+  "Easy": {
+   "baseline": {
+    "Runs": 9,
+    "GraderScore": 1,
+    "HiddenScore": 1.0,
+    "CodeTraps": 0,
+    "CostUsd": 0.093,
+    "Turns": 4.556,
+    "DurationSeconds": 30.667,
+    "InputTokens": 64243.111,
+    "OutputTokens": 3622,
+    "Errors": 0
+   },
+   "kit-new": {
+    "Runs": 9,
+    "GraderScore": 1,
+    "HiddenScore": 1.0,
+    "CodeTraps": 0,
+    "CostUsd": 0.151,
+    "Turns": 4.889,
+    "DurationSeconds": 37.556,
+    "InputTokens": 121852.333,
+    "OutputTokens": 4016.444,
+    "Errors": 0
+   },
+   "kit-old": {
+    "Runs": 9,
+    "GraderScore": 0.852,
+    "HiddenScore": 1.0,
+    "CodeTraps": 0,
+    "CostUsd": 0.146,
+    "Turns": 4.444,
+    "DurationSeconds": 37.556,
+    "InputTokens": 104965.222,
+    "OutputTokens": 3897.778,
+    "Errors": 0
+   }
+  },
+  "Hard": {
+   "baseline": {
+    "Runs": 15,
+    "GraderScore": 0.85,
+    "HiddenScore": 1.0,
+    "CodeTraps": 0,
+    "CostUsd": 0.098,
+    "Turns": 5.867,
+    "DurationSeconds": 40.333,
+    "InputTokens": 61820.2,
+    "OutputTokens": 4464.733,
+    "Errors": 0
+   },
+   "kit-new": {
+    "Runs": 15,
+    "GraderScore": 0.794,
+    "HiddenScore": 1.0,
+    "CodeTraps": 0,
+    "CostUsd": 0.25,
+    "Turns": 8.867,
+    "DurationSeconds": 72.2,
+    "InputTokens": 206450.333,
+    "OutputTokens": 8330.8,
+    "Errors": 0
+   },
+   "kit-old": {
+    "Runs": 15,
+    "GraderScore": 0.817,
+    "HiddenScore": 1.0,
+    "CodeTraps": 0,
+    "CostUsd": 0.237,
+    "Turns": 8,
+    "DurationSeconds": 74.467,
+    "InputTokens": 179699.933,
+    "OutputTokens": 8066.267,
+    "Errors": 0
+   }
+  },
+  "Medium": {
+   "baseline": {
+    "Runs": 12,
+    "GraderScore": 0.694,
+    "HiddenScore": 0.958,
+    "CodeTraps": 0,
+    "CostUsd": 0.102,
+    "Turns": 3.25,
+    "DurationSeconds": 41.833,
+    "InputTokens": 54918.5,
+    "OutputTokens": 4644.667,
+    "Errors": 0
+   },
+   "kit-new": {
+    "Runs": 12,
+    "GraderScore": 0.812,
+    "HiddenScore": 1.0,
+    "CodeTraps": 0,
+    "CostUsd": 0.237,
+    "Turns": 7.167,
+    "DurationSeconds": 62.583,
+    "InputTokens": 170604.083,
+    "OutputTokens": 6749.917,
+    "Errors": 0
+   },
+   "kit-old": {
+    "Runs": 12,
+    "GraderScore": 0.708,
+    "HiddenScore": 0.875,
+    "CodeTraps": 0,
+    "CostUsd": 0.22,
+    "Turns": 6.833,
+    "DurationSeconds": 59.583,
+    "InputTokens": 156429,
+    "OutputTokens": 6389.917,
+    "Errors": 0
+   }
+  }
+ },
+ "ByKind": {
+  "build": {
+   "baseline": {
+    "Runs": 12,
+    "GraderScore": 1,
+    "HiddenScore": 0.979,
+    "CodeTraps": 0,
+    "CostUsd": 0.115,
+    "Turns": 5.917,
+    "DurationSeconds": 38.417,
+    "InputTokens": 89548.667,
+    "OutputTokens": 4825.25,
+    "Errors": 0
+   },
+   "kit-new": {
+    "Runs": 12,
+    "GraderScore": 0.979,
+    "HiddenScore": 1.0,
+    "CodeTraps": 0,
+    "CostUsd": 0.178,
+    "Turns": 6.917,
+    "DurationSeconds": 46.167,
+    "InputTokens": 164409.75,
+    "OutputTokens": 5385.667,
+    "Errors": 0
+   },
+   "kit-old": {
+    "Runs": 12,
+    "GraderScore": 0.847,
+    "HiddenScore": 0.938,
+    "CodeTraps": 0,
+    "CostUsd": 0.168,
+    "Turns": 6.583,
+    "DurationSeconds": 42.75,
+    "InputTokens": 147680,
+    "OutputTokens": 4909.417,
+    "Errors": 0
+   }
+  },
+  "design": {
+   "baseline": {
+    "Runs": 12,
+    "GraderScore": 0.611,
+    "HiddenScore": null,
+    "CodeTraps": 0,
+    "CostUsd": 0.097,
+    "Turns": 1,
+    "DurationSeconds": 53.25,
+    "InputTokens": 18085.75,
+    "OutputTokens": 5457,
+    "Errors": 0
+   },
+   "kit-new": {
+    "Runs": 12,
+    "GraderScore": 0.708,
+    "HiddenScore": null,
+    "CodeTraps": 0,
+    "CostUsd": 0.342,
+    "Turns": 9,
+    "DurationSeconds": 103.417,
+    "InputTokens": 214475.75,
+    "OutputTokens": 11570.167,
+    "Errors": 0
+   },
+   "kit-old": {
+    "Runs": 12,
+    "GraderScore": 0.625,
+    "HiddenScore": null,
+    "CodeTraps": 0,
+    "CostUsd": 0.313,
+    "Turns": 6.917,
+    "DurationSeconds": 103.583,
+    "InputTokens": 164905.25,
+    "OutputTokens": 11188.333,
+    "Errors": 0
+   }
+  },
+  "fix": {
+   "baseline": {
+    "Runs": 9,
+    "GraderScore": 0.861,
+    "HiddenScore": 1.0,
+    "CodeTraps": 0,
+    "CostUsd": 0.089,
+    "Turns": 9.111,
+    "DurationSeconds": 24.333,
+    "InputTokens": 90963.667,
+    "OutputTokens": 2818.111,
+    "Errors": 0
+   },
+   "kit-new": {
+    "Runs": 9,
+    "GraderScore": 0.824,
+    "HiddenScore": 1.0,
+    "CodeTraps": 0,
+    "CostUsd": 0.154,
+    "Turns": 7.667,
+    "DurationSeconds": 32.778,
+    "InputTokens": 178404,
+    "OutputTokens": 3509.444,
+    "Errors": 0
+   },
+   "kit-old": {
+    "Runs": 9,
+    "GraderScore": 0.861,
+    "HiddenScore": 1.0,
+    "CodeTraps": 0,
+    "CostUsd": 0.156,
+    "Turns": 8.556,
+    "DurationSeconds": 36.222,
+    "InputTokens": 186455,
+    "OutputTokens": 3592.333,
+    "Errors": 0
+   }
+  },
+  "review": {
+   "baseline": {
+    "Runs": 3,
+    "GraderScore": 1,
+    "HiddenScore": null,
+    "CodeTraps": 0,
+    "CostUsd": 0.062,
+    "Turns": 1,
+    "DurationSeconds": 21.333,
+    "InputTokens": 18075.667,
+    "OutputTokens": 2185,
+    "Errors": 0
+   },
+   "kit-new": {
+    "Runs": 3,
+    "GraderScore": 1,
+    "HiddenScore": null,
+    "CodeTraps": 0,
+    "CostUsd": 0.11,
+    "Turns": 1,
+    "DurationSeconds": 27.333,
+    "InputTokens": 29471,
+    "OutputTokens": 2351.333,
+    "Errors": 0
+   },
+   "kit-old": {
+    "Runs": 3,
+    "GraderScore": 1,
+    "HiddenScore": null,
+    "CodeTraps": 0,
+    "CostUsd": 0.111,
+    "Turns": 1,
+    "DurationSeconds": 29.333,
+    "InputTokens": 29405.333,
+    "OutputTokens": 2416.333,
+    "Errors": 0
+   }
+  }
+ },
+ "ByCase": {
+  "e1-list-endpoint": {
+   "baseline": {
+    "Runs": 3,
+    "GraderScore": 1,
+    "HiddenScore": 1.0,
+    "CodeTraps": 0,
+    "CostUsd": 0.105,
+    "Turns": 7.333,
+    "DurationSeconds": 35,
+    "InputTokens": 87542.667,
+    "OutputTokens": 4047.333,
+    "Errors": 0
+   },
+   "kit-new": {
+    "Runs": 3,
+    "GraderScore": 1,
+    "HiddenScore": 1.0,
+    "CodeTraps": 0,
+    "CostUsd": 0.175,
+    "Turns": 6.667,
+    "DurationSeconds": 44.667,
+    "InputTokens": 162030.333,
+    "OutputTokens": 5150.333,
+    "Errors": 0
+   },
+   "kit-old": {
+    "Runs": 3,
+    "GraderScore": 1,
+    "HiddenScore": 1.0,
+    "CodeTraps": 0,
+    "CostUsd": 0.172,
+    "Turns": 6.667,
+    "DurationSeconds": 45,
+    "InputTokens": 160296.667,
+    "OutputTokens": 5010.667,
+    "Errors": 0
+   }
+  },
+  "e2-cart-total": {
+   "baseline": {
+    "Runs": 3,
+    "GraderScore": 1,
+    "HiddenScore": 1.0,
+    "CodeTraps": 0,
+    "CostUsd": 0.112,
+    "Turns": 5.333,
+    "DurationSeconds": 35.667,
+    "InputTokens": 87111,
+    "OutputTokens": 4633.667,
+    "Errors": 0
+   },
+   "kit-new": {
+    "Runs": 3,
+    "GraderScore": 1,
+    "HiddenScore": 1.0,
+    "CodeTraps": 0,
+    "CostUsd": 0.167,
+    "Turns": 7,
+    "DurationSeconds": 40.667,
+    "InputTokens": 174055.667,
+    "OutputTokens": 4547.667,
+    "Errors": 0
+   },
+   "kit-old": {
+    "Runs": 3,
+    "GraderScore": 0.556,
+    "HiddenScore": 1.0,
+    "CodeTraps": 0,
+    "CostUsd": 0.156,
+    "Turns": 5.667,
+    "DurationSeconds": 38.333,
+    "InputTokens": 125193.667,
+    "OutputTokens": 4266.333,
+    "Errors": 0
+   }
+  },
+  "e3-review-diff": {
+   "baseline": {
+    "Runs": 3,
+    "GraderScore": 1,
+    "HiddenScore": null,
+    "CodeTraps": 0,
+    "CostUsd": 0.062,
+    "Turns": 1,
+    "DurationSeconds": 21.333,
+    "InputTokens": 18075.667,
+    "OutputTokens": 2185,
+    "Errors": 0
+   },
+   "kit-new": {
+    "Runs": 3,
+    "GraderScore": 1,
+    "HiddenScore": null,
+    "CodeTraps": 0,
+    "CostUsd": 0.11,
+    "Turns": 1,
+    "DurationSeconds": 27.333,
+    "InputTokens": 29471,
+    "OutputTokens": 2351.333,
+    "Errors": 0
+   },
+   "kit-old": {
+    "Runs": 3,
+    "GraderScore": 1,
+    "HiddenScore": null,
+    "CodeTraps": 0,
+    "CostUsd": 0.111,
+    "Turns": 1,
+    "DurationSeconds": 29.333,
+    "InputTokens": 29405.333,
+    "OutputTokens": 2416.333,
+    "Errors": 0
+   }
+  },
+  "h1-stock-race": {
+   "baseline": {
+    "Runs": 3,
+    "GraderScore": 0.667,
+    "HiddenScore": 1.0,
+    "CodeTraps": 0,
+    "CostUsd": 0.089,
+    "Turns": 10,
+    "DurationSeconds": 27,
+    "InputTokens": 97754,
+    "OutputTokens": 2679.667,
+    "Errors": 0
+   },
+   "kit-new": {
+    "Runs": 3,
+    "GraderScore": 0.667,
+    "HiddenScore": 1.0,
+    "CodeTraps": 0,
+    "CostUsd": 0.154,
+    "Turns": 7.667,
+    "DurationSeconds": 37.333,
+    "InputTokens": 177606,
+    "OutputTokens": 3482,
+    "Errors": 0
+   },
+   "kit-old": {
+    "Runs": 3,
+    "GraderScore": 0.667,
+    "HiddenScore": 1.0,
+    "CodeTraps": 0,
+    "CostUsd": 0.155,
+    "Turns": 8.667,
+    "DurationSeconds": 42.333,
+    "InputTokens": 177455.667,
+    "OutputTokens": 3679.667,
+    "Errors": 0
+   }
+  },
+  "h2-n-plus-one": {
+   "baseline": {
+    "Runs": 3,
+    "GraderScore": 1,
+    "HiddenScore": 1.0,
+    "CodeTraps": 0,
+    "CostUsd": 0.085,
+    "Turns": 9,
+    "DurationSeconds": 21.333,
+    "InputTokens": 84273.333,
+    "OutputTokens": 2621,
+    "Errors": 0
+   },
+   "kit-new": {
+    "Runs": 3,
+    "GraderScore": 0.889,
+    "HiddenScore": 1.0,
+    "CodeTraps": 0,
+    "CostUsd": 0.152,
+    "Turns": 7.667,
+    "DurationSeconds": 30.333,
+    "InputTokens": 190081.667,
+    "OutputTokens": 3297.333,
+    "Errors": 0
+   },
+   "kit-old": {
+    "Runs": 3,
+    "GraderScore": 1,
+    "HiddenScore": 1.0,
+    "CodeTraps": 0,
+    "CostUsd": 0.154,
+    "Turns": 8,
+    "DurationSeconds": 32.333,
+    "InputTokens": 179569.333,
+    "OutputTokens": 3450.333,
+    "Errors": 0
+   }
+  },
+  "h3-tenant-leak": {
+   "baseline": {
+    "Runs": 3,
+    "GraderScore": 0.917,
+    "HiddenScore": 1.0,
+    "CodeTraps": 0,
+    "CostUsd": 0.093,
+    "Turns": 8.333,
+    "DurationSeconds": 24.667,
+    "InputTokens": 90863.667,
+    "OutputTokens": 3153.667,
+    "Errors": 0
+   },
+   "kit-new": {
+    "Runs": 3,
+    "GraderScore": 0.917,
+    "HiddenScore": 1.0,
+    "CodeTraps": 0,
+    "CostUsd": 0.155,
+    "Turns": 7.667,
+    "DurationSeconds": 30.667,
+    "InputTokens": 167524.333,
+    "OutputTokens": 3749,
+    "Errors": 0
+   },
+   "kit-old": {
+    "Runs": 3,
+    "GraderScore": 0.917,
+    "HiddenScore": 1.0,
+    "CodeTraps": 0,
+    "CostUsd": 0.16,
+    "Turns": 9,
+    "DurationSeconds": 34,
+    "InputTokens": 202340,
+    "OutputTokens": 3647,
+    "Errors": 0
+   }
+  },
+  "h4-live-migration": {
+   "baseline": {
+    "Runs": 3,
+    "GraderScore": 1,
+    "HiddenScore": null,
+    "CodeTraps": 0,
+    "CostUsd": 0.117,
+    "Turns": 1,
+    "DurationSeconds": 66.667,
+    "InputTokens": 18101.333,
+    "OutputTokens": 7407,
+    "Errors": 0
+   },
+   "kit-new": {
+    "Runs": 3,
+    "GraderScore": 1,
+    "HiddenScore": null,
+    "CodeTraps": 0,
+    "CostUsd": 0.488,
+    "Turns": 10.333,
+    "DurationSeconds": 164.667,
+    "InputTokens": 249684,
+    "OutputTokens": 20660.333,
+    "Errors": 0
+   },
+   "kit-old": {
+    "Runs": 3,
+    "GraderScore": 0.833,
+    "HiddenScore": null,
+    "CodeTraps": 0,
+    "CostUsd": 0.434,
+    "Turns": 10,
+    "DurationSeconds": 145.667,
+    "InputTokens": 217311,
+    "OutputTokens": 16943.333,
+    "Errors": 0
+   }
+  },
+  "h5-production-monitoring": {
+   "baseline": {
+    "Runs": 3,
+    "GraderScore": 0.667,
+    "HiddenScore": null,
+    "CodeTraps": 0,
+    "CostUsd": 0.107,
+    "Turns": 1,
+    "DurationSeconds": 62,
+    "InputTokens": 18108.667,
+    "OutputTokens": 6462.333,
+    "Errors": 0
+   },
+   "kit-new": {
+    "Runs": 3,
+    "GraderScore": 0.5,
+    "HiddenScore": null,
+    "CodeTraps": 0,
+    "CostUsd": 0.3,
+    "Turns": 11,
+    "DurationSeconds": 98,
+    "InputTokens": 247355.667,
+    "OutputTokens": 10465.333,
+    "Errors": 0
+   },
+   "kit-old": {
+    "Runs": 3,
+    "GraderScore": 0.667,
+    "HiddenScore": null,
+    "CodeTraps": 0,
+    "CostUsd": 0.281,
+    "Turns": 4.333,
+    "DurationSeconds": 118,
+    "InputTokens": 121823.667,
+    "OutputTokens": 12611,
+    "Errors": 0
+   }
+  },
+  "m1-password-reset-design": {
+   "baseline": {
+    "Runs": 3,
+    "GraderScore": 0.778,
+    "HiddenScore": null,
+    "CodeTraps": 0,
+    "CostUsd": 0.092,
+    "Turns": 1,
+    "DurationSeconds": 48.667,
+    "InputTokens": 18063.667,
+    "OutputTokens": 4838.667,
+    "Errors": 0
+   },
+   "kit-new": {
+    "Runs": 3,
+    "GraderScore": 1,
+    "HiddenScore": null,
+    "CodeTraps": 0,
+    "CostUsd": 0.38,
+    "Turns": 10.333,
+    "DurationSeconds": 103.667,
+    "InputTokens": 255345,
+    "OutputTokens": 11235.667,
+    "Errors": 0
+   },
+   "kit-old": {
+    "Runs": 3,
+    "GraderScore": 1,
+    "HiddenScore": null,
+    "CodeTraps": 0,
+    "CostUsd": 0.374,
+    "Turns": 11,
+    "DurationSeconds": 106,
+    "InputTokens": 261742,
+    "OutputTokens": 11568.667,
+    "Errors": 0
+   }
+  },
+  "m2-webhook-handler": {
+   "baseline": {
+    "Runs": 3,
+    "GraderScore": 1,
+    "HiddenScore": 1.0,
+    "CodeTraps": 0,
+    "CostUsd": 0.136,
+    "Turns": 5.333,
+    "DurationSeconds": 46.667,
+    "InputTokens": 89908.333,
+    "OutputTokens": 6336.333,
+    "Errors": 0
+   },
+   "kit-new": {
+    "Runs": 3,
+    "GraderScore": 1,
+    "HiddenScore": 1.0,
+    "CodeTraps": 0,
+    "CostUsd": 0.2,
+    "Turns": 6.333,
+    "DurationSeconds": 56,
+    "InputTokens": 141726,
+    "OutputTokens": 7103,
+    "Errors": 0
+   },
+   "kit-old": {
+    "Runs": 3,
+    "GraderScore": 0.833,
+    "HiddenScore": 0.833,
+    "CodeTraps": 0,
+    "CostUsd": 0.18,
+    "Turns": 7,
+    "DurationSeconds": 46.333,
+    "InputTokens": 137634,
+    "OutputTokens": 5903.333,
+    "Errors": 0
+   }
+  },
+  "m3-csv-export": {
+   "baseline": {
+    "Runs": 3,
+    "GraderScore": 1,
+    "HiddenScore": 0.917,
+    "CodeTraps": 0,
+    "CostUsd": 0.108,
+    "Turns": 5.667,
+    "DurationSeconds": 36.333,
+    "InputTokens": 93632.667,
+    "OutputTokens": 4283.667,
+    "Errors": 0
+   },
+   "kit-new": {
+    "Runs": 3,
+    "GraderScore": 0.917,
+    "HiddenScore": 1.0,
+    "CodeTraps": 0,
+    "CostUsd": 0.17,
+    "Turns": 7.667,
+    "DurationSeconds": 43.333,
+    "InputTokens": 179827,
+    "OutputTokens": 4741.667,
+    "Errors": 0
+   },
+   "kit-old": {
+    "Runs": 3,
+    "GraderScore": 1,
+    "HiddenScore": 0.917,
+    "CodeTraps": 0,
+    "CostUsd": 0.164,
+    "Turns": 7,
+    "DurationSeconds": 41.333,
+    "InputTokens": 167595.667,
+    "OutputTokens": 4457.333,
+    "Errors": 0
+   }
+  },
+  "m4-signin-bruteforce": {
+   "baseline": {
+    "Runs": 3,
+    "GraderScore": 0.0,
+    "HiddenScore": null,
+    "CodeTraps": 0,
+    "CostUsd": 0.072,
+    "Turns": 1,
+    "DurationSeconds": 35.667,
+    "InputTokens": 18069.333,
+    "OutputTokens": 3120,
+    "Errors": 0
+   },
+   "kit-new": {
+    "Runs": 3,
+    "GraderScore": 0.333,
+    "HiddenScore": null,
+    "CodeTraps": 0,
+    "CostUsd": 0.199,
+    "Turns": 4.333,
+    "DurationSeconds": 47.333,
+    "InputTokens": 105518.333,
+    "OutputTokens": 3919.333,
+    "Errors": 0
+   },
+   "kit-old": {
+    "Runs": 3,
+    "GraderScore": 0.0,
+    "HiddenScore": null,
+    "CodeTraps": 0,
+    "CostUsd": 0.164,
+    "Turns": 2.333,
+    "DurationSeconds": 44.667,
+    "InputTokens": 58744.333,
+    "OutputTokens": 3630.333,
+    "Errors": 0
+   }
+  }
+ }
+}

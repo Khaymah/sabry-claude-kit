@@ -40,14 +40,16 @@ def arm(group, name, key):
 def model_sections(s):
     md = []
     meta = s["Meta"]
-    new, old = meta.get("new", {}), meta.get("old", {})
     md.append("## Setup\n")
+    passes = sorted(meta.values(), key=lambda m: m.get("startedAt") or "")
     md.append(table(["Item", "Value"], [
-        ["Model under test", new.get("Model") or "session default"],
-        ["Claude Code", new.get("claudeVersion")],
-        ["Started", new.get("startedAt")],
-        ["Total cost (list price)", money((new.get("costUsd") or 0) + (old.get("costUsd") or 0))],
-        ["Partial run", "yes: " + str(new.get("partialReason") or old.get("partialReason")) if (new.get("partial") or old.get("partial")) else "no"],
+        ["Model under test", passes[0].get("Model") or "session default"],
+        ["Judge model", "haiku (default)"],
+        ["Claude Code", passes[0].get("claudeVersion")],
+        ["Runs", f"{s['Totals']['Runs']} (12 tasks × 3 arms × 3 runs)"],
+        ["Dates", f"{(passes[0].get('startedAt') or '')[:10]} → {(passes[-1].get('startedAt') or '')[:10]}"],
+        ["Total cost of the runs (list price)", money(s["Totals"]["CostUsd"])],
+        ["Runs dropped for account limits", "re-run in a second pass; none scored"],
     ]))
     o = s["Overall"]["All"]
     md.append("\n## Headline\n")

@@ -18,11 +18,12 @@ Built for [Claude Code](https://code.claude.com) as a plugin, and installs into 
 6. [Your settings (the profile)](#your-settings-the-profile)
 7. [Cloud sessions](#cloud-sessions-claude-code-on-the-web)
 8. [Cost and performance](#cost-and-performance)
-8. [Repository layout](#repository-layout)
-9. [Other ways to install](#other-ways-to-install)
-10. [Updating](#updating)
-11. [Customizing](#customizing)
-12. [Security and privacy](#security-and-privacy)
+9. [Benchmark](#benchmark)
+10. [Repository layout](#repository-layout)
+11. [Other ways to install](#other-ways-to-install)
+12. [Updating](#updating)
+13. [Customizing](#customizing)
+14. [Security and privacy](#security-and-privacy)
 
 ---
 
@@ -69,6 +70,8 @@ Built for [Claude Code](https://code.claude.com) as a plugin, and installs into 
 | 🎼 **Team orchestration** | `/sabry-kit:kit-orchestrate`: 7 playbooks with a fixed sequence, one handoff file, and a closing table that accounts for every ask |
 | ✅ **Definition of done** | Per task type (feature · bugfix · refactor · migration), with a clean-context review for large or sensitive changes |
 | 🔌 **Any AI agent** | `kit_install.py` installs instructions, skills and agents into Codex, Kimi, OpenCode, Kilo Code and Cline in each tool's format; `hooks/adapt.py` runs the same hooks under Codex, Kimi, Gemini CLI and Cursor |
+| 📚 **Playbooks** | A best-practice library in `Playbooks/`: backend and the qualities (maintainability, observability, performance, testability, reliability). One situation per file, one decision, three levels (Minimum · Standard · Advanced), edge cases and verify checks. Agents read an index, then 1-3 files. Plus `quality/BASELINE.md` for every code task and `quality/TRAPS.md` |
+| 🪤 **Code traps** | `enforce-code-traps` blocks `update` without `where`, `forEach(async)` and sync I/O, and flags N+1, `fetch` without a timeout, unbounded input and float money; an ESLint preset in `Templates/eslint/` ([benchmark](#benchmark)) |
 | 💸 **Lower cost** | Smaller context per session, lighter agents, cheaper defaults ([details](#cost-and-performance)) |
 
 ---
@@ -213,6 +216,30 @@ The profile stores **only your choices**; every other switch comes from the defa
 | `lessons`: an owner correction becomes one line in `.agents/memory/lessons.md` and is shown in later sessions at the same file or command | the mistake is not repeated, with no re-explaining |
 | `kit_plans`: a long task gets a checkbox plan in `.agents/plans/<slug>/plan.md`, shown in every session brief and saved before compaction | a new session continues from the first unchecked item instead of re-exploring |
 
+## Benchmark
+
+Three setups on **12 tasks** from easy to hard (build, fix, design, code review), written in Arabic the way the owner types them: **no plugin**, **the kit before Playbooks**, and **the current kit**. Each setup ran 3 times per task (108 runs on Sonnet, $19). Besides the graders, **hidden tests** run against the code each agent actually wrote: a stock race, an N+1 page, a tenant leak, a tampered webhook, CSV formula injection, money.
+
+| Metric | No plugin | Kit (before) | Kit (Playbooks) |
+|---|---|---|---|
+| Grader score | 84% | 79% | **85%** |
+| Hidden tests (build and fix tasks) | 99% | 96% | **100%** |
+| Medium tasks (score) | 69% | 71% | **81%** |
+| Design tasks (score) | 61% | 62% | **71%** |
+| Hard tasks (score) | **85%** | 82% | 79% |
+| Cost per run | **$0.098** | $0.209 | $0.221 |
+| Input tokens per run | **60K** | 153K | 173K |
+
+**Honest reading:**
+- **Playbooks fixed a regression:** the old kit scored **below** plain Claude (79% vs 84%); the current kit is back above it, at almost the same cost as the old kit (+6%).
+- **The real gain is on medium and design tasks** (+10 to +12 points). On easy tasks every setup scores 100%; on hard ones the difference is within noise and slightly the other way.
+- **The price:** the kit costs about **2.25×** plain Claude and uses about 3× the input tokens, because the agent reads rules and playbooks. That is the next thing to bring down.
+- With 3 runs per setup, differences of two or three points are not decisive; rely on the hidden tests and the task breakdown.
+
+**Without a model (deterministic):** the current kit catches **18 of 22** code traps while writing (5 blocked before the write), the old kit **0 of 22**, with no false positives on 20 correct snippets. Context injected at session start is unchanged (≈13.4K characters): the library is read on demand.
+
+Full report (per task, by difficulty and task type, method and limits): [`benchmark/RESULTS.md`](benchmark/RESULTS.md). Reproduce: `benchmark/run.sh origin/main 3 sonnet`.
+
 ---
 
 ## Repository layout
@@ -228,6 +255,9 @@ The profile stores **only your choices**; every other switch comes from the defa
 | `hooks/` | Every hook plus `kit_profile.py`, `doctor.py`, `adapt.py` and the tests. **Full guide: [hooks/README.md](hooks/README.md)** |
 | `sounds/` | Notification sounds + `play.py` (Windows · macOS · Linux) |
 | `Stacks/` | Per-stack guidance (Next.js · Bun/Hono · Node · React · Go · Rust · PHP · .NET · Astro · GraphQL) · plus `Stacks/Database.md` for databases in every stack, with configuration in a `SystemSettings` table instead of env vars |
+| `Playbooks/` | The best-practice library: `INDEX.md` router · `backend/` · `quality/` (`BASELINE.md` · `TRAPS.md` · the qualities) · `architecture/` · `practices/` |
+| `Templates/eslint/` | ESLint preset for the type-aware traps |
+| `benchmark/` | The benchmark: tasks · hidden tests · `run.sh` · [`RESULTS.md`](benchmark/RESULTS.md) |
 | `Patterns/` · `Anti-patterns/` · `Decisions/` | Accumulated knowledge: what worked, what to avoid, why decisions were made (ADRs) |
 | `Quality-Gate.md` | The eight axes for architectural decisions |
 | `CommunicationProfiles.md` | Writing style per audience |
