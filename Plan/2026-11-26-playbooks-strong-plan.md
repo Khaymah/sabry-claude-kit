@@ -24,7 +24,8 @@ Acceptance: 20+ hard tasks on Bun + Hono + Drizzle + Postgres (PGlite), written 
 
 ## Phase 3: Fix the playbooks
 Acceptance: every cause from Diagnose and every dev-set failure fixed at the source; routing eval green; no growth in session-start context
-- [ ] Fix each Phase 1 cause in the playbook, the routing index or the agent brief
+- [x] F1-F3: playbook-route injects matching playbooks per request and per coding subagent (18/18 runs injected, was 3/18); security index (PR #6 commit 6000dd3)
+- [ ] Fix each remaining Phase 1 cause in the playbook, the routing index or the agent brief
 - [ ] Rewrite weak playbooks to put the deciding rule first and give a worked fix for the failure seen
 - [ ] Run the dev set after each batch (kit arm only) until it beats no-plugin on the dev set
 - [ ] Run `evals/playbook-routing` and the skill-trigger evals
