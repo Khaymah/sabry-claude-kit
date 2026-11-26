@@ -51,6 +51,14 @@ Acceptance: held-out set, 3 arms x 5 runs on Sonnet (plus a smaller Opus check);
 - [ ] Opus check: new kit vs no-plugin, 2 runs each
 - [ ] Report: per task, per difficulty, hidden-test pass rate with 95% intervals, cost and time; publish to `benchmark/RESULTS.md`
 
+## Phase 4b: Much stronger, and stable in long sessions
+Acceptance: the kit beats a plain model by a wider margin on fresh held-out tasks, including multi-request sessions with a forced compaction
+- [ ] C: playbooks come back after a compaction (re-inject the session's recent playbooks, reset the given-once memory)
+- [ ] A: before "done", a Stop check turns the used playbooks' edge-case rows into tests the model writes and runs (once per change set)
+- [ ] B: playbook for all-or-nothing multi-line edits (validate all, one transaction, idempotent resubmit, per-line errors)
+- [ ] D: long-session benchmark: 6-8 requests in one session with a forced compaction, hidden tests per request, fresh held-out tasks by the independent author
+- [ ] Measure A+B+C on the fresh held-out set and the long sessions; owner approves the spend first
+
 ## Phase 5: Decide
 Acceptance: owner decides merge and whether phases 4-7 of the original Playbooks plan start
 - [ ] Brief for the owner with the decision and its numbers
