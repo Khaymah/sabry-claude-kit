@@ -9,9 +9,10 @@ Two tiers, one script:
       - an awaited or returned `db.update(...)` / `db.delete(...)` chain with no `.where(`
         (every row changes)
       - `.forEach(async ...)` (the promises are never awaited)
-      - blocking crypto / process calls (`bcrypt.hashSync`, `pbkdf2Sync`, `scryptSync`,
-        `execSync`, `spawnSync`) in request-path files (routes, controllers, services,
-        handlers, Next.js route handlers and server actions)
+    Receivers are `db` / `tx` / `trx` only, and an Edit is judged on the file it produces, so a
+    `.where(` outside the edited lines counts. A chain the hook cannot see to its end is allowed.
+    A deliberate case passes with `// IMPORTANT: allow-<rule>: <reason>` on the same or the line
+    above (`allow-where`, `allow-foreach-async`); the deny message names it.
 
   PostToolUse (--warn)  WARN about what is usually a trap but needs judgement; the
       reason goes back to the model, which fixes it or says in one line why it is fine:
@@ -25,15 +26,19 @@ Two tiers, one script:
       - `parseFloat(` / `.toFixed(` near a money name (Price, Amount, Total, Balance, Cost)
       - an empty `catch {}`
       - `console.log` / `console.error` in server code
-      - `*Sync(` file reads and writes in request-path files
+      - blocking crypto / process calls (`hashSync`, `pbkdf2Sync`, `scryptSync`, `execSync`,
+        `spawnSync`) and `*Sync(` file reads and writes in request-path files (the path is
+        taken relative to the project root)
+      - `.update(` / `.delete(` with no `.where(` on `pool`, `sql` or `knex`: only a warning,
+        since these names also cover non-table clients (`client` is never checked)
 
 Only what this edit ADDS is checked: a finding whose line already exists in the
 old_string is legacy and is not reported. Loops over fixed chunks or keyset batches
 (`+= CHUNK`, `.limit(` inside the body) are the accepted way to batch and are not
 reported as N+1.
 
-Scope: .ts .tsx .mts .cts .js .jsx .mjs .cjs, outside tests, scripts, migrations and
-seeds. Switch: settings.code_traps (default on).
+Scope: .ts .tsx .mts .cts .js .jsx .mjs .cjs, outside tests, scripts, tools, migrations,
+seeds, mocks, vendored and generated code. Switch: settings.code_traps (default on).
 """
 import json
 import os
@@ -48,8 +53,10 @@ except Exception:
 
 CODE_EXT = (".ts", ".tsx", ".mts", ".cts", ".js", ".jsx", ".mjs", ".cjs")
 SKIP_PATH = re.compile(
-    r"(^|/)(tests?|__tests__|spec|e2e|scripts?|migrations?|seeds?|fixtures?|node_modules|dist|build)/"
-    r"|\.(test|spec|e2e|stories)\.[cm]?[jt]sx?$|(^|/)(drizzle|vite|next|eslint|tailwind|postcss)\.config\.",
+    r"(^|/)(tests?|__tests__|spec|e2e|scripts?|tools?|bin|migrations?|seeds?|fixtures?|mocks?|__mocks__"
+    r"|node_modules|dist|build|vendor|generated|__generated__|\.next|\.output)/"
+    r"|\.(test|spec|e2e|stories|gen|generated)\.[cm]?[jt]sx?$|\.d\.[cm]?ts$"
+    r"|(^|/)(drizzle|vite|next|eslint|tailwind|postcss)\.config\.",
     re.I)
 REQUEST_PATH = re.compile(
     r"(^|/)(routes?|controllers?|services?|handlers?|api|actions?|modules)/"
@@ -58,7 +65,10 @@ REQUEST_PATH = re.compile(
     re.I)
 
 DB_RECEIVER = r"(?:db|Db|DB|tx|Tx|trx|Trx|prisma|knex|sql|pool|client)"
-WRITE_CHAIN = re.compile(r"\b(await|return)\s+" + DB_RECEIVER + r"\s*\.\s*(update|delete)\s*\(")
+DENY_RECEIVER = r"(?:db|Db|DB|tx|Tx|trx|Trx)"
+OTHER_RECEIVER = r"(?:knex|sql|pool)"
+WRITE_CHAIN = re.compile(r"\b(await|return)\s+" + DENY_RECEIVER + r"\s*\.\s*(update|delete)\s*\(")
+OTHER_WRITE_CHAIN = re.compile(r"\b(await|return)\s+" + OTHER_RECEIVER + r"\s*\.\s*(update|delete)\s*\(")
 DB_CALL = re.compile(
     r"\bawait\s+(?:" + DB_RECEIVER + r"\s*[.`(]"
     r"|[A-Za-z_$][\w$]*\s*\.\s*(?:query\s*\.\s*\w+\s*\.\s*)?"
@@ -80,6 +90,8 @@ CONSOLE = re.compile(r"\bconsole\s*\.\s*(log|error|warn|info|debug)\s*\(")
 BATCH_LOOP = re.compile(r"\+=\s*[A-Z][A-Z0-9_]{2,}\b|\b(chunk|batch|CHUNK|BATCH|Chunk|Batch)\w*\b")
 
 MAX_FINDINGS = 6
+MAX_LINE = 2000
+UNKNOWN = None
 
 
 def _close(src, i, open_ch, close_ch):
@@ -118,22 +130,42 @@ def _line_of(src, i):
     return src[start:end if end != -1 else len(src)].strip()
 
 
-def _chain_methods(src, i):
-    """i is at the `(` of the first call of a chain. Names of the chained methods."""
+def _chain_methods(src, i, partial=False):
+    """i is at the `(` of the first call of a chain. Names of the chained methods, or UNKNOWN
+    when the chain is cut off: unbalanced, or (partial text) running to the end of the text."""
     names, n = [], len(src)
     i = _close(src, i, "(", ")")
-    while i < n:
-        m = re.match(r"\s*\.\s*([A-Za-z_$][\w$]*)\s*(\(|<)", src[i:])
-        if not m:
+    if i >= n and not src.rstrip().endswith(")"):
+        return UNKNOWN
+    while True:
+        names_end = _chain_step(src, i)
+        if names_end is None:
             break
-        names.append(m.group(1))
-        j = i + m.end() - 1
-        if src[j] == "<":
-            j = _close(src, j, "<", ">")
-            if j >= n or src[j] != "(":
-                break
-        i = _close(src, j, "(", ")")
+        name, i = names_end
+        if i is None:
+            return UNKNOWN
+        names.append(name)
+    if partial and not src[i:].strip():
+        return UNKNOWN
     return names
+
+
+def _chain_step(src, i):
+    n = len(src)
+    if i >= n:
+        return None
+    m = re.match(r"\s*\.\s*([A-Za-z_$][\w$]*)\s*(\(|<)", src[i:])
+    if not m:
+        return None
+    j = i + m.end() - 1
+    if src[j] == "<":
+        j = _close(src, j, "<", ">")
+        if j >= n or src[j] != "(":
+            return None
+    end = _close(src, j, "(", ")")
+    if end >= n and not src.rstrip().endswith(")"):
+        return m.group(1), None
+    return m.group(1), end
 
 
 def _bodies(src):
@@ -162,24 +194,69 @@ def _call_args(src, i):
     return src[p:_close(src, p, "(", ")")]
 
 
-def deny_findings(src, path):
-    found = []
+def _literal_spans(src):
+    """(start, end) of every string, template literal and comment."""
+    spans, i, n = [], 0, len(src)
+    while i < n:
+        c = src[i]
+        if c in "'\"`":
+            j = i + 1
+            while j < n and src[j] != c and not (c != "`" and src[j] == "\n"):
+                j += 2 if src[j] == "\\" else 1
+            spans.append((i, j + 1))
+            i = j + 1
+        elif src.startswith("//", i):
+            j = src.find("\n", i)
+            j = n if j == -1 else j
+            spans.append((i, j))
+            i = j
+        elif src.startswith("/*", i):
+            j = src.find("*/", i + 2)
+            j = n if j == -1 else j + 2
+            spans.append((i, j))
+            i = j
+        else:
+            i += 1
+    return spans
+
+
+def _in_literal(i, spans):
+    return any(a <= i < b for a, b in spans)
+
+
+def _allowed(src, i, rule):
+    start = src.rfind("\n", 0, i) + 1
+    prev = src.rfind("\n", 0, max(0, start - 1)) + 1
+    end = src.find("\n", i)
+    window = src[prev:end if end != -1 else len(src)]
+    return re.search(r"IMPORTANT:\s*allow-" + re.escape(rule) + r"\b", window, re.I) is not None
+
+
+def _no_where(src, m, partial=False):
+    p = src.find("(", m.end() - 1)
+    names = _chain_methods(src, p, partial)
+    return names is not UNKNOWN and "where" not in names and "$dynamic" not in names
+
+
+def deny_findings(src, path, partial=False):
+    found, literals = [], _literal_spans(src)
     for m in WRITE_CHAIN.finditer(src):
-        p = src.find("(", m.end() - 1)
-        if "where" not in _chain_methods(src, p):
-            found.append((m.start(), f"`.{m.group(2)}(...)` with no `.where(...)`: every row of the table changes. "
-                                      "Add the condition (and `NotDeleted(...)` where it applies)."))
+        if _in_literal(m.start(), literals) or _allowed(src, m.start(), "where") or not _no_where(src, m, partial):
+            continue
+        found.append((m.start(), f"`.{m.group(2)}(...)` with no `.where(...)`: every row of the table changes. "
+                                  "Add the condition (and `NotDeleted(...)` where it applies). Meant to touch every "
+                                  "row? Put `// IMPORTANT: allow-where: <reason>` on the line above."))
     for m in FOREACH_ASYNC.finditer(src):
+        if _in_literal(m.start(), literals) or _allowed(src, m.start(), "foreach-async"):
+            continue
         found.append((m.start(), "`.forEach(async ...)`: forEach never awaits, so errors are lost and the work "
-                                 "finishes after the caller moves on. Use `for ... of` or `Promise.all` with a limit."))
-    if REQUEST_PATH.search(path):
-        for m in SYNC_BLOCKING.finditer(src):
-            found.append((m.start(), f"`{m.group(1)}` blocks the event loop for every user on a request path. "
-                                     "Use the async API (`Bun.password.hash`, `crypto.scrypt`, `Bun.spawn`)."))
+                                 "finishes after the caller moves on. Use `for (const X of List) await ...` or "
+                                 "`await Promise.all(List.map(...))` with a limit. Fire-and-forget on purpose? "
+                                 "`// IMPORTANT: allow-foreach-async: <reason>` on the line above."))
     return found
 
 
-def warn_findings(src, path):
+def warn_findings(src, path, partial=False):
     found = []
     spans = _bodies(src)
     for a, b, kind, header in spans:
@@ -222,9 +299,22 @@ def warn_findings(src, path):
             continue
         found.append((m.start(), "`select().from(...)` reads every column. On lists and exports select the "
                                  "fields the response shows."))
-    for m in MONEY_FLOAT.finditer(src):
-        found.append((m.start(), "float arithmetic on money (`parseFloat` / `toFixed`): use integer minor units "
+    for m in OTHER_WRITE_CHAIN.finditer(src):
+        if _no_where(src, m, partial):
+            found.append((m.start(), f"`.{m.group(2)}(...)` with no `.where(...)` on `{src[m.end(1):m.end()].split('.')[0].strip()}`: "
+                                      "if this is a database client, every row changes."))
+    if REQUEST_PATH.search(path):
+        for m in SYNC_BLOCKING.finditer(src):
+            found.append((m.start(), f"`{m.group(1)}` blocks the event loop for every user on a request path. "
+                                     "Use the async API (`Bun.password.hash`, `crypto.scrypt`, `Bun.spawn`); "
+                                     "boot-time or CLI code is fine."))
+    offset = 0
+    for line in src.split("\n"):
+        if len(line) <= MAX_LINE:
+            for m in MONEY_FLOAT.finditer(line):
+                found.append((offset + m.start(), "float arithmetic on money (`parseFloat` / `toFixed`): use integer minor units "
                                  "(Playbooks/backend/data/money.md). Formatting for display only is fine."))
+        offset += len(line) + 1
     for m in EMPTY_CATCH.finditer(src):
         found.append((m.start(), "empty `catch {}`: the error disappears. Handle it, or let it reach the error "
                                  "handler (Playbooks/quality/reliability/error-handling.md)."))
@@ -252,15 +342,51 @@ def _segments(ti):
     return out
 
 
-def collect(ti, finder):
+def relative_path(path, cwd):
+    root = os.environ.get("CLAUDE_PROJECT_DIR") or ""
+    if not root and kit_config:
+        try:
+            root = kit_config.project_root(cwd) or ""
+        except Exception:
+            root = ""
+    root = (root or cwd or "").replace("\\", "/").rstrip("/")
+    if root and path.startswith(root + "/"):
+        return path[len(root) + 1:]
+    return path
+
+
+def _read(path):
+    try:
+        with open(path, encoding="utf-8", errors="replace") as fh:
+            return fh.read()
+    except OSError:
+        return None
+
+
+def _scans(ti, path):
+    """(text to scan, start, end, old text) per segment: an Edit is scanned inside the file it
+    produces, and only findings within the new text count."""
+    current = _read(ti.get("file_path")) if ti.get("file_path") else None
+    for added, old in _segments(ti):
+        if old and current is not None and old in current:
+            at = current.index(old)
+            yield current[:at] + added + current[at + len(old):], at, at + len(added), old, False
+        else:
+            yield added, 0, len(added), old, bool(old)
+
+
+def collect(ti, finder, cwd=""):
     path = str(ti.get("file_path") or "").replace("\\", "/")
-    if not path.lower().endswith(CODE_EXT) or SKIP_PATH.search(path):
+    rel = relative_path(path, cwd)
+    if not path.lower().endswith(CODE_EXT) or SKIP_PATH.search(rel):
         return []
     lines, seen = [], set()
-    for added, old in _segments(ti):
+    for text, start, end, old, partial in _scans(ti, path):
         old_lines = {l.strip() for l in old.splitlines() if l.strip()}
-        for pos, message in finder(added, path):
-            line = _line_of(added, pos)
+        for pos, message in finder(text, rel, partial):
+            if not start <= pos < max(end, start + 1):
+                continue
+            line = _line_of(text, pos)
             if line in old_lines or (line, message) in seen:
                 continue
             seen.add((line, message))
@@ -281,21 +407,22 @@ def main():
         return 0
     name = os.path.basename(str(ti.get("file_path") or ""))
     if warn:
-        lines = collect(ti, warn_findings)
+        lines = collect(ti, warn_findings, str(payload.get("cwd") or ""))
         if lines:
             print(json.dumps({"decision": "block", "reason": (
                 f"[code-traps] Likely traps in what you just wrote to {name}:\n" + "\n".join(lines) +
                 "\nFix each one, or say in one line why it is safe here (a small fixed list, a script, "
                 "display formatting). Catalogue: Playbooks/quality/TRAPS.md.")}))
         return 0
-    lines = collect(ti, deny_findings)
+    lines = collect(ti, deny_findings, str(payload.get("cwd") or ""))
     if lines:
         print(json.dumps({"hookSpecificOutput": {
             "hookEventName": "PreToolUse",
             "permissionDecision": "deny",
             "permissionDecisionReason": (
                 f"[code-traps] Blocked: this edit to {name} adds a bug the kit never lets through:\n"
-                + "\n".join(lines) + "\nFix it and write the edit again. Catalogue: Playbooks/quality/TRAPS.md."),
+                + "\n".join(lines) + "\nFix it and write the edit again, or mark a deliberate case as each message says. "
+                "Catalogue: Playbooks/quality/TRAPS.md."),
         }}))
     return 0
 

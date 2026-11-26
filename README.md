@@ -73,7 +73,7 @@
 | ✅ **معيار "خلصت"** | لكل نوع مهمة (feature · bugfix · refactor · migration)، مع مراجعة بسياق نضيف للتغييرات الكبيرة أو الحساسة |
 | 🔌 **أي AI agent** | `kit_install.py` بيثبّت التعليمات والـ skills والـ agents في Codex · Kimi · OpenCode · Kilo Code · Cline بصيغة كل أداة، و`hooks/adapt.py` بيشغّل نفس الـ hooks في Codex و Kimi و Gemini CLI و Cursor |
 | 📚 **Playbooks** | مكتبة best practices في `Playbooks/`: باك اند، والـ ilities (Maintainability · Observability · Performance · Testability · Reliability)، وكل ملف فيه حالة واحدة وقرار واحد و3 مستويات (Minimum · Standard · Advanced) وedge cases وVerify. الـ agent بيقرا الـ INDEX وبعدين من 1 لـ 3 ملفات بس. ومعاها `quality/BASELINE.md` لكل مهمة كود، و`quality/TRAPS.md` |
-| 🪤 **فخاخ الكود** | `enforce-code-traps` بيمنع `update` من غير `where`، و`forEach(async)`، والـ sync I/O، وبينبّه على N+1، و`fetch` من غير timeout، والـ input اللي مالوش حد، والفلوس بالـ float. ومعاه ESLint preset في `Templates/eslint/` ([الـ benchmark](#الـ-benchmark)) |
+| 🪤 **فخاخ الكود** | `enforce-code-traps` بيمنع `update` من غير `where`، و`forEach(async)` (وفيه استثناء مقصود بـ `// IMPORTANT: allow-…`)، وبينبّه على الـ sync I/O، و N+1، و`fetch` من غير timeout، والـ input اللي مالوش حد، والفلوس بالـ float. ومعاه ESLint preset في `Templates/eslint/` ([الـ benchmark](#الـ-benchmark)) |
 | 💸 **تكلفة أقل** | context أصغر في كل جلسة، و agents أخف، وافتراضيات أوفر ([التفاصيل](#التكلفة-والأداء)) |
 
 ---
@@ -239,7 +239,7 @@ your-project/
 - **التمن:** الكيت بيكلّف حوالي **2.25×** من Claude من غير plugin، وبيستهلك حوالي 3× input tokens، لأن الـ agent بيقرا القواعد والـ playbooks. ده اللي الخطوة الجاية لازم تقلّله.
 - 3 runs لكل إعداد يعني فروق النقطتين-تلاتة مش حاسمة. خليك على الـ tests المخفية وعلى تقسيم المهام.
 
-**من غير موديل (deterministic):** الكيت الحالي بيمسك **18 من 22** فخ أثناء الكتابة (5 منهم بيتمنعوا قبل الكتابة)، والقديم **0 من 22**، ومن غير ولا false positive على 20 snippet سليم. والـ context اللي بيتحقن أول الجلسة زي ما هو (≈13.4K حرف)، لأن المكتبة بتتقري عند الحاجة بس.
+**من غير موديل (deterministic):** الكيت الحالي بيمسك **18 من 22** فخ أثناء الكتابة (3 منهم بيتمنعوا قبل الكتابة والباقي تحذير)، والقديم **0 من 22**، ومن غير ولا false positive على 24 snippet سليم. والـ context اللي بيتحقن أول الجلسة زي ما هو (≈13.4K حرف)، لأن المكتبة بتتقري عند الحاجة بس.
 
 التقرير الكامل (لكل مهمة، وبالصعوبة، وبنوع المهمة، والمنهجية والحدود): [`benchmark/RESULTS.md`](benchmark/RESULTS.md). وعشان تعيد التجربة: `benchmark/run.sh origin/main 3 sonnet`.
 

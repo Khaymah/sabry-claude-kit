@@ -1,9 +1,9 @@
 {
   "old": {
     "Context": {
-      "SessionStartChars": 13190,
+      "SessionStartChars": 13271,
       "PerMessageChars": 215,
-      "SubagentStartChars": 2850
+      "SubagentStartChars": 2904
     },
     "Knowledge": {
       "GuidanceFiles": 42,
@@ -220,8 +220,8 @@
       "TrapsBlocked": 0,
       "TrapsTotal": 22,
       "FalsePositives": 0,
-      "CleanTotal": 20,
-      "LatencyMsMedian": 186.8,
+      "CleanTotal": 24,
+      "LatencyMsMedian": 239.0,
       "Traps": [
         {
           "Name": "update without where",
@@ -414,6 +414,22 @@
         {
           "Name": "delete with where",
           "Verdict": null
+        },
+        {
+          "Name": "cache client delete",
+          "Verdict": null
+        },
+        {
+          "Name": "trap text inside a string",
+          "Verdict": null
+        },
+        {
+          "Name": "deliberate full-table delete, marked",
+          "Verdict": null
+        },
+        {
+          "Name": "dynamic query builder",
+          "Verdict": null
         }
       ]
     },
@@ -426,9 +442,9 @@
   },
   "new": {
     "Context": {
-      "SessionStartChars": 13448,
+      "SessionStartChars": 13508,
       "PerMessageChars": 215,
-      "SubagentStartChars": 2872
+      "SubagentStartChars": 2912
     },
     "Knowledge": {
       "GuidanceFiles": 99,
@@ -642,11 +658,11 @@
     "Enforcement": {
       "WriteHooks": 7,
       "TrapsCaught": 18,
-      "TrapsBlocked": 5,
+      "TrapsBlocked": 3,
       "TrapsTotal": 22,
       "FalsePositives": 0,
-      "CleanTotal": 20,
-      "LatencyMsMedian": 265.7,
+      "CleanTotal": 24,
+      "LatencyMsMedian": 331.3,
       "Traps": [
         {
           "Name": "update without where",
@@ -666,12 +682,12 @@
         {
           "Name": "sync hashing on a request path",
           "Category": "CPU",
-          "Verdict": "deny"
+          "Verdict": "warn"
         },
         {
           "Name": "execSync on a request path",
           "Category": "CPU",
-          "Verdict": "deny"
+          "Verdict": "warn"
         },
         {
           "Name": "query in a for loop (N+1)",
@@ -839,14 +855,30 @@
         {
           "Name": "delete with where",
           "Verdict": null
+        },
+        {
+          "Name": "cache client delete",
+          "Verdict": null
+        },
+        {
+          "Name": "trap text inside a string",
+          "Verdict": null
+        },
+        {
+          "Name": "deliberate full-table delete, marked",
+          "Verdict": null
+        },
+        {
+          "Name": "dynamic query builder",
+          "Verdict": null
         }
       ]
     },
     "OnDemandChars": {
       "Design a password reset": 19459,
-      "Fix an N+1 admin page": 26794,
-      "Review a diff": 29429
+      "Fix an N+1 admin page": 26987,
+      "Review a diff": 29622
     },
-    "Commit": "1a55d21"
+    "Commit": "bf16b92"
   }
 }

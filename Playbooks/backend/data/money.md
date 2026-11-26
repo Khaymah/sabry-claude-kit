@@ -41,7 +41,7 @@ A project at Minimum that takes real payments uses Standard here.
 
 | Case | Expected behaviour |
 |---|---|
-| Input `"1,000.50"`, `"١٥٠"` (Arabic-Indic digits), `" 150 "` | Normalised at the edge (digits mapped, separators per locale, trimmed); anything else is a 400 |
+| Input `"1,000.50"`, `"١٥٠"` (Arabic-Indic digits), `"١٥٠٫٥٠"` (Arabic decimal `٫`, thousands `٬`), `" 150 "` | Normalised at the edge (digits mapped, separators per locale, trimmed); anything else is a 400 |
 | More decimals than the currency allows (`"10.999"` EGP) | 400, never silently rounded |
 | Discount larger than the subtotal | Discount is clamped to the subtotal; total never goes below zero |
 | 100% coupon, total zero | Order is paid without calling the provider (most reject zero) |
@@ -64,7 +64,7 @@ const ARABIC_DIGITS = /[٠-٩]/g
 export function ToMinor(Input: string, Currency: string): bigint {
   const Exp = CURRENCY_EXPONENT[Currency]
   if (Exp === undefined) throw new AppError("MONEY_CURRENCY_UNSUPPORTED", 400)
-  const Clean = Input.trim().replace(ARABIC_DIGITS, (D) => String(D.charCodeAt(0) - 0x0660)).replace(/,/g, "")
+  const Clean = Input.trim().replace(ARABIC_DIGITS, (D) => String(D.charCodeAt(0) - 0x0660)).replace(/٫/g, ".").replace(/[,٬]/g, "")
   const Match = /^(\d+)(?:\.(\d+))?$/.exec(Clean)
   if (!Match || (Match[2]?.length ?? 0) > Exp) throw new AppError("MONEY_INVALID_AMOUNT", 400)
   return BigInt(Match[1] + (Match[2] ?? "").padEnd(Exp, "0"))
@@ -101,7 +101,7 @@ Other stacks: `numeric(19,4)` is acceptable where the codebase already uses it, 
 - [ ] `[M]` No money column of type `real`, `double precision` or unscaled `numeric`.
 - [ ] `[M]` Changing a product price leaves existing order totals unchanged.
 - [ ] `[S]` 0.10 + 0.20 sums to exactly 30 minor units; 100.00 split in 3 is 33.33 + 33.33 + 33.34.
-- [ ] `[S]` 15% on 9.99 is 1.50 under the stated rule; `"10.999"` EGP is rejected; `"١٥٠"` parses to 15000.
+- [ ] `[S]` 15% on 9.99 is 1.50 under the stated rule; `"10.999"` EGP is rejected; `"١٥٠"` parses to 15000 and `"١٥٠٫٥٠"` to 15050.
 - [ ] `[S]` A webhook whose amount or currency differs from the order does not mark it paid.
 - [ ] `[A]` Sum of `LedgerEntries` per account equals the cached balance after a concurrent test of 100 credits and debits.
 

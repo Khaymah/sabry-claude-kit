@@ -5,18 +5,21 @@ import json
 import os
 import subprocess
 import sys
+import tempfile
+import time
 import unittest
 
 HOOK = os.path.join(os.path.dirname(os.path.abspath(__file__)), "enforce-code-traps.py")
 SERVICE = "Src/Modules/Orders/Orders.Service.ts"
 
 
-def run(ti, warn=False, env=None):
+def run(ti, warn=False, env=None, cwd="."):
     e = dict(os.environ)
     e.pop("SABRY_KIT_CODE_TRAPS", None)
+    e.pop("CLAUDE_PROJECT_DIR", None)
     e.update(env or {})
     args = [sys.executable, HOOK] + (["--warn"] if warn else [])
-    p = subprocess.run(args, input=json.dumps({"tool_input": ti, "cwd": "."}),
+    p = subprocess.run(args, input=json.dumps({"tool_input": ti, "cwd": cwd}),
                        capture_output=True, text=True, encoding="utf-8", env=e)
     out = (p.stdout or "").strip()
     if not out:
@@ -42,9 +45,6 @@ DENY = [
     ("forEach async",
      "Items.forEach(async (I) => { await Save(I) })\n",
      "for (const I of Items) await Save(I)\n"),
-    ("hashSync on request path",
-     "const Hash = bcrypt.hashSync(Password, 10)\n",
-     "const Hash = await Bun.password.hash(Password)\n"),
 ]
 
 WARN = [
@@ -78,6 +78,12 @@ WARN = [
     ("console in server code",
      "console.log(\"order created\", Id)\n",
      "Log.info({ OrderId: Id }, \"order created\")\n"),
+    ("hashSync on request path",
+     "const Hash = bcrypt.hashSync(Password, 10)\n",
+     "const Hash = await Bun.password.hash(Password)\n"),
+    ("delete with no where on another client",
+     "await pool.delete(Rows)\n",
+     "await pool.delete(Rows).where(eq(Rows.Id, Id))\n"),
     ("readFileSync on request path",
      "const Tpl = readFileSync(Path, \"utf8\")\n",
      "const Tpl = await Bun.file(Path).text()\n"),
@@ -91,8 +97,9 @@ class DenyTier(unittest.TestCase):
                 self.assertEqual(run(w(bad)), "deny", f"{name}: trap not blocked")
                 self.assertIsNone(run(w(good)), f"{name}: correct code blocked")
 
-    def test_sync_crypto_allowed_outside_request_path(self):
-        self.assertIsNone(run(w("const H = bcrypt.hashSync(P, 10)\n", "Src/Cli/Seed.Admin.ts")))
+    def test_sync_crypto_is_never_denied(self):
+        self.assertIsNone(run(w("const H = bcrypt.hashSync(P, 10)\n")))
+        self.assertIsNone(run(w("const H = bcrypt.hashSync(P, 10)\n", "Src/Cli/Seed.Admin.ts"), warn=True))
 
     def test_legacy_line_in_old_string_not_blocked(self):
         old = "await db.update(Users).set({ A: 1 })\n"
@@ -100,10 +107,59 @@ class DenyTier(unittest.TestCase):
         self.assertIsNone(run(ti))
 
     def test_multiedit(self):
-        ti = {"file_path": SERVICE, "edits": [
-            {"old_string": "a()", "new_string": "b()"},
-            {"old_string": "c()", "new_string": "await db.delete(Carts)"}]}
+        with tempfile.TemporaryDirectory() as d:
+            path = os.path.join(d, "Orders.Service.ts")
+            with open(path, "w", encoding="utf-8") as fh:
+                fh.write("a()\nc()\nconst X = 1\n")
+            ti = {"file_path": path, "edits": [
+                {"old_string": "a()", "new_string": "b()"},
+                {"old_string": "c()", "new_string": "await db.delete(Carts)"}]}
+            self.assertEqual(run(ti), "deny")
+
+    def edit(self, before, old, new, name="Orders.Service.ts"):
+        d = tempfile.mkdtemp()
+        self.addCleanup(lambda: __import__("shutil").rmtree(d, ignore_errors=True))
+        path = os.path.join(d, name)
+        with open(path, "w", encoding="utf-8") as fh:
+            fh.write(before)
+        return {"file_path": path, "old_string": old, "new_string": new}, d
+
+    def test_where_outside_the_edited_lines_counts(self):
+        before = "export async function Off(Id) {\n  await db.update(Users)\n    .set({ A: 1 })\n    .where(eq(Users.Id, Id))\n}\n"
+        ti, _ = self.edit(before, "await db.update(Users)", "await db.update(Accounts)")
+        self.assertIsNone(run(ti))
+        before_bad = "export async function Off() {\n  await db.update(Users)\n    .set({ A: 1 })\n}\n"
+        ti, _ = self.edit(before_bad, "  await db.update(Users)\n    .set({ A: 1 })\n", "  await db.update(Accounts)\n    .set({ A: 1 })\n")
         self.assertEqual(run(ti), "deny")
+
+    def test_cut_off_chain_in_an_unreadable_edit_is_allowed(self):
+        ti = {"file_path": "/nowhere/Orders.Service.ts", "old_string": "await db.update(Users)",
+              "new_string": "await db.update(Accounts)"}
+        self.assertIsNone(run(ti))
+
+    def test_dynamic_chain_is_allowed(self):
+        self.assertIsNone(run(w("return db.update(T).set(V).$dynamic()\n")))
+
+    def test_other_clients_are_not_denied(self):
+        for code in ("await client.delete(Key)\n", "await pool.delete(Rows)\n", "await sql.update(X)\n"):
+            with self.subTest(code):
+                self.assertIsNone(run(w(code)))
+
+    def test_traps_inside_strings_and_comments_pass(self):
+        code = 'const Doc = "never write Items.forEach(async (I) => I)"\nconst T = `await db.delete(Carts)`\n'
+        self.assertIsNone(run(w(code)))
+
+    def test_escape_hatch(self):
+        code = "// IMPORTANT: allow-where: nightly reset of the scratch table\nawait db.delete(ScratchRows)\n"
+        self.assertIsNone(run(w(code)))
+        code = "Items.forEach(async (I) => Notify(I)) // IMPORTANT: allow-foreach-async: fire and forget\n"
+        self.assertIsNone(run(w(code)))
+        self.assertEqual(run(w("// IMPORTANT: allow-where: x\nItems.forEach(async (I) => I)\n")), "deny")
+
+    def test_deny_message_names_the_escape_hatch(self):
+        p = subprocess.run([sys.executable, HOOK], input=json.dumps({"tool_input": w("await db.delete(Carts)\n"), "cwd": "."}),
+                           capture_output=True, text=True, encoding="utf-8")
+        self.assertIn("IMPORTANT: allow-where", p.stdout)
 
 
 class WarnTier(unittest.TestCase):
@@ -145,6 +201,25 @@ class Scope(unittest.TestCase):
             with self.subTest(path):
                 self.assertIsNone(run(w(bad, path)))
                 self.assertIsNone(run(w(bad, path), warn=True))
+
+    def test_project_location_does_not_make_a_request_path(self):
+        root = "/home/u/services/billing"
+        ti = w("export const Sha = execSync(\"git rev-parse HEAD\")\n", root + "/src/version.ts")
+        self.assertIsNone(run(ti, warn=True, cwd=root))
+        self.assertEqual(run(w("const S = execSync(C)\n", root + "/src/services/Deploy.ts"), warn=True, cwd=root), "block")
+
+    def test_generated_tools_and_vendor_are_skipped(self):
+        bad = "await db.update(Users).set({ A: 1 })\n"
+        for path in ("src/generated/x.ts", "tools/gen.ts", "src/__generated__/a.ts", "src/api.gen.ts",
+                     "vendor/lib.js", "src/types.d.ts", "src/__mocks__/db.ts"):
+            with self.subTest(path):
+                self.assertIsNone(run(w(bad, path)))
+
+    def test_long_lines_are_fast(self):
+        code = "const X = [" + ", ".join(f"parseFloat(A{i}.Amount)" for i in range(30000)) + "]\n"
+        started = time.monotonic()
+        run(w(code), warn=True)
+        self.assertLess(time.monotonic() - started, 8)
 
     def test_switch_off(self):
         bad = "await db.update(Users).set({ A: 1 })\n"

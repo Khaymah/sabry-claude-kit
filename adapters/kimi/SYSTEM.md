@@ -63,7 +63,7 @@ Functional directives stay (`ts-expect-error`, `ts-ignore`, `eslint-*`, `prettie
 
 # Framework gotchas
 
-Rule for `**/*.ts · **/*.tsx` files: read `/home/user/sabry-claude-kit/rules/framework-gotchas.md` before editing a file of that type (not injected in full, to save tokens).
+Rule for `**/*.ts · **/*.tsx` files: read `~/.kimi-code/plugins/managed/sabry-kit/rules/framework-gotchas.md` before editing a file of that type (not injected in full, to save tokens).
 
 ---
 

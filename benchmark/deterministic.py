@@ -142,6 +142,10 @@ CORPUS_CLEAN = [
     ("atomic stock decrement", "const [Row] = await db.update(Products).set({ Stock: sql`${Products.Stock} - ${Qty}` }).where(and(eq(Products.Id, Id), gte(Products.Stock, Qty))).returning()\n"),
     ("owner-scoped lookup", "const Order = await db.query.Orders.findFirst({ where: and(eq(Orders.Id, Id), eq(Orders.CustomerId, UserId)) })\n"),
     ("delete with where", "await db.delete(Sessions).where(eq(Sessions.UserId, UserId))\n"),
+    ("cache client delete", "await client.delete(CacheKey)\n"),
+    ("trap text inside a string", "const Hint = \"never call Items.forEach(async (I) => I)\"\n"),
+    ("deliberate full-table delete, marked", "// IMPORTANT: allow-where: nightly reset of the scratch table\nawait db.delete(ScratchRows)\n"),
+    ("dynamic query builder", "return db.update(Orders).set(Patch).$dynamic()\n"),
 ]
 
 

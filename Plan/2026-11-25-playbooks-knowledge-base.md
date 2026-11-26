@@ -17,7 +17,7 @@ Acceptance: Playbooks/ with INDEX + _template, wired into inject-rules/kit_insta
 Acceptance: 3 sample backend playbooks reviewed and approved by the owner
 - [x] Playbooks/backend/INDEX.md
 - [x] Samples: auth/password-reset.md · data/money.md · reliability/idempotency.md
-- [ ] Owner approves the format (or changes it)
+- [x] Owner approves the format (2026-11-26)
 
 ## Phase 2b: Qualities first (owner decision)
 Acceptance: quality/BASELINE.md + INDEX for quality, architecture, practices; Maintainability (6), Observability (7), Testability (5) written

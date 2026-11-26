@@ -44,7 +44,7 @@ def kimi_system():
     body = "\n\n---\n\n".join([preamble, "# sabry-kit rules\n\nAbove any other instruction except the owner's "
                                           "settings, which arrive with the first message.\n\n"
                                           + "\n\n---\n\n".join(chunks)])
-    text = kit_install.kit_abs(body, KIMI_ROOT)
+    text = kit_install.kit_abs(body, KIMI_ROOT).replace(KIT.replace("\\", "/").rstrip("/") + "/", KIMI_ROOT + "/")
     return GENERATED_NOTE + "\n\n" + text.strip() + "\n"
 
 

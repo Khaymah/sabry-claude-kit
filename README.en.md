@@ -71,7 +71,7 @@ Built for [Claude Code](https://code.claude.com) as a plugin, and installs into 
 | ✅ **Definition of done** | Per task type (feature · bugfix · refactor · migration), with a clean-context review for large or sensitive changes |
 | 🔌 **Any AI agent** | `kit_install.py` installs instructions, skills and agents into Codex, Kimi, OpenCode, Kilo Code and Cline in each tool's format; `hooks/adapt.py` runs the same hooks under Codex, Kimi, Gemini CLI and Cursor |
 | 📚 **Playbooks** | A best-practice library in `Playbooks/`: backend and the qualities (maintainability, observability, performance, testability, reliability). One situation per file, one decision, three levels (Minimum · Standard · Advanced), edge cases and verify checks. Agents read an index, then 1-3 files. Plus `quality/BASELINE.md` for every code task and `quality/TRAPS.md` |
-| 🪤 **Code traps** | `enforce-code-traps` blocks `update` without `where`, `forEach(async)` and sync I/O, and flags N+1, `fetch` without a timeout, unbounded input and float money; an ESLint preset in `Templates/eslint/` ([benchmark](#benchmark)) |
+| 🪤 **Code traps** | `enforce-code-traps` blocks `update` without `where` and `forEach(async)` (a deliberate case passes with `// IMPORTANT: allow-…`), and flags sync I/O, N+1, `fetch` without a timeout, unbounded input and float money; an ESLint preset in `Templates/eslint/` ([benchmark](#benchmark)) |
 | 💸 **Lower cost** | Smaller context per session, lighter agents, cheaper defaults ([details](#cost-and-performance)) |
 
 ---
@@ -236,7 +236,7 @@ Three setups on **12 tasks** from easy to hard (build, fix, design, code review)
 - **The price:** the kit costs about **2.25×** plain Claude and uses about 3× the input tokens, because the agent reads rules and playbooks. That is the next thing to bring down.
 - With 3 runs per setup, differences of two or three points are not decisive; rely on the hidden tests and the task breakdown.
 
-**Without a model (deterministic):** the current kit catches **18 of 22** code traps while writing (5 blocked before the write), the old kit **0 of 22**, with no false positives on 20 correct snippets. Context injected at session start is unchanged (≈13.4K characters): the library is read on demand.
+**Without a model (deterministic):** the current kit catches **18 of 22** code traps while writing (3 blocked before the write, the rest reported), the old kit **0 of 22**, with no false positives on 24 correct snippets. Context injected at session start is unchanged (≈13.4K characters): the library is read on demand.
 
 Full report (per task, by difficulty and task type, method and limits): [`benchmark/RESULTS.md`](benchmark/RESULTS.md). Reproduce: `benchmark/run.sh origin/main 3 sonnet`.
 
