@@ -42,6 +42,7 @@ Acceptance: owner decides merge and whether phases 4-7 of the original Playbooks
 - [ ] Brief for the owner with the decision and its numbers
 
 ## Notes
+- 2026-11-26: task author agent started in /home/user/bench2 (outside the kit, never reads Playbooks): 20 tasks, PGlite fixtures, broken/fixed references, dev/held-out split, one offline smoke run. Results go to bench2/VERIFY.md and SPLIT.md; copy into the PR branch as benchmark2/ when verified.
 - Diagnosis 2026-11-26 ($3.36): playbooks read in 3 of 18 runs (only h5). Main cause is routing, then strict Haiku rubrics and a Bash allow-list that blocked test runs, then content gaps (CSV BOM, no security domain). Fixes F1-F5 in Plan/2026-11-26-playbooks-diagnosis.md.
 - Owner, 2026-11-26: fix everything weak first, then be far stronger than both no-plugin and the old kit, measured by a very strong benchmark focused on complex tasks.
 - The first benchmark was written by the same session as the Playbooks; the new tasks must come from an agent that never read them, and the held-out set stays sealed while fixing, so the playbooks are not tuned to the test.
