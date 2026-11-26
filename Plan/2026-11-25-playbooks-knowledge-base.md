@@ -30,7 +30,7 @@ Acceptance: quality/BASELINE.md + INDEX for quality, architecture, practices; Ma
 - [x] quality/TRAPS.md: mechanical trap catalog (Detect column), run by code-reviewer and senior-engineer
 - [x] Template: two required edge-case rows (100× data, same action twice / in parallel)
 - [x] Enforcement: hooks/enforce-code-traps.py (deny tier PreToolUse + warn tier PostToolUse), switch code_traps, Codex/Kimi/OpenCode wiring, 11 paired tests
-- [ ] ESLint preset shipped with the kit (no-await-in-loop, no-floating-promises, regexp, complexity limits)
+- [x] ESLint preset shipped with the kit (no-await-in-loop, no-floating-promises, regexp, complexity limits)
 - [ ] Backfill the two required rows into the 19 files written before the rule
 - [ ] Testability: test-strategy · integration-db · e2e · concurrency-tests · test-data
 - [ ] Reliability: error-handling · graceful-shutdown · timeouts-retries · backpressure

@@ -8,6 +8,8 @@ One line per trap that agents (and people) fall into, with **how to detect it me
 
 **Enforced while writing** (`hooks/enforce-code-traps.py`, switch `code_traps`): blocked: `update` / `delete` without `.where()`, `.forEach(async`, sync crypto or exec on request paths. Reported back to the agent: query in a loop or per-item callback, `Promise.all` over a list with DB calls, nested `.find` / `.includes`, `fetch` without `signal`, `z.array` without `.max`, `select()` with no columns, float on money, empty `catch`, `console.*` in server code, sync file I/O on request paths. A new trap that a regex can catch reliably goes into the hook with a pair of tests (trap / correct code).
 
+**Enforced in the editor and CI** (`Templates/eslint/eslint.config.mjs`): the type-aware half of the same traps, for every contributor, not only agents.
+
 Detect legend: `grep` = a search on the diff · `lint` = an ESLint / Biome rule · `test` = a test that fails · `look` = a short reading check.
 
 ## Database round trips

@@ -86,7 +86,7 @@ export default [{
 
 - [ ] `[M]` No new or changed file over 600 lines; no new nesting deeper than 3.
 - [ ] `[M]` No boolean flag parameter added to a public function.
-- [ ] `[S]` `bunx eslint` with the rules above passes on changed files.
+- [ ] `[S]` `bunx eslint` with the kit preset (`Templates/eslint/eslint.config.mjs`) passes on changed files.
 - [ ] `[S]` Each rule table has one test per row.
 - [ ] `[A]` Top 5 hot spots listed in the debt register with an owner.
 

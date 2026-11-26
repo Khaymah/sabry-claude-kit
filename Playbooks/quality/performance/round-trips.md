@@ -79,7 +79,7 @@ export function GetSettings<const K extends TSettingKey[]>(Keys: K) {
 }
 ```
 
-The `for` loop over chunks is the one accepted `await` in a loop: a fixed number of statements, each one bulk.
+The `for` loop over chunks is the one accepted `await` in a loop: a fixed number of statements, each one bulk. Mark its `await` with `// eslint-disable-next-line no-await-in-loop -- one bulk statement per chunk` for the kit's ESLint preset.
 
 Other stacks: Prisma `createMany` / `$transaction([...])`; Laravel `upsert()` and `chunk()`; ioredis `pipeline()`.
 

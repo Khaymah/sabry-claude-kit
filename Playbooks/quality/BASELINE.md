@@ -28,7 +28,7 @@ Paths are relative to `Playbooks/`. Read with **every** task that writes or revi
 - **Slow work:** anything over ~1 s or scheduled runs in a background job. → `backend/reliability/background-jobs.md`
 - **Tests:** each endpoint has an integration test for its happy path and main failure, on a real database, in CI. → `quality/testability/integration-db.md`
 - **Deploys:** zero-downtime reload; backups with a rehearsed restore. → `quality/availability/zero-downtime-deploy.md` · `devops/INDEX.md`
-- **CI:** typecheck, lint and tests block the merge. → `practices/code-review.md`
+- **CI:** typecheck, lint and tests block the merge; lint uses the kit preset (`Templates/eslint/`) or carries its rules. → `practices/code-review.md` · `Templates/eslint/README.md`
 
 ## Advanced — adds (scale, sensitive data, SLA)
 
