@@ -25,7 +25,7 @@ Acceptance: 20+ hard tasks on Bun + Hono + Drizzle + Postgres (PGlite), written 
 - [x] Harden: owner chose implicit requirements + larger tasks (2026-11-26); author agent rewriting prompts, misleading symptoms for fix tasks, 5 two-feature tasks (2 dev, 3 held-out)
 - [x] Re-sync bench2 into `benchmark2/` (commit 12298cc); hardened pilot ($15.42): 40 of 50 runs pass every hidden test, mean 94%. Tasks that separate: b09, m19, m20, x23 (fail 2/2), b14, m17 (fail 1/2)
 - [x] Owner decides: focus on the separating classes (2026-11-26)
-- [ ] Author adds 10 tasks y26-y35 in the failing areas (payments after timeouts, refunds, legacy data, dates and timezones, all-or-nothing edits, query budgets); 4 dev, 6 held-out
+- [x] Author adds 10 tasks y26-y35 in the failing areas (payments after timeouts, refunds, legacy data, dates and timezones, all-or-nothing edits, query budgets); 4 dev, 6 held-out
 - [ ] Pilot the new 10 without the kit (2 runs); keep those it fails at least once
 - [ ] Final set = the separating tasks (old six + kept new ones); dev part drives Phase 3
 
