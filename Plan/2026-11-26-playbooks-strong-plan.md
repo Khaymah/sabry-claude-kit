@@ -59,11 +59,11 @@ Acceptance: the kit beats a plain model by a wider margin on fresh held-out task
 - [x] D: long-session benchmark: 6-8 requests in one session with a forced compaction, hidden tests per request, fresh held-out tasks by the independent author
   - 2026-11-26: author building bench2/sessions/s01-s06 (5-6 requests each, forced /compact, hidden tests per request run together at the end) and tools/run_session.py (claude -p --resume, seals references in /root/.bench2-sealed). Done: 6 sessions x 5 requests, broken/fixed/alt verified, compaction confirmed by compact_boundary events; smoke s01 without the kit passed everything ($0.68). PR commit f36b3bf
 - [x] Owner approved the measurement with no budget cap (2026-11-26): results first
-- [ ] Long sessions running (bench2/final-sessions, tools/batch_sessions.py, 6 in parallel): Sonnet no kit / new kit / old kit (main) x 5 runs, Opus no kit / new kit x 2 runs, 6 sessions each = 114 session runs. Resumable: finished results are skipped on rerun
+- [x] Long sessions done (results in benchmark2/RESULTS.md, long sessions: no real difference, ceiling on 4 of 6 sessions). Was: running (bench2/final-sessions, tools/batch_sessions.py, 6 in parallel): Sonnet no kit / new kit / old kit (main) x 5 runs, Opus no kit / new kit x 2 runs, 6 sessions each = 114 session runs. Resumable: finished results are skipped on rerun
 
 ## Phase 5: Decide
 Acceptance: owner decides merge and whether phases 4-7 of the original Playbooks plan start
-- [ ] Brief for the owner with the decision and its numbers
+- [x] Brief for the owner with the decision and its numbers
 
 ## Notes
 - 2026-11-26: 20 tasks in /home/user/bench2 (7 fix, 8 build, 5 feature; 8 dev, 12 held-out). Every hidden test fails on broken and passes on fixed (VERIFY.md); spot-checked b08, f06, m17. Fixed references and hidden tests are moved out (tools/seal.sh) while models run; traces are scanned for reads of bench2 paths.
