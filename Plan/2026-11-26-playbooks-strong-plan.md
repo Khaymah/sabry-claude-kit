@@ -32,7 +32,7 @@ Acceptance: 20+ hard tasks on Bun + Hono + Drizzle + Postgres (PGlite), written 
 ## Phase 3: Fix the playbooks
 Acceptance: every cause from Diagnose and every dev-set failure fixed at the source; routing eval green; no growth in session-start context
 - [x] F1-F3: playbook-route injects matching playbooks per request and per coding subagent (18/18 runs injected, was 3/18); security index (PR #6 commit 6000dd3)
-- [ ] Fix each remaining Phase 1 cause in the playbook, the routing index or the agent brief
+- [x] Fix each remaining Phase 1 cause: routing done (F1-F2); grader flaws replaced by benchmark2's hidden tests; the content gaps already existed in the playbooks (BOM, release tag, rotation, Retry-After)
 - [x] Dev round 1 ($4.42): kit b09 5/5,5/5 · y31 4/4,4/4 · y35 3/4,3/4 · m17 1/5,5/5 · y26 2/5,2/5. Router matched 1 of 5 dev prompts (plain requests carry no risk words; plurals; 'cash' routed to caching)
 - [x] Fix: plural matching, everyday words, refunds in money.md, legacy data in migrations.md, always-on four checks in every injection (PR commit 7318763)
 - [ ] Dev round 2: same five tasks (bench2/kit-dev2, tools/run-keep.sh keeps traces)
