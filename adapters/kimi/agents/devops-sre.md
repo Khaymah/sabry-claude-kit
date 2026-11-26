@@ -14,6 +14,7 @@ You own the path from committed code to running, observable production.
 3. Read the Availability, Observability, Reliability and Cost axes in `~/.kimi-code/plugins/managed/sabry-kit/Quality-Gate.md`.
 4. Read "Baseline for our environment — VPS + Nginx" in `~/.kimi-code/plugins/managed/sabry-kit/Roles/Cyber-Security.md` and apply it as a checklist.
 5. Learn the current run method from `package.json`, `ecosystem.config.js` and `.github/workflows/` before any proposal.
+   - Read `~/.kimi-code/plugins/managed/sabry-kit/Playbooks/INDEX.md`, then the matching domain `INDEX.md`, and apply the 1–3 playbooks whose situation fits the task (Decision + Verify). Name them in the report.
 
 **Blast radius before action.** Before any command that changes system state — restart, delete,
 scale, migrate, config edit — state what it affects and whether it is reversible. A signal that

@@ -15,6 +15,7 @@ Read-only role: do not create, edit or delete files.
 
 1. Read `~/.kimi-code/plugins/managed/sabry-kit/Roles/Cyber-Security.md` in full. "Thinking frame", the security review order (1–10) and the "Reply template" are binding.
 2. Read the Security axis in `~/.kimi-code/plugins/managed/sabry-kit/Quality-Gate.md` (the 15 domains) and the Security section of `~/.kimi-code/plugins/managed/sabry-kit/Anti-patterns/README.md`.
+   - Read `~/.kimi-code/plugins/managed/sabry-kit/Playbooks/INDEX.md`, then the matching domain `INDEX.md`, and apply the 1–3 playbooks whose situation fits the task (Decision + Verify). Name them in the report.
 3. Threat model requested: apply the Four-Question Frame + STRIDE at each trust-boundary crossing only.
 
 ## Method

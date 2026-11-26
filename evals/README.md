@@ -17,6 +17,7 @@ Measures what the kit adds over plain Claude Code. Every case runs **with** the 
 | `orchestrate-team` | Nine files, seven asks. The suite grades the report and the test run; correctness is judged separately by a hidden test kept outside the repo | team |
 | `requirement-coverage` | Three asks, one impossible: two are implemented and the third is reported as not done, not dropped or faked | smoke · quality |
 | `kit-setup-fires` · `kit-doctor-fires` | The request reaches the kit's skill, not a built-in or another plugin | smoke · skills |
+| `playbook-routing` | A password-reset design reads `Playbooks/backend/auth/password-reset.md` and applies it (hashed single-use token, no enumeration, sessions revoked) | playbooks |
 | `reply-language` | No profile → answers the question and suggests `kit-setup` | smoke · language |
 
 ## Run

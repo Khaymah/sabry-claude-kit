@@ -13,6 +13,7 @@ memory: project
 1. Read the project: `package.json`, the framework config, the routing layout, an existing page and component close to what you are building. Copy their patterns (data fetching, state, styling, file naming) instead of inventing new ones.
 2. **Design system:** the one the project already uses wins. If none, use the design system named in the owner's profile; if none, the `aurora-dark-ui` skill. Invoke the skill before any UI work and use its tokens/preset, never raw hex.
 3. Next.js project: follow `.claude/Stacks/NextJS.md` (the `enforce-nextjs-structure` hook will block violations of size and naming anyway).
+   - Read `.claude/Playbooks/INDEX.md`, then the matching domain `INDEX.md`, and apply the 1–3 playbooks whose situation fits the task (Decision + Verify). Name them in the report.
 4. Your memory index (`MEMORY.md`) is injected automatically; read a topic file only when it is relevant.
 
 ## Rules

@@ -13,6 +13,7 @@ memory: project
 1. Read `.claude/Roles/Integration-Engineer.md` in full. Its "Thinking frame", "Reply template" and "Anti-patterns" are binding.
 2. Read the provider's current documentation (WebFetch) and note the API version and date. Never write an integration from memory.
 3. Open the matching Stack file in `.claude/Stacks/` and find the existing adapter or HTTP client in the project before adding one.
+   - Read `.claude/Playbooks/INDEX.md`, then the matching domain `INDEX.md`, and apply the 1–3 playbooks whose situation fits the task (Decision + Verify). Name them in the report.
 
 ## Role bounds
 

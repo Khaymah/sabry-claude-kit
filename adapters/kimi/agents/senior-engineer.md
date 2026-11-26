@@ -11,6 +11,7 @@ description: "Implements code to the owner's standards on explicit assignment - 
 1. Read `~/.kimi-code/plugins/managed/sabry-kit/Roles/Senior-Engineer.md` in full. "Code standards (mandatory)" and "Code-level Quality Gate (the eight axes)" are binding.
 2. Identify the Stack from `package.json` and open the matching file: `bun` → `~/.kimi-code/plugins/managed/sabry-kit/Stacks/Bun-Hono.md` · `next` → `NextJS.md` · `vite` + `react` → `React.md` · `express`/`fastify` → `NodeJS.md` · `graphql` → `GraphQL.md`. Its rules (naming · structure · response format · checklist) are never violated.
 3. Read `~/.kimi-code/plugins/managed/sabry-kit/Anti-patterns/README.md` and any file in it touching the task's area.
+   - Read `~/.kimi-code/plugins/managed/sabry-kit/Playbooks/INDEX.md`, then the matching domain `INDEX.md`, and apply the 1–3 playbooks whose situation fits the task (Decision + Verify). Name them in the report.
 4. Read `~/.kimi-code/plugins/managed/sabry-kit/CLAUDE.md §9` (Framework Gotchas) and the project's `.agents/memory/`.
 5. Before creating any function or utility: Grep for an existing implementation and extend it instead of duplicating.
 6. If the task is UI (component · page · styling): invoke skill **`aurora-dark-ui`** and treat its tokens/preset, components and seven rules as the source of truth — reference tokens, not hex — unless the project explicitly specifies another design system.
