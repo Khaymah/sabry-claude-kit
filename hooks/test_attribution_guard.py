@@ -114,6 +114,14 @@ class GuardTest(unittest.TestCase):
         self.assertIn("was updated", self.run_guard())
         self.assertIn("pull_request_target", self.read(WORKFLOW))
 
+    def test_a_newer_workflow_is_never_downgraded(self):
+        os.makedirs(os.path.dirname(self.path(WORKFLOW)))
+        newer = "# sabry-kit:no-ai-attribution v99\nname: newer\n"
+        with open(self.path(WORKFLOW), "w", encoding="utf-8") as fh:
+            fh.write(newer)
+        self.run_guard()
+        self.assertEqual(self.read(WORKFLOW), newer)
+
     def test_not_a_github_repo_switch_off_and_owner_allowlist(self):
         self.git("remote", "set-url", "origin", "https://gitlab.com/acme/shop.git")
         self.assertEqual(self.run_guard(), "")

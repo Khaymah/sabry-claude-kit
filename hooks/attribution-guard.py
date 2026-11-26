@@ -86,6 +86,11 @@ def write(path, text):
     os.replace(tmp, path)
 
 
+def version_of(text):
+    m = re.search(MARKER + r"\s+v(\d+)", text or "")
+    return int(m.group(1)) if m else 0
+
+
 def ensure_workflow(root):
     template = read(TEMPLATE)
     if not template:
@@ -97,6 +102,8 @@ def ensure_workflow(root):
     if current == template:
         return None
     if current is not None and MARKER not in current:
+        return None
+    if current is not None and version_of(current) >= version_of(template):
         return None
     write(path, template)
     return "installed" if current is None else "updated"
