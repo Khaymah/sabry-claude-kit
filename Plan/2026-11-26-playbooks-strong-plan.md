@@ -53,9 +53,9 @@ Acceptance: held-out set, 3 arms x 5 runs on Sonnet (plus a smaller Opus check);
 
 ## Phase 4b: Much stronger, and stable in long sessions
 Acceptance: the kit beats a plain model by a wider margin on fresh held-out tasks, including multi-request sessions with a forced compaction
-- [ ] C: playbooks come back after a compaction (re-inject the session's recent playbooks, reset the given-once memory)
-- [ ] A: before "done", a Stop check turns the used playbooks' edge-case rows into tests the model writes and runs (once per change set)
-- [ ] B: playbook for all-or-nothing multi-line edits (validate all, one transaction, idempotent resubmit, per-line errors)
+- [x] C: playbooks come back after a compaction (re-inject the session's recent playbooks, reset the given-once memory)
+- [x] A: before "done", a Stop check turns the used playbooks' edge-case rows into tests the model writes and runs (once per change set)
+- [x] B: playbook for all-or-nothing multi-line edits (validate all, one transaction, idempotent resubmit, per-line errors). A, B, C in PR commit after 9b6cdb6
 - [ ] D: long-session benchmark: 6-8 requests in one session with a forced compaction, hidden tests per request, fresh held-out tasks by the independent author
 - [ ] Measure A+B+C on the fresh held-out set and the long sessions; owner approves the spend first
 
