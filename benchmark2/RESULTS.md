@@ -22,4 +22,18 @@ Limits:
 - Six tasks; m20 and y33 (all-or-nothing edits) are unsolved by both setups.
 - The routing table was not tuned on held-out prompts, but their routing output was printed once during diagnosis.
 
+## Long sessions
+
+Six sessions of five requests on one codebase, `/compact` after requests 2 and 4, hidden tests re-run on every earlier request after each one. Every run compacted twice; no reference leaked.
+
+| Setup | Sessions passing every check | Requests passing every check | Mean checks passed | Cost per session |
+|---|---|---|---|---|
+| Sonnet, no kit (30) | 20 | 130/150 | 94.7% | $0.78 |
+| Sonnet, old kit `main` (30) | 19 | 132/150 | 95.7% | $0.99 |
+| Sonnet, new kit (30) | 21 | 133/150 | 95.7% | $1.15 |
+| Opus, no kit (12) | 9 | 55/60 | 96.7% | $2.13 |
+| Opus, new kit (12) | 10 | 56/60 | 97.5% | $2.68 |
+
+Four of the six sessions score the same in every setup (ceiling). The only session that separates is s03, where Sonnet without the kit drops to 9 of 14 checks in two runs of five; both kits stay at 12 or more. The differences between setups are within one run's noise.
+
 Raw rows: `results/`. Method and history: `Plan/2026-11-26-playbooks-strong-plan.md` and `Plan/2026-11-26-playbooks-diagnosis.md` on `main`.
