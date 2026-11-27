@@ -18,7 +18,7 @@
 
 - Both stock changes of a step commit in one transaction or neither does: source decrement and destination increment (or in-transit increment) together.
 - The source decrement is the guarded update from `stock-ledger.md`; a transfer cannot send more than the source holds.
-- A transfer between a branch and itself is 400.
+- A transfer between a branch and itself is 400 (defaults; keep the project's codes). Every line quantity is a positive integer, validated at the edge and again in `ReceiveTransfer`.
 - Source and destination must belong to the caller's tenant; the user acts only on branches in their allowed list.
 
 ### Standard — adds
@@ -27,7 +27,7 @@
 - Send writes `TransferOut` movements at the source and raises `StockLevels.InTransit` (or a `TransferLines.SentQuantity`); in-transit is derived from `SentQuantity - ReceivedQuantity - CancelledQuantity` per line, never stored twice.
 - Receive takes `ReceivedQuantity` per line, writes `TransferIn` movements at the destination, only by a user allowed at the destination branch. Receiving more than `SentQuantity - ReceivedQuantity` is 409.
 - Cancel is allowed from `Draft` and `Sent`; after a partial receive it returns only the remainder `SentQuantity - ReceivedQuantity` to the source with `TransferReturn` movements and marks the lines closed. What was received stays at the destination.
-- Each movement references the transfer id as `ReferenceType = "Transfer"`; retried send, receive or cancel inserts once (`backend/reliability/idempotency.md`).
+- Each movement references the transfer id as `ReferenceType = "Transfer"`; `ReferenceId` is the transfer id for send and cancel, and the receive request key for each receive (receiving 3 twice is legitimate), so a partial receive never collides with the next; a retried request inserts once (`backend/reliability/idempotency.md`).
 - Reports: "stock by branch" shows `Quantity` plus a separate "in transit" column; "total company stock" adds in-transit. A cancelled transfer must not leave a phantom on either side.
 - Lock the two `StockLevels` rows in `(BranchId, ProductId)` order so A→B and B→A at once cannot deadlock.
 
@@ -57,7 +57,8 @@
 ## Example — Standard, Bun + Hono + Drizzle
 
 ```ts
-export async function ReceiveTransfer(Db: Db, Ctx: Ctx, TransferId: string, Lines: { ProductId: string; Quantity: number }[]) {
+export async function ReceiveTransfer(Db: Db, Ctx: Ctx, TransferId: string, Lines: { ProductId: string; Quantity: number }[], ReceiveKey: string) {
+  if (Lines.some((L) => !Number.isSafeInteger(L.Quantity) || L.Quantity <= 0)) throw new AppError("INVALID_QUANTITY", 400)
   return Db.transaction(async (Tx) => {
     const [Transfer] = await Tx.select().from(Transfers)
       .where(and(eq(Transfers.TenantId, Ctx.TenantId), eq(Transfers.Id, TransferId), inArray(Transfers.DestinationBranchId, Ctx.BranchIds)))
@@ -71,14 +72,14 @@ export async function ReceiveTransfer(Db: Db, Ctx: Ctx, TransferId: string, Line
           AND "ReceivedQuantity" + "CancelledQuantity" + ${L.Quantity} <= "SentQuantity"
         RETURNING "Id"`)
       if (Updated.length === 0) throw new AppError("RECEIVE_EXCEEDS_SENT", 409)
-      await MoveStock(Tx, { TenantId: Ctx.TenantId, BranchId: Transfer.DestinationBranchId, ProductId: L.ProductId, Delta: L.Quantity, Reason: "TransferIn", ReferenceType: "Transfer", ReferenceId: TransferId, UserId: Ctx.UserId })
+      await MoveStock(Tx, { TenantId: Ctx.TenantId, BranchId: Transfer.DestinationBranchId, ProductId: L.ProductId, Delta: L.Quantity, Reason: "TransferIn", ReferenceType: "Transfer", ReferenceId: ReceiveKey, UserId: Ctx.UserId })
     }
     await RefreshTransferStatus(Tx, TransferId)
   })
 }
 ```
 
-`RefreshTransferStatus` sets `Received` when every line has `Received + Cancelled = Sent`, else `PartiallyReceived`. Retries of the same receive need a request key, since receiving 3 twice is legitimate.
+`RefreshTransferStatus` sets `Received` when every line has `Received + Cancelled = Sent`, else `PartiallyReceived`. `ReceiveKey` is the client request key, so a retry replays the same movement while the next partial receive gets a new one. `MoveStock` upserts the destination row when it is missing.
 
 Other stacks: the same two guards (status, remainder) work in any SQL; no distributed transaction is needed because both branches share one database.
 

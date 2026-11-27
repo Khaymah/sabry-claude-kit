@@ -16,7 +16,7 @@
 
 ### Minimum — always, never cut
 
-- Reserve with `UPDATE "StockLevels" SET "Reserved" = "Reserved" + $q WHERE … AND "Quantity" - "Reserved" >= $q RETURNING`; no row back is `409 OUT_OF_STOCK` (`backend/data/concurrency.md`).
+- Reserve with `UPDATE "StockLevels" SET "Reserved" = "Reserved" + $q WHERE … AND "Quantity" - "Reserved" >= $q RETURNING`; no row back is `409 OUT_OF_STOCK` (defaults; keep the project's codes; `backend/data/concurrency.md`).
 - `CHECK ("Reserved" >= 0 AND "Reserved" <= "Quantity")`.
 - Never compute available in JS from two reads. Return it from SQL as `Quantity - Reserved`.
 - A reservation always has `ExpiresAt`; a hold with no expiry is a leak.
@@ -24,9 +24,9 @@
 ### Standard — adds
 
 - `Reservations(Id, TenantId, BranchId, ProductId, Quantity, Status, ExpiresAt, OwnerType, OwnerId)` with `Status` `Active` → `Converted` | `Released` | `Expired`. Transitions are `UPDATE … WHERE "Status" = 'Active' RETURNING`, so release and convert cannot both win.
-- Release job (`backend/reliability/background-jobs.md`) every minute: `UPDATE Reservations SET Status = 'Expired' WHERE Status = 'Active' AND ExpiresAt < now() RETURNING`, then subtract the returned quantities from `Reserved` in the same transaction, in batches of 500, under an advisory lock.
-- Every reader treats `ExpiresAt < now()` as not held, even before the job runs; the job only reconciles the counter.
-- Convert on payment success: writes the `Sale` movement (`stock-ledger.md`), lowers `Quantity` and `Reserved` together, marks `Converted`. Payment arriving after expiry re-reserves with the same guard; if that fails the order goes to a refund path, never oversold.
+- Release job (`backend/reliability/background-jobs.md`) every minute: `UPDATE Reservations SET Status = 'Expired' WHERE Status = 'Active' AND ExpiresAt < $Now RETURNING` (`Now` injected, not SQL `now()`), then subtract the returned quantities from `Reserved` in the same transaction, in batches of 500, under an advisory lock.
+- Every reader treats `ExpiresAt < $Now` as not held, even before the job runs, and `Reserve` first releases that product's expired holds inside its own transaction so a stale hold never blocks a buyer; the job only reconciles the rest.
+- Convert on payment success: writes the `Sale` movement (`stock-ledger.md`), lowers `Quantity` and `Reserved` in one `UPDATE` (the `CHECK` is evaluated per statement, so two separate updates would violate it), marks `Converted`. Payment arriving after expiry re-reserves with the same guard; if that fails the order goes to a refund path, never oversold.
 - Extending a hold is a conditional update on `Status = 'Active'`, capped by the owner's maximum total hold time.
 - A reservation belongs to a cart or order id; one cart holds at most one active reservation per product (unique partial index on `Status = 'Active'`). Adding to the cart again changes the quantity, relative.
 
@@ -55,8 +55,9 @@
 ## Example — Standard, Bun + Hono + Drizzle
 
 ```ts
-export async function Reserve(Tx: Tx, R: { TenantId: string; BranchId: string; ProductId: string; Quantity: number; OwnerId: string; Ttl: number }) {
+export async function Reserve(Tx: Tx, R: { TenantId: string; BranchId: string; ProductId: string; Quantity: number; OwnerId: string; Ttl: number; Now: Date }) {
   if (!Number.isSafeInteger(R.Quantity) || R.Quantity <= 0) throw new AppError("INVALID_QUANTITY", 400)
+  await ReleaseExpiredFor(Tx, R)
   const Held = await Tx.execute(sql`
     UPDATE "StockLevels" SET "Reserved" = "Reserved" + ${R.Quantity}
     WHERE "TenantId" = ${R.TenantId} AND "BranchId" = ${R.BranchId} AND "ProductId" = ${R.ProductId}
@@ -65,16 +66,28 @@ export async function Reserve(Tx: Tx, R: { TenantId: string; BranchId: string; P
   if (Held.length === 0) throw new AppError("OUT_OF_STOCK", 409)
   const [Row] = await Tx.insert(Reservations).values({
     TenantId: R.TenantId, BranchId: R.BranchId, ProductId: R.ProductId, Quantity: R.Quantity,
-    OwnerId: R.OwnerId, Status: "Active", ExpiresAt: new Date(Date.now() + R.Ttl),
+    OwnerId: R.OwnerId, Status: "Active", ExpiresAt: new Date(R.Now.getTime() + R.Ttl),
   }).returning()
   return Row
 }
 
-export async function ExpireHolds(Db: Db) {
+export async function ReleaseExpiredFor(Tx: Tx, R: { TenantId: string; BranchId: string; ProductId: string; Now: Date }) {
+  const Rows = await Tx.execute(sql`
+    UPDATE "Reservations" SET "Status" = 'Expired'
+    WHERE "TenantId" = ${R.TenantId} AND "BranchId" = ${R.BranchId} AND "ProductId" = ${R.ProductId}
+      AND "Status" = 'Active' AND "ExpiresAt" < ${R.Now}
+    RETURNING "Quantity"`)
+  const Total = Rows.reduce((Sum, Row) => Sum + Number(Row.Quantity), 0)
+  if (Total === 0) return
+  await Tx.execute(sql`UPDATE "StockLevels" SET "Reserved" = "Reserved" - ${Total}
+    WHERE "TenantId" = ${R.TenantId} AND "BranchId" = ${R.BranchId} AND "ProductId" = ${R.ProductId}`)
+}
+
+export async function ExpireHolds(Db: Db, Now: Date) {
   return Db.transaction(async (Tx) => {
     const Rows = await Tx.execute(sql`
       UPDATE "Reservations" SET "Status" = 'Expired'
-      WHERE "Id" IN (SELECT "Id" FROM "Reservations" WHERE "Status" = 'Active' AND "ExpiresAt" < now() ORDER BY "ExpiresAt" LIMIT 500 FOR UPDATE SKIP LOCKED)
+      WHERE "Id" IN (SELECT "Id" FROM "Reservations" WHERE "Status" = 'Active' AND "ExpiresAt" < ${Now} ORDER BY "ExpiresAt" LIMIT 500 FOR UPDATE SKIP LOCKED)
       RETURNING "TenantId", "BranchId", "ProductId", "Quantity"`)
     for (const R of Rows) {
       await Tx.execute(sql`UPDATE "StockLevels" SET "Reserved" = "Reserved" - ${R.Quantity}

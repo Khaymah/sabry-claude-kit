@@ -21,7 +21,7 @@
 - `CREATE EXTENSION pg_trgm`; `GIN ("SearchText" gin_trgm_ops)`; for multi-tenant tables use `btree_gin` so the index is `("TenantId", "SearchText")`, or filter by tenant first and accept the plan.
 - The tenant filter (and scope filter) is part of every search query (`backend/data/multi-tenancy.md`); never search first and filter in JS.
 - Escape `%`, `_` and `\` in user input before building an `ILIKE` pattern; the query is a bound parameter.
-- Minimum query length 2 characters (3 for trigram contains); cap length at 100; return `400`/empty for shorter, not a full scan.
+- Minimum query length 3 characters for trigram contains (a 2-character `ILIKE '%ab%'` cannot use the index); shorter input is rejected (`400`/empty) or served only by prefix lookup on the code and phone columns, never a full scan; cap length at 100.
 - Results are always paginated with a stable order (`backend/api/pagination.md`); no unbounded `LIMIT`.
 - Phones and codes are searched on a separate normalised digits-only column (`01012345678`, `+20 10…` both match) with a btree prefix index.
 
@@ -82,7 +82,7 @@ const EscapeLike = (S: string) => S.replace(/[\\%_]/g, "\\$&")
 
 export async function SearchCustomers(TenantId: string, Raw: string, Limit = 20, Offset = 0) {
   const Q = NormalizeArabic(Raw).slice(0, 100)
-  if (Q.length < 2) return []
+  if (Q.length < 3) return []
   return db.select({ Id: Customers.Id, Name: Customers.Name })
     .from(Customers)
     .where(and(eq(Customers.TenantId, TenantId), isNull(Customers.DeletedAt), sql`${Customers.SearchText} ILIKE ${"%" + EscapeLike(Q) + "%"}`))

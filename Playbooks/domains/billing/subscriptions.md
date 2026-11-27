@@ -26,7 +26,7 @@
 
 - Default statuses: `trialing → active → past_due → suspended → canceled`, plus `active → canceled` at period end. Anything else is rejected.
 - Cancel sets `CancelAtPeriodEnd = true`; access continues to `CurrentPeriodEnd`; the billing run flips it to `canceled` instead of renewing. Immediate cancel is a separate, explicit action.
-- Billing run selects due rows with `FOR UPDATE SKIP LOCKED` in batches; one transaction per subscription so one failure does not roll back the rest (`backend/reliability/background-jobs.md`).
+- Billing run lists due ids in batches, then each per-subscription transaction re-selects its row with `FOR UPDATE SKIP LOCKED`, re-checks status and due time, and reads `CancelAtPeriodEnd` only after the lock; one transaction per subscription so one failure does not roll back the rest (`backend/reliability/background-jobs.md`).
 - Period end is computed from the previous `CurrentPeriodEnd`, never from `now()`, so a late run does not shift the cycle. Month math clamps the day (Jan 31 + 1 month = Feb 28/29) and keeps an `AnchorDay` so March goes back to 31.
 - Catch-up: a run that finds `NextBillingAt` several periods behind loops period by period, creating one invoice per missed period in order; after N missed periods (default 3) it stops and marks `past_due` instead of billing a year at once.
 - The charge itself is idempotent per invoice (`backend/reliability/idempotency.md`); money rules in `backend/data/money.md`.
@@ -64,13 +64,17 @@ export const Invoices = pgTable("Invoices", {
 ])
 
 export async function BillDue(Db: TDb, Now: Date) {
-  const Due = await Db.select().from(Subscriptions)
+  const Due = await Db.select({ Id: Subscriptions.Id }).from(Subscriptions)
     .where(and(eq(Subscriptions.Status, "active"), lte(Subscriptions.NextBillingAt, Now)))
-    .limit(200).for("update", { skipLocked: true })
-  for (const Sub of Due) await Db.transaction((Tx) => BillOnePeriod(Tx, Sub))
+    .limit(200)
+  for (const { Id } of Due) await Db.transaction((Tx) => BillOnePeriod(Tx, Id, Now))
 }
 
-async function BillOnePeriod(Tx: TTx, Sub: TSubscription) {
+async function BillOnePeriod(Tx: TTx, SubId: string, Now: Date) {
+  const [Sub] = await Tx.select().from(Subscriptions)
+    .where(and(eq(Subscriptions.Id, SubId), eq(Subscriptions.Status, "active"), lte(Subscriptions.NextBillingAt, Now)))
+    .for("update", { skipLocked: true })
+  if (!Sub) return
   if (Sub.CancelAtPeriodEnd) return SetStatus(Tx, Sub.Id, "active", "canceled")
   const Inserted = await Tx.insert(Invoices).values({
     TenantId: Sub.TenantId, SubscriptionId: Sub.Id, PeriodStart: Sub.CurrentPeriodEnd, TotalMinor: Sub.PriceMinor,

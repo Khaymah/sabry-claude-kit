@@ -19,6 +19,7 @@
 - Bookings store `StartsAt` and `EndsAt` as `timestamptz` UTC; working hours store local `time` plus the tenant zone (default `Africa/Cairo`, see `backend/data/time-zones.md`).
 - Intervals are half-open `[start, end)`: a booking ending 10:00 does not conflict with one starting 10:00.
 - Every availability query filters by `TenantId` and by the resource; a slot from one tenant never reveals another's bookings.
+- Only `Held` (with `HoldExpiresAt > Now`) and `Confirmed` bookings block time; `Cancelled`, `Expired`, `NoShow` and `Completed` do not.
 - Never offer a slot in the past or inside the minimum notice (default 1 hour); compare with the injected `Now`.
 
 ### Standard — adds
@@ -78,10 +79,10 @@ export function CutSlots(Free: TInterval[], DurationMs: number, StepMs: number, 
   return Starts
 }
 
-export async function BusyIntervals(TenantId: string, ResourceId: string, From: Date, To: Date) {
+export async function BusyIntervals(TenantId: string, ResourceId: string, From: Date, To: Date, Now: Date) {
   const Rows = await db.select({ From: Bookings.OccupiedFrom, To: Bookings.OccupiedUntil })
     .from(Bookings)
-    .where(and(eq(Bookings.TenantId, TenantId), eq(Bookings.ResourceId, ResourceId), ne(Bookings.Status, "Cancelled"), lt(Bookings.OccupiedFrom, To), gt(Bookings.OccupiedUntil, From)))
+    .where(and(eq(Bookings.TenantId, TenantId), eq(Bookings.ResourceId, ResourceId), or(eq(Bookings.Status, "Confirmed"), and(eq(Bookings.Status, "Held"), gt(Bookings.HoldExpiresAt, Now))), lt(Bookings.OccupiedFrom, To), gt(Bookings.OccupiedUntil, From)))
   return Rows.map((R) => ({ From: R.From.getTime(), To: R.To.getTime() }))
 }
 ```

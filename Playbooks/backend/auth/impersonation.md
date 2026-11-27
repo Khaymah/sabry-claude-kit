@@ -17,10 +17,11 @@
 ### Minimum — always, never cut
 
 - Only users with `Users.Impersonate` can start it, through an admin route of its own (`backend/auth/rbac.md`); never a query flag on normal routes.
-- Start requires `TargetUserId` and a free-text `Reason` (and ticket id if the project has tickets); both are stored.
+- Start requires `TargetUserId` and a free-text `Reason` (and ticket id if the project has tickets); both are stored. A missing or short reason is `422 REASON_REQUIRED` (defaults; keep the project's codes).
 - The session is a new row (`ImpersonationSessions`: `ActorId`, `TargetId`, `Reason`, `StartedAt`, `ExpiresAt`, `EndedAt`) and a new access token whose claims carry `Sub = TargetId` and `Act = ActorId`. The target's password, refresh token and existing sessions are never touched or reused.
 - Hard expiry 30 minutes, no refresh and no silent extension; the actor ends it with a button, or starts a new one with a new reason.
 - The actor cannot impersonate a user with a higher or equal privilege role, a platform admin, or themselves.
+- The target is loaded with `TenantId = Actor.TenantId`; only a platform role may target another tenant, and that start is audited as cross-tenant.
 - Every response in the session shows a banner (target, actor, time left) and an "Exit" action; the frontend cannot hide it because the banner flag comes from the token.
 - Audit rows for start, end, and every write made during the session carry both `ActorId` and `OnBehalfOf` (`backend/data/audit-log.md`).
 
@@ -49,23 +50,32 @@
 | Action performed in the session | Audit shows `ActorId`, `OnBehalfOf`, session id; user-facing "created by" shows the target and a "via support" mark |
 | Background job started in the session | Job payload carries `ActorId` and runs with the same restrictions, or is refused if it writes |
 | Cached data, files and signed URLs | Keys follow the target's tenant and scope; signed URLs issued in the session expire with it |
-| Impersonating across tenants | Platform support only; the tenant context is set explicitly and audited (`backend/data/multi-tenancy.md`) |
+| Impersonating across tenants | Platform role only (the one exemption from the same-tenant rule); the tenant context is set explicitly and audited (`backend/data/multi-tenancy.md`) |
 | 100×: 100 support sessions a day, millions of audit rows | Audit table partitioned or indexed by `(OnBehalfOf, CreatedAt)`; sessions list paginated |
-| Twice / parallel: actor starts two sessions for the same target, or clicks start twice | Partial unique index on active sessions per `(ActorId, TargetId)`; the second call returns the existing session |
+| Twice / parallel: actor starts two sessions for the same target, or clicks start twice | Partial unique index on active sessions per `(ActorId, TargetId)`; expired rows are ended inside the start transaction, then the second call returns the existing active session |
 
 ## Example — Standard, Bun + Hono + Drizzle
 
 ```ts
 export async function StartImpersonation(Actor: TUser, TargetId: string, Reason: string, AllowWrites: boolean) {
   if (Reason.trim().length < 10) throw new AppError("REASON_REQUIRED", 422)
-  const Target = await db.query.Users.findFirst({ where: eq(Users.Id, TargetId) })
+  const Scope = IsPlatformRole(Actor.Role) ? undefined : eq(Users.TenantId, Actor.TenantId)
+  const Target = await db.query.Users.findFirst({ where: and(eq(Users.Id, TargetId), Scope) })
   if (!Target || Target.Id === Actor.Id || RoleRank(Target.Role) >= RoleRank(Actor.Role)) throw new AppError("FORBIDDEN", 403)
-  const ExpiresAt = new Date(Date.now() + 30 * 60_000)
-  const [Row] = await db.insert(ImpersonationSessions).values({ ActorId: Actor.Id, TargetId, Reason, AllowWrites, ExpiresAt })
-    .onConflictDoNothing().returning()
-  if (!Row) throw new AppError("ALREADY_ACTIVE", 409)
-  await WriteAudit(db, "Impersonation.Started", { ActorId: Actor.Id, TargetId, Reason, SessionId: Row.Id })
-  return SignAccessToken({ Sub: TargetId, Act: Actor.Id, Imp: Row.Id, Exp: ExpiresAt })
+  const Now = new Date()
+  const ExpiresAt = new Date(Now.getTime() + 30 * 60_000)
+  const Row = await db.transaction(async (Tx) => {
+    await Tx.update(ImpersonationSessions).set({ EndedAt: Now })
+      .where(and(eq(ImpersonationSessions.ActorId, Actor.Id), eq(ImpersonationSessions.TargetId, TargetId), isNull(ImpersonationSessions.EndedAt), lt(ImpersonationSessions.ExpiresAt, Now)))
+    const [Created] = await Tx.insert(ImpersonationSessions).values({ ActorId: Actor.Id, TargetId, Reason, AllowWrites, ExpiresAt })
+      .onConflictDoNothing().returning()
+    if (Created) return Created
+    const [Active] = await Tx.select().from(ImpersonationSessions)
+      .where(and(eq(ImpersonationSessions.ActorId, Actor.Id), eq(ImpersonationSessions.TargetId, TargetId), isNull(ImpersonationSessions.EndedAt)))
+    return Active
+  })
+  await WriteAudit(db, "Impersonation.Started", { ActorId: Actor.Id, TargetId, Reason, SessionId: Row.Id, CrossTenant: Target.TenantId !== Actor.TenantId })
+  return SignAccessToken({ Sub: TargetId, Act: Actor.Id, Imp: Row.Id, Exp: Row.ExpiresAt })
 }
 
 export const ImpersonationGuard = createMiddleware<AppEnv>(async (c, Next) => {
@@ -81,7 +91,7 @@ export const ImpersonationGuard = createMiddleware<AppEnv>(async (c, Next) => {
 })
 ```
 
-`WriteAudit` reads `c.get("Impersonation")` and always records both ids. The partial unique index `(ActorId, TargetId) WHERE EndedAt IS NULL` makes the double start safe.
+`WriteAudit` reads `c.get("Impersonation")` and always records both ids. The partial unique index `(ActorId, TargetId) WHERE EndedAt IS NULL` makes the double start safe; the repeat call returns the existing session.
 
 Other stacks: Laravel's `Auth::login` of the target is unsafe here; mint a distinct guard or token with an `act` claim instead.
 

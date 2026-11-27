@@ -16,16 +16,17 @@
 
 ### Minimum — always, never cut
 
-- Decrement with `UPDATE "StockLevels" SET "Quantity" = "Quantity" - $1 WHERE "TenantId" = $t AND "BranchId" = $b AND "ProductId" = $p AND "Quantity" >= $1 RETURNING`. No row back is `409 OUT_OF_STOCK`; never read, check in JS, write (`backend/data/concurrency.md`).
+- Decrement with `UPDATE "StockLevels" SET "Quantity" = "Quantity" - $1 WHERE "TenantId" = $t AND "BranchId" = $b AND "ProductId" = $p AND "Quantity" >= $1 RETURNING`. No row back is `409 OUT_OF_STOCK` (defaults; keep the project's codes and statuses); never read, check in JS, write (`backend/data/concurrency.md`).
 - `CHECK ("Quantity" >= 0)` on the column as the last line of defence.
 - Every stock query filters `TenantId` and `BranchId`; the branch comes from the user's allowed branches, not from the request body (`backend/data/multi-tenancy.md`).
 - Quantities are integers in the smallest unit sold (pieces, grams). Fractional stock is stored as an integer with a unit factor, never a float.
 - Never `UPDATE "Quantity" = <value computed in JS>`. Only relative changes.
+- Sales and negative movements guard `"Quantity" - "Reserved" >= $1`, so reserved stock (`domains/inventory/reservations.md`) cannot be sold.
 
 ### Standard — adds
 
 - Each change inserts a `StockMovements` row in the same transaction: `Delta` (signed), `Reason` (enum: `Sale`, `Return`, `Receive`, `TransferOut`, `TransferIn`, `Adjustment`, `Damage`, `Count`), `ReferenceType`, `ReferenceId`, `CreatedBy`, `CreatedAt`. No movement, no change.
-- Unique index on `(ReferenceType, ReferenceId, ProductId, BranchId, Reason)` makes a retried order or webhook insert once (`backend/reliability/idempotency.md`). A duplicate is success, not an error.
+- Unique index on `(ReferenceType, ReferenceId, ProductId, BranchId, Reason)` makes a retried order or webhook insert once (`backend/reliability/idempotency.md`). `ReferenceId` identifies the action, not the parent document: a receive id or request key per receive, a refund id per return, so two partial receives of one purchase order are two rows. A duplicate with the same `Delta` is success; a duplicate with a different `Delta` is `409 MOVEMENT_CONFLICT`, never swallowed.
 - Movements are never updated or deleted. A mistake is a compensating movement with `Reason = Adjustment` and a `ReferenceId` pointing at the wrong one (`backend/data/audit-log.md`).
 - Lock rows in `(BranchId, ProductId)` order when one request touches several, so two multi-line orders cannot deadlock.
 - A nightly job compares `Quantity` with `SUM("Delta")` per pair and alerts on any difference; it never auto-fixes.
@@ -62,6 +63,7 @@ export const StockLevels = pgTable("StockLevels", {
   BranchId: uuid("BranchId").notNull(),
   ProductId: uuid("ProductId").notNull(),
   Quantity: bigint("Quantity", { mode: "number" }).notNull().default(0),
+  Reserved: bigint("Reserved", { mode: "number" }).notNull().default(0),
 }, (T) => [
   primaryKey({ columns: [T.TenantId, T.BranchId, T.ProductId] }),
   check("StockLevelsNonNegative", sql`${T.Quantity} >= 0`),
@@ -70,17 +72,30 @@ export const StockLevels = pgTable("StockLevels", {
 export async function MoveStock(Tx: Tx, M: { TenantId: string; BranchId: string; ProductId: string; Delta: number; Reason: string; ReferenceType: string; ReferenceId: string; UserId: string }) {
   if (!Number.isSafeInteger(M.Delta) || M.Delta === 0) throw new AppError("STOCK_INVALID_DELTA", 400)
   const Inserted = await Tx.insert(StockMovements).values(M).onConflictDoNothing().returning({ Id: StockMovements.Id })
-  if (Inserted.length === 0) return
+  if (Inserted.length === 0) {
+    const [Existing] = await Tx.select({ Delta: StockMovements.Delta }).from(StockMovements).where(and(
+      eq(StockMovements.ReferenceType, M.ReferenceType), eq(StockMovements.ReferenceId, M.ReferenceId),
+      eq(StockMovements.ProductId, M.ProductId), eq(StockMovements.BranchId, M.BranchId), eq(StockMovements.Reason, M.Reason)))
+    if (Existing?.Delta !== M.Delta) throw new AppError("MOVEMENT_CONFLICT", 409)
+    return
+  }
+  if (M.Delta > 0) {
+    await Tx.execute(sql`
+      INSERT INTO "StockLevels" ("TenantId", "BranchId", "ProductId", "Quantity")
+      VALUES (${M.TenantId}, ${M.BranchId}, ${M.ProductId}, ${M.Delta})
+      ON CONFLICT ("TenantId", "BranchId", "ProductId") DO UPDATE SET "Quantity" = "StockLevels"."Quantity" + ${M.Delta}`)
+    return
+  }
   const Updated = await Tx.execute(sql`
     UPDATE "StockLevels" SET "Quantity" = "Quantity" + ${M.Delta}
     WHERE "TenantId" = ${M.TenantId} AND "BranchId" = ${M.BranchId} AND "ProductId" = ${M.ProductId}
-      AND "Quantity" + ${M.Delta} >= 0
+      AND "Quantity" - "Reserved" + ${M.Delta} >= 0
     RETURNING "Quantity"`)
   if (Updated.length === 0) throw new AppError("OUT_OF_STOCK", 409)
 }
 ```
 
-The thrown error rolls back the movement insert, so a failed decrement leaves no movement. A positive `Delta` for a missing row needs the upsert from the edge-case table.
+The thrown error rolls back the movement insert, so a failed decrement leaves no movement. A positive `Delta` upserts the row, so receiving into a missing pair works.
 
 Other stacks: any SQL database works the same; without `RETURNING` (MySQL) check the affected-row count.
 

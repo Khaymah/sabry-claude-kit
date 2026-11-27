@@ -17,7 +17,7 @@
 ### Minimum — always, never cut
 
 - Columns for instants are `timestamp with time zone`. Never `timestamp without time zone` for an instant, never a string, never local time stored as if it were UTC.
-- Never mix SQL `now()` with application time in one flow. Pick one source per operation: the app reads the clock once through an injected `Now()` and passes it into every query and comparison.
+- One clock source per operation: either the app reads the clock once through an injected `Now` and passes it into every query and comparison, or the whole operation uses SQL `now()` and the app compares nothing against it. Tests inject `Now`.
 - Never compute a day boundary with `setHours(0,0,0,0)`, `new Date().getDate()` or `toISOString().slice(0,10)`: they use the server zone or UTC and shift the day by up to 3 hours in Cairo.
 - Parse input at the edge: a datetime without an offset is rejected (400) unless the field is documented as tenant-local; a `date` field is validated as `YYYY-MM-DD` and never converted to a timestamp.
 
@@ -89,7 +89,7 @@ Other stacks: Laravel stores UTC with `config('app.timezone') = 'UTC'` and conve
 
 ## Verify
 
-- [ ] `[M]` `grep -rnE "setHours\(0|toISOString\(\)\.slice|getTimezoneOffset|[^a-zA-Z]now\(\)" src/` finds no day math or mixed clocks on business paths.
+- [ ] `[M]` `grep -rnE "setHours\(0|toISOString\(\)\.slice|getTimezoneOffset|[^a-zA-Z]now\(\)" src/` finds no day math, and every hit uses one clock source for its whole operation.
 - [ ] `[M]` No instant column is `timestamp without time zone`.
 - [ ] `[S]` With `TZ=America/New_York`, the suite passes; an order at 21:30Z on the 31st lands on the 1st in Cairo's report.
 - [ ] `[S]` `to=2026-03-31` includes a row at 23:59:59 local.
@@ -99,7 +99,7 @@ Other stacks: Laravel stores UTC with `config('app.timezone') = 'UTC'` and conve
 
 - **`new Date("2026-03-01")` read as UTC midnight, shown in a negative zone** → the previous day → keep `date` as a string and never build a `Date` from it.
 - **`BETWEEN '…00:00' AND '…23:59:59'`** → drops the last second and fractions → half-open range.
-- **`now()` in SQL and `new Date()` in the app compared in one rule** → skew flips edge cases → one injected clock.
+- **`now()` in SQL and `new Date()` in the app compared in one rule** → skew flips edge cases → one clock source per operation.
 - **Hardcoding `+02:00` for Egypt** → one hour off in summer → IANA zone.
 - **Wrapping the indexed column in `AT TIME ZONE` in `WHERE`** → full scan → convert the bounds instead.
 

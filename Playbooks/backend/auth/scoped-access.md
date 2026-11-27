@@ -28,7 +28,7 @@
 
 - `UserScopes (TenantId, UserId, BranchId)` unique; a user may hold many. `AllScopes` is a flag on the membership or role, not a list of every branch, so new branches are included automatically.
 - Aggregates and reports run with the scope helper too; a report row can only come from allowed scopes, and totals are recomputed on the filtered set, never subtracted from a global total.
-- Moving a record between scopes is a permission of its own (`Records.Transfer`), needs access to both source and target, writes an audit row with both ids, and moves dependent rows (lines, payments, files) in the same transaction.
+- Moving a record between scopes is a permission of its own (`Records.Transfer`), needs access to both source and target and a target branch that exists in the caller's tenant (even `AllScopes` users), writes an audit row with both ids, and moves dependent rows (lines, payments, files) in the same transaction.
 - Cached permission or scope sets are keyed by `(UserId, ScopeVersion)`; any change to `UserScopes`, an all-scopes flag or a role bumps the version in the same transaction as the change (`backend/auth/sessions.md`, `backend/reliability/caching.md`).
 - Cached query results and list counts include the scope set hash in the key.
 - Deleting or deactivating a branch removes it from `UserScopes` and keeps its history readable only to all-scopes users.
@@ -81,10 +81,13 @@ app.get("/sales", Require("Sales.View"), async (c) => {
   return c.json({ Data: Rows })
 })
 
-export async function MoveSale(Scope: TScope, SaleId: string, TargetBranchId: string) {
+export async function MoveSale(Scope: TScope, Can: (Permission: string) => boolean, SaleId: string, TargetBranchId: string) {
+  if (!Can("Records.Transfer")) throw new AppError("FORBIDDEN", 403)
   return db.transaction(async (Tx) => {
+    const [Target] = await Tx.select({ Id: Branches.Id }).from(Branches)
+      .where(and(eq(Branches.Id, TargetBranchId), eq(Branches.TenantId, Scope.TenantId)))
     const [Sale] = await Tx.select().from(Sales).where(and(eq(Sales.Id, SaleId), InScope(Sales, Scope))).for("update")
-    if (!Sale || !CanAccess(Scope, TargetBranchId)) throw new AppError("NOT_FOUND", 404)
+    if (!Sale || !Target || !CanAccess(Scope, TargetBranchId)) throw new AppError("NOT_FOUND", 404)
     await Tx.update(Sales).set({ BranchId: TargetBranchId }).where(eq(Sales.Id, SaleId))
     await Tx.update(SaleLines).set({ BranchId: TargetBranchId }).where(eq(SaleLines.SaleId, SaleId))
     await WriteAudit(Tx, "Sale.Moved", { SaleId, From: Sale.BranchId, To: TargetBranchId })
@@ -92,7 +95,7 @@ export async function MoveSale(Scope: TScope, SaleId: string, TargetBranchId: st
 }
 ```
 
-`LoadScope` reads from cache keyed by `ScopeVersion`. The filter is a pure function of the server-side scope plus a narrowing request, so no handler can widen it; the move locks the row in scope, checks the target, and moves children together.
+`LoadScope` reads from cache keyed by `ScopeVersion`. The filter is a pure function of the server-side scope plus a narrowing request, so no handler can widen it; the move requires `Records.Transfer`, locks the row in scope, checks the target belongs to the tenant and to the allowed set, and moves children together.
 
 Other stacks: Prisma client extension that injects the scope `where` on scoped models; Laravel global scope reading the scope from the authenticated user.
 

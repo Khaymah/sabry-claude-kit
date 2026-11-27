@@ -19,9 +19,9 @@
 - Token: 32 random bytes from a CSPRNG, base64url in the link; store only `sha256(token)` in `TokenHash`. Never store or log the raw token.
 - `Invitations` row: `TenantId`, `Email` (lowercased), `Role`, `InvitedBy`, `ExpiresAt` (7 days default), `Status` (`Pending`, `Accepted`, `Revoked`, `Expired`), `AcceptedAt`.
 - The role comes from the row at accept time, never from the link or request body. Opening the link grants nothing.
-- Accept is an atomic conditional update: `UPDATE "Invitations" SET "Status"='Accepted' WHERE "TokenHash"=$1 AND "Status"='Pending' AND "ExpiresAt" > now() RETURNING *`; no row back means `410 INVITE_INVALID` with the same message for unknown, used, revoked and expired.
+- Accept is an atomic conditional update: `UPDATE "Invitations" SET "Status"='Accepted' WHERE "TokenHash"=$1 AND "Status"='Pending' AND "ExpiresAt" > $Now RETURNING *`; no row back means `410 INVITE_INVALID` with the same message for unknown, used, revoked and expired (status codes here are defaults; keep the project's).
 - Accept requires a signed-in user whose verified email equals the invite's `Email`; a different account gets `403` and the invite stays pending.
-- Inviter must hold the permission to invite and may only grant roles at or below their own (`backend/auth/rbac.md`).
+- Inviter must hold the permission to invite and may only grant roles at or below their own (`backend/auth/rbac.md`); `CreateInvitation` checks `RoleRank(Inviter.Role) >= RoleRank(Role)` before inserting.
 - One pending invite per `(TenantId, Email)`: partial unique index where `Status = 'Pending'`.
 
 ### Standard — adds
@@ -62,6 +62,7 @@ export const HashToken = (Token: string) => createHash("sha256").update(Token).d
 
 export async function CreateInvitation(Tenant: TTenant, Inviter: TUser, Email: string, Role: TRole) {
   const Token = randomBytes(32).toString("base64url")
+  if (RoleRank(Inviter.Role) < RoleRank(Role)) throw new AppError("FORBIDDEN", 403)
   const Normalized = Email.trim().toLowerCase()
   await db.transaction(async (Tx) => {
     await Tx.update(Invitations).set({ Status: "Revoked" })
@@ -81,17 +82,19 @@ export async function AcceptInvitation(User: TUser, Token: string) {
       .returning()
     if (!Invite) throw new AppError("INVITE_INVALID", 410)
     if (!User.EmailVerified || User.Email.toLowerCase() !== Invite.Email) throw new AppError("INVITE_EMAIL_MISMATCH", 403)
+    const Created = await Tx.insert(Memberships).values({ TenantId: Invite.TenantId, UserId: User.Id, Role: Invite.Role })
+      .onConflictDoNothing().returning({ Id: Memberships.Id })
+    if (Created.length === 0) return Invite
     const Taken = await Tx.execute<{ Id: string }>(sql`
       UPDATE "Tenants" SET "SeatsUsed" = "SeatsUsed" + 1
       WHERE "Id" = ${Invite.TenantId} AND "SeatsUsed" < "SeatLimit" RETURNING "Id"`)
     if (!Taken.length) throw new AppError("NO_SEATS", 409)
-    await Tx.insert(Memberships).values({ TenantId: Invite.TenantId, UserId: User.Id, Role: Invite.Role }).onConflictDoNothing()
     return Invite
   })
 }
 ```
 
-The seat counter is incremented by a conditional update in the same transaction as the accept; a throw rolls the invite back to `Pending`. If seats count pending invites too, increment on create and release on revoke or expiry instead. A mismatch also rolls back, so a wrong account never burns the token.
+The seat is taken only when the membership insert returned a row (an existing member consumes no seat), by a conditional update in the same transaction as the accept; a throw rolls the invite back to `Pending`. If seats count pending invites too, increment on create and release on revoke or expiry instead. A mismatch also rolls back, so a wrong account never burns the token.
 
 Other stacks: Prisma `updateMany` with the status and expiry conditions, check `count`; Laravel `Invitation::where(...)->update(...)` and check affected rows.
 

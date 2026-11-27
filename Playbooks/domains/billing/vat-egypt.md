@@ -64,16 +64,18 @@ export const VatInclusive = (GrossMinor: bigint, RateBps: bigint) => {
 }
 
 export async function IssueInvoice(Tx: TTx, TenantId: string, InvoiceId: string, Year: number) {
-  const Counter = await Tx.execute(sql`UPDATE "InvoiceCounters" SET "Last" = "Last" + 1 WHERE "TenantId" = ${TenantId} AND "Year" = ${Year} RETURNING "Last"`)
+  const Counter = await Tx.execute<{ Last: number }>(sql`UPDATE "InvoiceCounters" SET "Last" = "Last" + 1 WHERE "TenantId" = ${TenantId} AND "Year" = ${Year} RETURNING "Last"`)
+  const Last = Counter[0]?.Last
+  if (Last === undefined) throw new AppError("INVOICE_COUNTER_MISSING", 500)
   const Issued = await Tx.update(Invoices)
-    .set({ Status: "issued", Number: Counter.rows[0].Last })
+    .set({ Status: "issued", Number: Last })
     .where(and(eq(Invoices.Id, InvoiceId), eq(Invoices.TenantId, TenantId), eq(Invoices.Status, "draft")))
     .returning({ Id: Invoices.Id })
   if (Issued.length === 0) throw new AppError("INVOICE_NOT_DRAFT", 409)
 }
 ```
 
-If the update matches no row the transaction throws and the counter increment rolls back, so no gap appears. The counter row must exist (insert on tenant creation).
+If the update matches no row the transaction throws and the counter increment rolls back, so no gap appears. The counter row must exist (insert on tenant creation); a missing row is a clear `INVOICE_COUNTER_MISSING` error, not a crash on `undefined`.
 
 ## Verify
 

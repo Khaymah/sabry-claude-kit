@@ -27,6 +27,7 @@
 - A refund row is `pending` before the provider call and `succeeded`/`failed` after; pending ones count against the limit, failed ones do not. The provider call carries an idempotency key = refund id (`backend/reliability/idempotency.md`), and runs outside the lock.
 - Refunding an invoice line allocates its share of the discount with the same allocation as the original (`backend/data/money.md`); the VAT share is refunded through a credit note (`domains/billing/vat-egypt.md`).
 - Refund of a split invoice goes against the child that was paid; refund of a voided invoice is refused.
+- Other flows (booking cancellation, returns) create refunds only through this locked path, keyed by payment, with their own record as `ReferenceType`/`ReferenceId`; a unique `(PaymentId, ReferenceType, ReferenceId)` stops a repeat, and a later refund on the same payment is still allowed.
 - Audit entry: who, amount, reason (`backend/data/audit-log.md`); permission check per `backend/auth/rbac.md`.
 
 ### Advanced — adds
@@ -51,17 +52,17 @@
 ## Example — Standard, Bun + Hono + Drizzle
 
 ```ts
-export async function CreateRefund(Db: TDb, TenantId: string, PaymentId: string, AmountMinor: bigint) {
+export async function CreateRefund(Db: TDb, TenantId: string, PaymentId: string, AmountMinor: bigint, Reference?: { Type: string; Id: string }) {
   if (AmountMinor <= 0n) throw new AppError("REFUND_INVALID_AMOUNT", 400)
   const Refund = await Db.transaction(async (Tx) => {
     const Rows = await Tx.select().from(Payments)
       .where(and(eq(Payments.Id, PaymentId), eq(Payments.TenantId, TenantId))).for("update")
     const Payment = Rows[0]
     if (!Payment) throw new AppError("PAYMENT_NOT_FOUND", 404)
-    const Used = await Tx.select({ Sum: sql<bigint>`coalesce(sum(${Refunds.AmountMinor}), 0)::bigint` }).from(Refunds)
+    const Used = await Tx.select({ Sum: sql`coalesce(sum(${Refunds.AmountMinor}), 0)::bigint`.mapWith(BigInt) }).from(Refunds)
       .where(and(eq(Refunds.PaymentId, PaymentId), ne(Refunds.Status, "failed")))
     if (AmountMinor > Payment.AmountMinor - Used[0].Sum) throw new AppError("REFUND_EXCEEDS_PAID", 409)
-    const Created = await Tx.insert(Refunds).values({ TenantId, PaymentId, AmountMinor, Status: "pending" }).returning()
+    const Created = await Tx.insert(Refunds).values({ TenantId, PaymentId, AmountMinor, Status: "pending", ReferenceType: Reference?.Type, ReferenceId: Reference?.Id }).returning()
     return Created[0]
   })
   await SendRefundToProvider(Refund)

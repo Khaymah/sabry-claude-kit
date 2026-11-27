@@ -22,8 +22,8 @@
 
 ### Standard — adds
 
-- Defaults: attempts at +1, +3, +7 days after the first failure (day boundaries in `Africa/Cairo`); grace period of 7 days from the first failure; suspension after the last failed attempt or the grace end, whichever is later.
-- `DunningAttempts (InvoiceId, AttemptNumber, ScheduledAt, Status, DeclineCode)` with unique `(InvoiceId, AttemptNumber)`. The retry job claims due attempts with `FOR UPDATE SKIP LOCKED` (`backend/reliability/background-jobs.md`).
+- Defaults: attempts at +1, +3, +7 days after the first failure (Cairo local date plus N days, never `+ N * 86_400_000` ms); grace period of 7 days from the first failure; suspension after the last failed attempt or the grace end, whichever is later.
+- `DunningAttempts (InvoiceId, AttemptNumber, ScheduledAt, Status, DeclineCode)` with unique `(InvoiceId, AttemptNumber)`. The retry job lists due ids, then claims each attempt inside its own transaction with `FOR UPDATE SKIP LOCKED` and re-checks the status there (a lock taken outside a transaction is released at once) (`backend/reliability/background-jobs.md`).
 - Hard declines (stolen card, closed account) skip the schedule and notify immediately; soft declines (insufficient funds) follow it.
 - Notifications are sent once per attempt, tracked by a `NotifiedAt` column; a retried job does not resend.
 - Suspended means read-only or blocked per the product, never deleted; data stays for the owner's retention period.
@@ -54,19 +54,32 @@
 ```ts
 export const RetryDays = [1, 3, 7]
 
+export async function CairoPlusDays(Tx: TTx, From: Date, Days: number) {
+  const Rows = await Tx.execute<{ At: Date }>(sql`
+    SELECT ((${From}::timestamptz AT TIME ZONE 'Africa/Cairo') + make_interval(days => ${Days})) AT TIME ZONE 'Africa/Cairo' AS "At"`)
+  return Rows[0].At
+}
+
 export async function ScheduleDunning(Tx: TTx, Invoice: TInvoice, FirstFailureAt: Date) {
-  await Tx.insert(DunningAttempts).values(RetryDays.map((Days, I) => ({
-    TenantId: Invoice.TenantId, InvoiceId: Invoice.Id, AttemptNumber: I + 1,
-    ScheduledAt: new Date(FirstFailureAt.getTime() + Days * 86_400_000), Status: "scheduled",
-  }))).onConflictDoNothing()
+  const Attempts = []
+  for (const [I, Days] of RetryDays.entries()) {
+    Attempts.push({ TenantId: Invoice.TenantId, InvoiceId: Invoice.Id, AttemptNumber: I + 1, ScheduledAt: await CairoPlusDays(Tx, FirstFailureAt, Days), Status: "scheduled" })
+  }
+  await Tx.insert(DunningAttempts).values(Attempts).onConflictDoNothing()
   await SetStatus(Tx, Invoice.SubscriptionId, "active", "past_due")
 }
 
 export async function RunDueAttempts(Db: TDb, Now: Date) {
-  const Due = await Db.select().from(DunningAttempts)
+  const Due = await Db.select({ Id: DunningAttempts.Id }).from(DunningAttempts)
     .where(and(eq(DunningAttempts.Status, "scheduled"), lte(DunningAttempts.ScheduledAt, Now)))
-    .limit(100).for("update", { skipLocked: true })
-  for (const Attempt of Due) await Db.transaction((Tx) => ProcessAttempt(Tx, Attempt))
+    .limit(100)
+  for (const { Id } of Due) {
+    await Db.transaction(async (Tx) => {
+      const [Attempt] = await Tx.select().from(DunningAttempts)
+        .where(and(eq(DunningAttempts.Id, Id), eq(DunningAttempts.Status, "scheduled"))).for("update", { skipLocked: true })
+      if (Attempt) await ProcessAttempt(Tx, Attempt)
+    })
+  }
 }
 ```
 

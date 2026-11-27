@@ -17,7 +17,7 @@
 ### Minimum — always, never cut
 
 - Write a retention table in the project docs: each table or log, what it holds, keep how long, why, and action at expiry (`Delete`, `Anonymise`, `Keep`). A table missing from it is a review failure.
-- Financial records (invoices, payments, journal entries, tax documents) are never hard-deleted by a user request; they are kept for the legal period and the personal fields are minimised, not removed. Egyptian rule: commonly 5 years for commercial books and 5 years for tax records — treat as a note to verify with the client's accountant, and make the period a setting, not a constant.
+- Financial records (invoices, payments, journal entries, tax documents) are never hard-deleted by a user request; they are kept for the legal period and the personal fields are minimised, not removed. Egyptian rule: commonly 5 years for commercial books and 5 years for tax records — treat as a note to verify with the client's accountant, and make the period a setting, not a constant. Issued invoices stay immutable (`domains/billing/vat-egypt.md`): the immutability trigger exempts only the personal columns (`CustomerPhone`, `CustomerEmail`), and the customer name and tax id are blanked only when the law allows, else kept as the legal minimum.
 - Deleting an account anonymises, in one transaction: name, email, phone, address, avatar and free-text become irreversible placeholders (`Deleted user 4f2a`), the login is revoked (sessions, API keys, OTPs, push tokens), the email hash for duplicate checks is dropped unless needed for fraud.
 - Rows kept for law keep their foreign key to the anonymised user, so totals and reports stay correct.
 - Personal data never goes to logs, error reports, analytics events or URLs; where unavoidable it is masked (`m***@mail.com`).
@@ -44,7 +44,7 @@
 
 | Case | Expected behaviour |
 |---|---|
-| User with invoices requests deletion | Account anonymised, invoices kept with the customer name replaced by the retained legal minimum (name and tax id if the law requires it, else placeholder) |
+| User with invoices requests deletion | Account anonymised, issued invoices keep the legal minimum (name and tax id if the law requires it); only exempt personal columns are blanked; drafts get the placeholder |
 | Email reused after deletion | New signup works; no link to the old anonymised row |
 | Deletion requested twice | One request row (unique active per user); the second returns the existing one |
 | User signs in during grace period | Request cancelled, audited |
@@ -69,7 +69,8 @@ export async function AnonymiseUser(Tx: TTx, UserId: string) {
   await Tx.delete(Sessions).where(eq(Sessions.UserId, UserId))
   await Tx.delete(ApiKeys).where(eq(ApiKeys.UserId, UserId))
   await Tx.delete(PushTokens).where(eq(PushTokens.UserId, UserId))
-  await Tx.update(Invoices).set({ CustomerName: `Deleted customer ${Tag}`, CustomerPhone: null }).where(eq(Invoices.CustomerId, UserId))
+  await Tx.update(Invoices).set({ CustomerPhone: null, CustomerEmail: null }).where(eq(Invoices.CustomerId, UserId))
+  await Tx.update(Invoices).set({ CustomerName: `Deleted customer ${Tag}` }).where(and(eq(Invoices.CustomerId, UserId), eq(Invoices.Status, "Draft")))
   await Tx.insert(DeletionLog).values({ UserId, DeletedAt: new Date() })
   await WriteAudit(Tx, "User.Anonymised", { UserId })
   return true

@@ -23,10 +23,11 @@
 
 ### Standard — adds
 
-- Redemption: `UPDATE "Coupons" SET "RedeemedCount" = "RedeemedCount" + 1 WHERE "Id" = $1 AND ("MaxRedemptions" IS NULL OR "RedeemedCount" < "MaxRedemptions") AND ("ExpiresAt" IS NULL OR "ExpiresAt" > now()) RETURNING`. No row back means exhausted or expired.
+- Redemption: `UPDATE "Coupons" SET "RedeemedCount" = "RedeemedCount" + 1 WHERE "Id" = $1 AND ("MaxRedemptions" IS NULL OR "RedeemedCount" < "MaxRedemptions") AND ("ExpiresAt" IS NULL OR "ExpiresAt" > $Now) RETURNING`. No row back means exhausted or expired.
 - Redemption row `CouponRedemptions (CouponId, InvoiceId)` with unique `InvoiceId`: one coupon per invoice. Per-customer limit: unique `(CouponId, CustomerId)`.
 - The counter increment and the redemption insert happen in one transaction with the invoice change; if the invoice save fails, the count rolls back.
 - Only draft/open invoices accept a coupon. A paid, void or credited invoice returns 409 (project's code for a state conflict).
+- Applying a coupon recomputes discount, tax and total together: the discount is allocated across lines (largest remainder), each line's VAT is recomputed on its discounted net (`domains/billing/vat-egypt.md`), and `Total = Subtotal - Discount + Tax` must still hold (the `CHECK` passes).
 - The invoice stores `DiscountMinor` and the coupon's kind and value at redemption time; later edits to the coupon never change old invoices.
 - Invalid input (unknown code, malformed) is 400/404; exhausted, expired, wrong state is 409 (defaults; keep the project's). Always tell the user which one.
 
@@ -53,7 +54,14 @@
 ## Example — Standard, Bun + Hono + Drizzle
 
 ```ts
-export async function RedeemCoupon(Tx: TTx, TenantId: string, Code: string, InvoiceId: string, CustomerId: string) {
+export function AllocateDiscount(Nets: bigint[], Discount: bigint, Subtotal: bigint) {
+  const Shares = Nets.map((N) => (Discount * N) / Subtotal)
+  const Remainder = Discount - Shares.reduce((A, B) => A + B, 0n)
+  Shares[Shares.length - 1] += Remainder
+  return Shares
+}
+
+export async function RedeemCoupon(Tx: TTx, TenantId: string, Code: string, InvoiceId: string, CustomerId: string, Now: Date) {
   const Invoice = await LoadOpenInvoice(Tx, TenantId, InvoiceId)
   const Bumped = await Tx.update(Coupons)
     .set({ RedeemedCount: sql`${Coupons.RedeemedCount} + 1` })
@@ -61,7 +69,7 @@ export async function RedeemCoupon(Tx: TTx, TenantId: string, Code: string, Invo
       eq(Coupons.TenantId, TenantId),
       sql`lower(${Coupons.Code}) = lower(${Code.trim()})`,
       or(isNull(Coupons.MaxRedemptions), lt(Coupons.RedeemedCount, Coupons.MaxRedemptions)),
-      or(isNull(Coupons.ExpiresAt), gt(Coupons.ExpiresAt, sql`now()`)),
+      or(isNull(Coupons.ExpiresAt), gt(Coupons.ExpiresAt, Now)),
     ))
     .returning()
   const Coupon = Bumped[0]
@@ -69,11 +77,20 @@ export async function RedeemCoupon(Tx: TTx, TenantId: string, Code: string, Invo
   await Tx.insert(CouponRedemptions).values({ CouponId: Coupon.Id, InvoiceId, CustomerId })
   const Raw = Coupon.Kind === "percent" ? ApplyBasisPoints(Invoice.SubtotalMinor, Coupon.Value) : Coupon.Value
   const Discount = Raw > Invoice.SubtotalMinor ? Invoice.SubtotalMinor : Raw
-  await Tx.update(Invoices).set({ DiscountMinor: Discount }).where(eq(Invoices.Id, InvoiceId))
+  const Lines = await Tx.select().from(InvoiceLines).where(eq(InvoiceLines.InvoiceId, InvoiceId)).orderBy(InvoiceLines.Id)
+  const Shares = AllocateDiscount(Lines.map((L) => L.NetMinor), Discount, Invoice.SubtotalMinor)
+  let Tax = 0n
+  for (const [I, L] of Lines.entries()) {
+    const Net = L.NetMinor - Shares[I]
+    const Vat = VatExclusive(Net, L.VatRateBps).VatMinor
+    Tax += Vat
+    await Tx.update(InvoiceLines).set({ DiscountMinor: Shares[I], VatMinor: Vat, GrossMinor: Net + Vat }).where(eq(InvoiceLines.Id, L.Id))
+  }
+  await Tx.update(Invoices).set({ DiscountMinor: Discount, TaxMinor: Tax, TotalMinor: Invoice.SubtotalMinor - Discount + Tax }).where(eq(Invoices.Id, InvoiceId))
 }
 ```
 
-`LoadOpenInvoice` filters by tenant and throws 409 for any status other than draft/open. A unique-violation on `CouponRedemptions` is mapped to 409 by the error handler.
+Lines here are tax-exclusive; for inclusive prices use `VatInclusive` on the discounted gross. `LoadOpenInvoice` filters by tenant and throws 409 for any status other than draft/open. A unique-violation on `CouponRedemptions` is mapped to 409 by the error handler.
 
 ## Verify
 

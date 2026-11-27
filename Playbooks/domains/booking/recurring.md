@@ -59,9 +59,10 @@
 import { RRule } from "rrule"
 
 export function OccurrenceDates(Series: TSeries, From: string, To: string): string[] {
-  const Rule = RRule.fromString(Series.RRule)
+  const Rule = new RRule({ ...RRule.parseString(Series.RRule), dtstart: new Date(`${Series.StartsOn}T00:00:00Z`) })
+  const Last = Series.UntilOn && Series.UntilOn < To ? Series.UntilOn : To
   const Start = new Date(`${From}T00:00:00Z`)
-  const End = new Date(`${To}T00:00:00Z`)
+  const End = new Date(Date.UTC(Number(Last.slice(0, 4)), Number(Last.slice(5, 7)) - 1, Number(Last.slice(8, 10)) + 1))
   return Rule.between(Start, End, true).map((D) => D.toISOString().slice(0, 10))
 }
 
@@ -75,14 +76,20 @@ export async function ExtendSeries(Tx: TTx, SeriesId: string, Horizon: string) {
   for (const Day of Dates) {
     const StartsAt = ToInstant(Day, Series.LocalStartTime, Series.TimeZone)
     const EndsAt = new Date(StartsAt.getTime() + Series.DurationMinutes * 60_000)
-    await Tx.insert(Bookings).values({ TenantId: Series.TenantId, SeriesId, OccurrenceDate: Day, ResourceId: Series.ResourceId, StartsAt, EndsAt, OccupiedFrom: StartsAt, OccupiedUntil: EndsAt, Status: "Confirmed" })
-      .onConflictDoNothing({ target: [Bookings.SeriesId, Bookings.OccurrenceDate] })
+    try {
+      await Tx.transaction((Sp) => Sp.insert(Bookings).values({ TenantId: Series.TenantId, SeriesId, OccurrenceDate: Day, ResourceId: Series.ResourceId, StartsAt, EndsAt, OccupiedFrom: StartsAt, OccupiedUntil: EndsAt, Status: "Confirmed" })
+        .onConflictDoNothing({ target: [Bookings.SeriesId, Bookings.OccurrenceDate] }))
+    } catch (E) {
+      if (PgCode(E) !== "23P01") throw E
+      await RecordSkipped(Tx, SeriesId, Day)
+    }
   }
-  await Tx.update(BookingSeries).set({ GeneratedUntil: Horizon }).where(eq(BookingSeries.Id, SeriesId))
+  const Reached = Dates.length < 200 ? Horizon : Dates[Dates.length - 1]
+  await Tx.update(BookingSeries).set({ GeneratedUntil: Reached }).where(eq(BookingSeries.Id, SeriesId))
 }
 ```
 
-`ToInstant` uses the `Temporal` API (polyfill `@js-temporal/polyfill` on runtimes without it); Luxon `DateTime.fromISO(..., { zone })` is equivalent. The `RRULE` dates are treated as plain dates, never as instants. An overlap with another booking raises `23P01` and the caller records that date as skipped or aborts, per the chosen mode.
+`ToInstant` uses the `Temporal` API (polyfill `@js-temporal/polyfill` on runtimes without it); Luxon `DateTime.fromISO(..., { zone })` is equivalent. The `RRULE` dates are treated as plain dates, never as instants. Each insert runs in its own savepoint (a nested `Tx.transaction`), so an overlap (`23P01`) rolls back only that insert: the date is recorded as skipped by `RecordSkipped`, or the whole series aborts, per the chosen mode. `GeneratedUntil` becomes the last date generated, not the horizon, when the 200 cap cut the batch, so no date is skipped. `OccurrenceDates` anchors the rule at `StartsOn`, includes the last day (`To` + 1 day, exclusive) and stops at `UntilOn`.
 
 Other stacks: Python `dateutil.rrule` with `zoneinfo`; Java `ical4j` with `ZonedDateTime`.
 
