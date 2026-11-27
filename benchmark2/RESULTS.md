@@ -92,3 +92,9 @@ Requests passed per session:
 - Opus with the kit is at or above Opus without it on every session (98.6% vs 96.4%), at 12% more cost. The earlier Opus loss on h02 did not repeat: a rerun of h02 passed 8/8 twice, so it was variance at two runs.
 - Sonnet with the kit against Opus without it: 92.9% vs 96.4% of requests, 12 vs 13 sessions fully passed, at 48% of the cost. The gap is not significant at 15 runs (p = 1.0 on sessions fully passed).
 - Fairness: the harness refuses some Bash forms (heredocs to `python3`, compound commands) in every setup alike, 3 to 14 times per run, with no difference between arms.
+
+### Follow-up: verify-reminder fix on x02
+
+The failed run above edited code through Bash scripts, took one refused Bash form as "Bash is off" and never ran a test. `verify-reminder` missed it: Bash writes did not count as edits, `sed -n 1p a.test.ts` counted as a check, "not run" in the reply silenced it, and it only added context. Now Bash writes count, only checker commands count, a refusal does not excuse skipping checks, and it blocks the stop once per change set. Replayed on the failed run's transcript, the old hook stayed silent and the new one blocks.
+
+Sonnet with the kit on x02, five new runs: 35/40 requests (87.5%), 2 of 5 sessions fully passed, $3.08 per session, no run where the app stopped starting. The hook fired in two runs; in both the model then ran `bun run typecheck` and `bun run test` as plain commands and corrected its report. The requests still lost are logic errors its own tests did not catch. Before the fix: 31/40 with the kit, 33/40 without it, so x02 stays noisy for Sonnet at five runs.
