@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.4.0 — 2026-11-27
+
+Plan: `Plan/2026-11-27-kit-v2-beat-opus-plan.md`. Measurement: `benchmark2/RESULTS.md`.
+
+- **Playbooks** (`Playbooks/`, 122 files): situation, decision, levels, edge cases and an example for business domains (billing, inventory, booking, commerce, fintech, Egyptian payments, messaging), backend data and auth, security, architecture, frontend, DevOps and AI features. `hooks/playbook-route.py` injects the 1 to 3 that match each request and each coding subagent's brief, restores them after compaction, and at the end of a turn asks for tests of the edge cases. Switch: `playbooks`.
+- **Precedence**: what the owner said in the session, then the project's existing code, then a playbook. Playbook defaults (response shape, status codes, rounding, number types) apply only where the project has none.
+- **Lean excerpts for strong models**: Opus and Fable get the decision and the edge cases only. `SABRY_KIT_PLAYBOOKS_LEAN=0|1` forces either way.
+- **Code traps** (`code_traps`): the common performance and correctness traps are caught while the code is written.
+- **Verify before done**: edits made through Bash count, only commands that run a checker count as a check, a refused Bash command is not a reason to skip the checks, and the stop is blocked once per change set until they run.
+- **Attribution guard**: a pull request whose commits carry an AI as author or committer fails, and an older `no-ai-attribution` workflow never replaces a newer one.
+- **Measured** on long sessions the playbooks were not written for (60 runs, compaction up to 5 times): Sonnet fully passes 12 of 15 sessions with the kit against 5 of 15 without it; Opus passes 98.6% of requests with the kit against 96.4%, at 12% more cost; Sonnet with the kit reaches 92.9% at about half the cost of Opus without it.
+
 ## 0.3.1 — 2026-11-19
 
 - **Turn anchor** (`hooks/turn-anchor.py`, UserPromptSubmit): long sessions drifted back to English and forgot the basics, because the rules arrive once, far behind English tool output. Every owner message now carries one line built from the profile (reply language · questions through `AskUserQuestion` · no code without permission · no AI attribution), about 60 tokens. When the profile is Arabic and the last reply was mostly English (code, paths and links not counted), it adds a direct correction. Switch: `turn_anchor`.

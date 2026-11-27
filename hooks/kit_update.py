@@ -36,6 +36,14 @@ except Exception:
 KIT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BEFORE_TRACKING = "0.2.0"
 WHATS_NEW = {
+    "0.4.0": {
+        "summary": [
+            "122 playbooks (billing, inventory, booking, payments in Egypt, security, frontend, DevOps, AI): the 1 to 3 that match a request are injected with it, and your project's conventions always win over them",
+            "Opus and Fable get a short version: the decision and the edge cases only",
+            "the kit blocks the end of a turn once when code changed and no test or typecheck ran",
+        ],
+        "switches": ["playbooks", "code_traps"],
+    },
     "0.3.1": {
         "summary": [
             "replies stay in your language for the whole session: a short reminder with every message, and a correction during and at the end of a turn when a reply drifts to English",
