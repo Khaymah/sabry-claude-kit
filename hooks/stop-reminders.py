@@ -15,7 +15,10 @@ own short message after the real report. Merged, the model is told to answer all
 them in one short addition and not to restate the report.
 
 The three run side by side, so one that hangs costs its own 25 seconds and never the others.
-Quiet when none of them has anything to say. Exit 0 on any failure.
+A reminder that blocks the stop (verify-reminder, when code changed and nothing was
+checked) keeps blocking: the merged text goes out as the block reason, so the model
+acts on it before it ends the turn. Quiet when none of them has anything to say.
+Exit 0 on any failure.
 """
 import json
 import os
@@ -35,9 +38,11 @@ def run(parts, raw):
         p = subprocess.run([sys.executable, os.path.join(HERE, parts[0])] + list(parts[1:]),
                            input=raw, capture_output=True, text=True, timeout=25)
         out = json.loads(p.stdout) if p.stdout.strip() else {}
-        return str((out.get("hookSpecificOutput") or {}).get("additionalContext") or "").strip()
+        if out.get("decision") == "block":
+            return True, str(out.get("reason") or "").strip()
+        return False, str((out.get("hookSpecificOutput") or {}).get("additionalContext") or "").strip()
     except Exception:
-        return ""
+        return False, ""
 
 
 def main():
@@ -49,12 +54,16 @@ def main():
     if not isinstance(payload, dict) or payload.get("stop_hook_active"):
         return 0
     with ThreadPoolExecutor(max_workers=len(REMINDERS)) as pool:
-        notes = [n for n in pool.map(lambda parts: run(parts, raw), REMINDERS) if n]
-    if not notes:
+        results = [r for r in pool.map(lambda parts: run(parts, raw), REMINDERS) if r[1]]
+    if not results:
         return 0
+    notes = [n for _, n in results]
     text = notes[0] if len(notes) == 1 else "\n\n".join(notes) + CLOSING
-    print(json.dumps({"hookSpecificOutput": {"hookEventName": "Stop", "additionalContext": text}},
-                     ensure_ascii=False))
+    if any(block for block, _ in results):
+        print(json.dumps({"decision": "block", "reason": text}, ensure_ascii=False))
+    else:
+        print(json.dumps({"hookSpecificOutput": {"hookEventName": "Stop", "additionalContext": text}},
+                         ensure_ascii=False))
     return 0
 
 

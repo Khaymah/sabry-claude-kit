@@ -77,10 +77,17 @@ class VerifyReminderTest(Base):
     def transcript(self, steps):
         path = os.path.join(self.tmp.name, "t.jsonl")
         with open(path, "w") as fh:
-            for i, (tool, inp) in enumerate(steps):
+            for i, step in enumerate(steps):
+                tool, inp = step[0], step[1]
                 fh.write(json.dumps({"type": "assistant", "message": {"id": f"m{i}", "content": [
                     {"type": "tool_use", "id": f"t{i}", "name": tool, "input": inp}]}}) + "\n")
+                if len(step) > 2:
+                    fh.write(json.dumps({"type": "user", "message": {"content": [
+                        {"type": "tool_result", "tool_use_id": f"t{i}", "is_error": True, "content": step[2]}]}}) + "\n")
         return path
+
+    def reason(self, out):
+        return json.loads(out)["reason"] if out else ""
 
     def stop(self, steps, last="done", session="s1", **extra):
         payload = {"hook_event_name": "Stop", "session_id": session, "cwd": self.repo,
@@ -95,7 +102,8 @@ class VerifyReminderTest(Base):
         with open(os.path.join(self.repo, "package.json"), "w") as fh:
             json.dump({"scripts": {"test": "vitest", "typecheck": "tsc", "dev": "next"}}, fh)
         out = self.stop([self.edit()])
-        ctx = json.loads(out)["hookSpecificOutput"]["additionalContext"]
+        self.assertEqual(json.loads(out)["decision"], "block")
+        ctx = self.reason(out)
         self.assertIn("src/a.ts", ctx)
         self.assertIn("npm run test", ctx)
         self.assertIn("npm run typecheck", ctx)
@@ -119,6 +127,29 @@ class VerifyReminderTest(Base):
         self.assertTrue(self.stop(steps))
         self.assertEqual(self.stop(steps), "", "same change-set: silent")
         self.assertEqual(self.stop(steps, session="s3", stop_hook_active=True), "")
+
+    def test_bash_writes_count_as_edits(self):
+        for i, cmd in enumerate(("cat > Src/Reports.Service.ts <<'EOF'\nexport const a = 1\nEOF",
+                                 "python3 - <<'EOF'\np='Src/Database/Schema.ts'\ns=open(p).read()\nopen(p,'w').write(s)\nEOF",
+                                 "sed -i 's/a/b/' src/a.ts")):
+            with self.subTest(cmd):
+                self.assertIn("verify-reminder", self.stop([("Bash", {"command": cmd})], session=f"w{i}"))
+        self.assertEqual(self.stop([("Bash", {"command": "cat Src/a.ts; grep -n x Src/b.ts"})], session="w9"), "")
+
+    def test_naming_a_test_file_is_not_a_check(self):
+        out = self.stop([self.edit(), ("Bash", {"command": "sed -n 1,30p Tests/Quotes.test.ts; grep -n Submit Tests/Quotes.test.ts"})])
+        self.assertIn("verify-reminder", out)
+        for i, cmd in enumerate(("cd app && bun run typecheck", "bun test", "npx vitest run", "NODE_ENV=test npm test")):
+            with self.subTest(cmd):
+                self.assertEqual(self.stop([self.edit(), ("Bash", {"command": cmd})], session=f"c{i}"), "")
+
+    def test_refused_bash_is_not_an_excuse(self):
+        refused = "Permission to use Bash has been denied because Claude Code is running in don't ask mode."
+        steps = [("Bash", {"command": "python3 - <<'EOF'\nprint(1)\nEOF"}, refused), self.edit()]
+        out = self.stop(steps, last="لسه مفيش فحص اشتغل لأن Bash مرفوض، ما اتشغلوش")
+        self.assertIn("refuses that form only", self.reason(out))
+        out = self.stop([self.edit(), ("Bash", {"command": "bun run test"}, refused)], session="r2")
+        self.assertIn("verify-reminder", out)
 
     def test_switch_off(self):
         self.env["SABRY_KIT_VERIFY_REMINDER"] = "0"
