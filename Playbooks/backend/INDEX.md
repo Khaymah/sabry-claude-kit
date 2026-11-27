@@ -23,6 +23,9 @@ Read first for any schema or query work: `Stacks/Database.md`. Default stack con
 | Sign in with Google / Apple | `auth/oauth.md` | ✅ |
 | API keys for customers or integrations | `auth/api-keys.md` | ✅ |
 | OTP by SMS or email, 2FA | `auth/otp.md` | ✅ |
+| Invite a teammate by email or link, revoke or resend an invite, seat limits | `auth/invitations.md` | ✅ |
+| A user should see only their own branch, store or department inside one company | `auth/scoped-access.md` | ✅ |
+| Support needs to "login as" a customer to see their problem | `auth/impersonation.md` | ✅ |
 
 ## Data
 
@@ -32,6 +35,9 @@ Read first for any schema or query work: `Stacks/Database.md`. Default stack con
 | Schema change on a live database | `data/migrations.md` | ✅ |
 | Delete, archive, restore, "trash" | `data/soft-delete.md` | ✅ |
 | Reports per day are off, "today" is wrong, dates shift, storing and comparing times and zones | `data/time-zones.md` | ✅ |
+| Add a search box, Arabic search misses results, search is slow, "do we need Elasticsearch" | `data/search.md` | ✅ |
+| User asks to delete their data, how long to keep records, purge old data | `data/data-retention.md` | ✅ |
+| Seed the database, demo data, default data for each new client on signup | `data/seeding.md` | ✅ |
 | Several companies or stores in one app (SaaS) | `data/multi-tenancy.md` | ✅ |
 | Stock, seats, coupons, anything two users can grab at once | `data/concurrency.md` | ✅ |
 | Who changed what, history, audit log | `data/audit-log.md` | ✅ |

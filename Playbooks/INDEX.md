@@ -36,6 +36,6 @@ A single topic can sit above the project's level when its own trigger says so (a
 | Architecture | `architecture/INDEX.md` | structure · layers · modules · monolith · microservices · events · contract · design patterns · هيكلة · معمارية |
 | Practices | `practices/INDEX.md` | git · branch · PR · review · CI · docs · README · dependency · feature flag · release · rollback · مراجعة كود · توثيق |
 | DevOps | `devops/INDEX.md` | deploy · VPS · Nginx · TLS · backup · logs · monitoring · CI · نشر · سيرفر · باك اب |
-| Business domains | `domains/INDEX.md` | billing · subscription · coupon · invoice · refund · VAT · inventory · stock · transfer · booking · appointment · cart · checkout · order status · shipping · returns · loyalty · اشتراك · فاتورة · مخزن · جرد · حجز · مواعيد · سلة · شحن · مرتجعات |
+| Business domains | `domains/INDEX.md` | payment gateway · Paymob · Fawry · InstaPay · wallet · installments · payout · reconciliation · notifications · SMS · WhatsApp · push · billing · subscription · coupon · invoice · refund · VAT · inventory · stock · transfer · booking · appointment · cart · checkout · order status · shipping · returns · loyalty · اشتراك · فاتورة · مخزن · جرد · حجز · مواعيد · سلة · شحن · مرتجعات |
 
 Stack-specific rules stay in `Stacks/`; a playbook links to them instead of repeating them.
