@@ -68,21 +68,24 @@ export class LlmClient {
   async Complete(Req: TLlmRequest, Model = Env.LlmModelDefault) {
     for (let Attempt = 0; ; Attempt++) {
       const Started = Date.now()
+      let Res: Anthropic.Message
       try {
-        const Res = await this.Sdk.messages.create({
+        Res = await this.Sdk.messages.create({
           model: Model,
           max_tokens: Req.MaxTokens,
           system: Req.System,
           messages: [{ role: "user", content: Req.User }],
         })
-        await RecordUsage(Req.TenantId, Req.Feature, Model, Res.usage, Date.now() - Started)
-        return Res
       } catch (E) {
-        const Status = (E as { status?: number }).status
-        const Retryable = Status === 429 || Status === 529 || (Status !== undefined && Status >= 500) || Status === undefined
+        if (!(E instanceof Anthropic.APIError)) throw E
+        const Status = E.status
+        const Retryable = Status === undefined || Status === 429 || Status === 529 || Status >= 500
         if (!Retryable || Attempt >= 2) throw new AppError("LLM_UNAVAILABLE", 503)
         await Bun.sleep(Math.random() * 500 * 2 ** Attempt)
+        continue
       }
+      await RecordUsage(Req.TenantId, Req.Feature, Model, Res.usage, Date.now() - Started)
+      return Res
     }
   }
 

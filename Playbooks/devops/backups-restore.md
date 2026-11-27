@@ -20,7 +20,7 @@
 - Encrypt before upload (`age` or `gpg`, public key on the server, private key in the owner's password manager and one offline copy). The server can write backups but cannot decrypt them.
 - Dump with `pg_dump -Fc --no-owner` as the `postgres` user over the local socket; credentials from `~/.pgpass` or peer auth, never on the command line.
 - The job fails loudly: non-zero exit sends a message, and a heartbeat check (healthchecks.io-style ping on success) alerts when no backup arrived within 26 hours.
-- Verify what was uploaded: size above a floor (e.g. 50% of yesterday) and `pg_restore --list` succeeds, before the old backup is pruned.
+- Verify on the server before encrypting: size above a floor (e.g. 50% of yesterday) and `pg_restore --list` on the plaintext dump (it needs the unencrypted file, which lives only in a `postgres`-owned `700` directory until encrypted). After upload, compare the remote size via `rclone lsf`; the write-only key cannot read the object back. Prune old backups only after both pass.
 - Restore tested before launch and then every month (below). The restore procedure is written down where the owner can find it without the server.
 - Bucket credentials are write-only plus list (no delete) for the backup user; deletion is done by lifecycle rules.
 
@@ -60,16 +60,21 @@ exec 9>/var/lock/pg-backup.lock
 flock -n 9 || exit 0
 
 Stamp=$(date -u +%Y%m%dT%H%M%SZ)
-File="/var/backups/db/app-$Stamp.dump.age"
-mkdir -p /var/backups/db
+Plain="/var/backups/db/app-$Stamp.dump"
+File="$Plain.age"
+trap 'rm -f "$Plain"' EXIT
 
-pg_dump -Fc --no-owner -U postgres app | age -r "$(cat /etc/app/backup.pub)" > "$File"
+pg_dump -Fc --no-owner app > "$Plain"
 
-Size=$(stat -c %s "$File")
+Size=$(stat -c %s "$Plain")
 [ "$Size" -gt 1048576 ] || { echo "dump too small: $Size"; exit 1; }
+pg_restore --list "$Plain" >/dev/null
+
+age -r "$(cat /etc/app/backup.pub)" < "$Plain" > "$File"
+rm -f "$Plain"
 
 rclone copyto "$File" "backup:app-backups/daily/$(basename "$File")"
-rclone check "$File" "backup:app-backups/daily/" --one-way --include "$(basename "$File")"
+[ "$(rclone lsf --format s "backup:app-backups/daily/$(basename "$File")")" = "$(stat -c %s "$File")" ]
 
 find /var/backups/db -name '*.age' -mtime +2 -delete
 curl -fsS -m 10 --retry 3 "$(cat /etc/app/heartbeat.url)" >/dev/null
@@ -94,7 +99,7 @@ rm -f /tmp/drill.dump /tmp/drill.dump.age
 15 1 * * * postgres /usr/local/bin/pg-backup.sh
 ```
 
-The private key `restore.key` is on the drill machine only for the drill. Other stacks: managed Postgres (RDS, Supabase) has PITR in settings; still run the drill with a logical dump copy.
+Provisioning creates the directory once: `install -d -o postgres -g postgres -m 700 /var/backups/db` (the job runs as `postgres` and cannot create it under `/var/backups`). The private key `restore.key` is on the drill machine only for the drill. Other stacks: managed Postgres (RDS, Supabase) has PITR in settings; still run the drill with a logical dump copy.
 
 ## Verify
 

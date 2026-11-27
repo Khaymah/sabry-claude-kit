@@ -30,7 +30,7 @@
 - Hybrid retrieval: vector similarity plus trigram/full-text, merged by reciprocal rank fusion; pure vector search misses exact codes, names and numbers.
 - Re-index on change: compare `ContentHash` per chunk; re-embed only changed chunks in a background job; replace a document's chunks in one transaction so readers never see half-old half-new.
 - Bound retrieval: top-k at most 8, a minimum similarity threshold, a token budget for the context.
-- Index with HNSW (`vector_cosine_ops`); the query uses the operator the index was built for.
+- Index with HNSW (`vector_cosine_ops`); the query uses the operator the index was built for. HNSW filters after the index scan, so a small tenant can get fewer than k rows: with pgvector 0.8+ run `SET LOCAL hnsw.iterative_scan = relaxed_order` and a higher `hnsw.ef_search` inside the query transaction; on older versions use a per-tenant partial index.
 
 ### Advanced — adds
 
@@ -92,6 +92,7 @@ Other stacks: Prisma needs `$queryRaw` for vector operators; Laravel uses `pgvec
 - [ ] `[M]` Test: tenant B's query never returns tenant A's chunk, even when A's text is the best match.
 - [ ] `[M]` Deleting a document leaves zero chunk rows for it.
 - [ ] `[M]` Every answer carries at least one `DocumentId` citation, or says "not found".
+- [ ] `[S]` A tenant with fewer than 20 chunks, next to a large tenant, still gets its top-k results.
 - [ ] `[S]` Arabic query with and without tashkeel returns the same top result.
 - [ ] `[S]` Editing one paragraph re-embeds only that chunk.
 - [ ] `[A]` Recall@5 on the eval set does not drop after a model or chunking change.

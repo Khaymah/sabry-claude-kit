@@ -69,31 +69,32 @@ export const PaymobAdapter: PaymentGateway = {
   },
 }
 
-const Gateways: Record<string, PaymentGateway> = { Paymob: PaymobAdapter, Fawry: FawryAdapter }
+const Gateways = new Map<string, PaymentGateway>([["Paymob", PaymobAdapter], ["Fawry", FawryAdapter]])
 export const GetGateway = (Name: string): PaymentGateway => {
-  const Gateway = Gateways[Name]
+  const Gateway = Gateways.get(Name)
   if (!Gateway) throw new AppError("GATEWAY_UNKNOWN", 500)
   return Gateway
 }
 ```
 
 ```ts
-type TDiscountRule = (Subtotal: bigint, Params: Record<string, number>) => bigint
+const PercentSchema = z.object({ Bps: z.number().int().min(0).max(10_000) })
+const FixedSchema = z.object({ AmountMinor: z.number().int().min(0) })
 
-export const DiscountRules: Record<string, TDiscountRule> = {
-  PercentBps: (Subtotal, P) => (Subtotal * BigInt(P.Bps) + 5_000n) / 10_000n,
-  FixedMinor: (Subtotal, P) => BigInt(P.AmountMinor),
-}
+export const DiscountRules = new Map<string, (Subtotal: bigint, Params: unknown) => bigint>([
+  ["PercentBps", (Subtotal, Params) => (Subtotal * BigInt(PercentSchema.parse(Params).Bps) + 5_000n) / 10_000n],
+  ["FixedMinor", (_Subtotal, Params) => BigInt(FixedSchema.parse(Params).AmountMinor)],
+])
 
-export const ComputeDiscount = (Subtotal: bigint, Rule: string, Params: Record<string, number>) => {
-  const Fn = DiscountRules[Rule]
+export const ComputeDiscount = (Subtotal: bigint, Rule: string, Params: unknown) => {
+  const Fn = DiscountRules.get(Rule)
   if (!Fn) throw new AppError("DISCOUNT_RULE_UNKNOWN", 500)
   const Raw = Fn(Subtotal, Params)
-  return Raw > Subtotal ? Subtotal : Raw
+  return Raw < 0n ? 0n : Raw > Subtotal ? Subtotal : Raw
 }
 ```
 
-`Number(Input.AmountMinor)` is safe only for a provider that takes a JSON number below 2^53; the adapter owns that conversion.
+Rule params are validated per rule with Zod (integers only, so `BigInt` never sees a fraction), the result is clamped to `[0, Subtotal]`, and rules and gateways live in a `Map`, so a name like `constructor` is unknown instead of resolving through the prototype. `Number(Input.AmountMinor)` is safe only for a provider that takes a JSON number below 2^53; the adapter owns that conversion.
 
 Other stacks: the same shape in C# (interface plus DI registration) or Laravel (contract plus service provider binding).
 

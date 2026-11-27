@@ -71,7 +71,12 @@ export const Config = EnvSchema.parse({
 
 export const Logger = pino({
   redact: {
-    paths: ["req.headers.authorization", "req.headers.cookie", "*.password", "*.token", "*.secret", "*.apiKey"],
+    paths: [
+      "req.headers.authorization", "req.headers.cookie",
+      "password", "token", "secret", "apiKey",
+      "*.password", "*.token", "*.secret", "*.apiKey",
+      "*.*.password", "*.*.token", "*.*.secret", "*.*.apiKey",
+    ],
     censor: "[REDACTED]",
   },
 })
@@ -95,7 +100,7 @@ export const SystemSettings = pgTable("SystemSettings", {
 })
 ```
 
-Other stacks: Next.js reads server env only in server code and Route Handlers; a variable is public only with the `NEXT_PUBLIC_` prefix. Fastify and Express use `pino` with the same `redact` option.
+A pino `*` wildcard covers one level only, so the list spells out two levels; deeper or array-nested secrets need an explicit path (`Body.Items[*].token`) or a serializer that scrubs the object before logging. Other stacks: Next.js reads server env only in server code and Route Handlers; a variable is public only with the `NEXT_PUBLIC_` prefix. Fastify and Express use `pino` with the same `redact` option.
 
 ## Verify
 

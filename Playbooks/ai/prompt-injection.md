@@ -66,6 +66,7 @@ const Allowed: Record<string, string[]> = {
 export async function RunTool(Ctx: { TenantId: string; UserId: string; Feature: string; ReadUntrusted: boolean }, Name: string, RawArgs: unknown) {
   if (!Allowed[Ctx.Feature]?.includes(Name)) throw new AppError("TOOL_NOT_ALLOWED", 403)
   const Tool = Tools[Name]
+  if (Ctx.ReadUntrusted && Tool.Writes && !Tool.ConfirmOnly) throw new AppError("WRITE_BLOCKED_AFTER_UNTRUSTED_READ", 403)
   const Args = Tool.Schema.parse(RawArgs)
   if (Tool.Writes) {
     const Pending = await db.insert(PendingActions).values({ TenantId: Ctx.TenantId, UserId: Ctx.UserId, Tool: Name, Args, ExpiresAt: new Date(Date.now() + 10 * 60_000) }).returning({ Id: PendingActions.Id })
@@ -74,11 +75,33 @@ export async function RunTool(Ctx: { TenantId: string; UserId: string; Feature: 
   return Tool.Run({ TenantId: Ctx.TenantId, UserId: Ctx.UserId }, Args)
 }
 
+function IsAllowedUrl(Value: string) {
+  try {
+    const Parsed = new URL(Value)
+    return Parsed.protocol === "https:" && LinkAllowlist.has(Parsed.hostname)
+  } catch {
+    return false
+  }
+}
+
 export function SafeMarkdown(Text: string) {
-  return Text.replace(/!\[[^\]]*\]\([^)]*\)/g, "").replace(/\[([^\]]*)\]\((https?:\/\/[^)]+)\)/g, (M, Label: string, Url: string) =>
-    LinkAllowlist.has(new URL(Url).hostname) ? M : Label)
+  const Tree = remark().parse(Text)
+  visit(Tree, (Node, Index, Parent) => {
+    if (!Parent || Index === undefined) return
+    if (["image", "imageReference", "html", "definition"].includes(Node.type)) {
+      Parent.children.splice(Index, 1)
+      return Index
+    }
+    if ((Node.type === "link" && !IsAllowedUrl(Node.url)) || Node.type === "linkReference") {
+      Parent.children.splice(Index, 1, ...Node.children)
+      return Index
+    }
+  })
+  return remark().stringify(Tree)
 }
 ```
+
+`SafeMarkdown` parses with raw HTML off and walks the syntax tree, so reference-style images, autolinks and inline `<img>` are covered; only `https` links to allowlisted hosts survive, and an unparsable URL is dropped as text. When in doubt, render the answer as plain text.
 
 The confirmation endpoint loads the `PendingActions` row by id for this user and tenant, marks it used atomically (`UPDATE … WHERE "UsedAt" IS NULL RETURNING`), then runs the tool.
 

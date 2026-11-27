@@ -36,7 +36,7 @@
 ### Advanced — adds
 
 - Channel adapters (web, WhatsApp, Messenger) normalise into one message shape; webhooks are idempotent on the provider message id (`domains/messaging/whatsapp.md`).
-- Business hours and queues: outside hours the bot collects the details and creates a ticket with an expected reply time in Africa/Cairo.
+- Business hours and queues: outside hours the bot collects the details and creates a ticket with an expected reply time in Africa/Cairo (or the tenant's configured zone).
 - Per-tenant config (tone, languages, forbidden topics, handoff rules) validated and versioned; changes run through the eval set.
 
 ## Edge cases
@@ -61,12 +61,12 @@
 ```ts
 export async function HandleCustomerMessage(Ctx: { TenantId: string; CustomerId: string }, ConversationId: string, ProviderMessageId: string, Text: string) {
   if (Text.length > 2000) throw new AppError("MESSAGE_TOO_LONG", 413)
-  const Inserted = await db.insert(Messages).values({ TenantId: Ctx.TenantId, ConversationId, ProviderMessageId, Role: "customer", Text })
+  const Convo = await db.query.Conversations.findFirst({ where: and(eq(Conversations.TenantId, Ctx.TenantId), eq(Conversations.CustomerId, Ctx.CustomerId), eq(Conversations.Id, ConversationId)) })
+  if (!Convo || Convo.Status === "HandedOff") return null
+
+  const Inserted = await db.insert(Messages).values({ TenantId: Ctx.TenantId, ConversationId, ProviderMessageId, Role: "customer", Text, Status: "Received" })
     .onConflictDoNothing({ target: [Messages.TenantId, Messages.ProviderMessageId] }).returning({ Id: Messages.Id })
   if (!Inserted.length) return null
-
-  const Convo = await db.query.Conversations.findFirst({ where: and(eq(Conversations.TenantId, Ctx.TenantId), eq(Conversations.Id, ConversationId)) })
-  if (!Convo || Convo.Status === "HandedOff") return null
   if (WantsHuman(Text)) return Handoff(Ctx.TenantId, ConversationId, "customer_request")
 
   const Sources = await SearchChunks(Ctx.TenantId, Text, Ctx.CustomerId)
@@ -76,11 +76,13 @@ export async function HandleCustomerMessage(Ctx: { TenantId: string; CustomerId:
   const Sent = await db.update(Conversations).set({ LastBotAt: new Date() })
     .where(and(eq(Conversations.TenantId, Ctx.TenantId), eq(Conversations.Id, ConversationId), ne(Conversations.Status, "HandedOff"))).returning({ Id: Conversations.Id })
   if (!Sent.length) return null
-  return SaveBotMessage(Ctx.TenantId, ConversationId, Answer, Sources.map((S) => S.DocumentId))
+  const Saved = await SaveBotMessage(Ctx.TenantId, ConversationId, Answer, Sources.map((S) => S.DocumentId))
+  await db.update(Messages).set({ Status: "Answered" }).where(eq(Messages.Id, Inserted[0].Id))
+  return Saved
 }
 ```
 
-`WantsHuman` matches normalised Arabic, Franco-Arabic and English phrases. A unique index on `(TenantId, ProviderMessageId)` makes redelivery harmless. `Handoff` is the single place that sets the status.
+`WantsHuman` matches normalised Arabic, Franco-Arabic and English phrases. A unique index on `(TenantId, ProviderMessageId)` makes redelivery harmless, and a sweeper job re-runs customer messages still `Received` after a few minutes, so a failed answer is retried instead of lost. `Handoff` is the single place that sets the status.
 
 Other stacks: same flow; the atomic status check before sending is what prevents bot and agent talking over each other.
 

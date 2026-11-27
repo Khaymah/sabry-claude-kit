@@ -72,16 +72,31 @@ export const ProcessedEvents = pgTable("ProcessedEvents", {
 ```
 
 ```ts
+const MaxAttempts = 8
+const BackoffBaseSeconds = 30
+
 export async function DeliverBatch() {
-  await Db.transaction(async (Tx) => {
-    const Rows = await Tx.execute<TOutboxRow>(sql`
-      SELECT * FROM "Outbox" O
-      WHERE O."Status" = 'Pending' AND O."AvailableAt" <= now()
-        AND NOT EXISTS (SELECT 1 FROM "Outbox" E WHERE E."AggregateId" = O."AggregateId" AND E."Status" = 'Pending' AND E."Sequence" < O."Sequence")
-      ORDER BY O."Sequence" LIMIT 100
-      FOR UPDATE SKIP LOCKED`)
-    for (const Row of Rows) await RunHandlers(Tx, Row)
-  })
+  const Candidates = await Db.execute<{ Id: string }>(sql`
+    SELECT O."Id" FROM "Outbox" O
+    WHERE O."Status" = 'Pending' AND O."AvailableAt" <= now()
+      AND NOT EXISTS (SELECT 1 FROM "Outbox" E WHERE E."AggregateId" = O."AggregateId" AND E."Status" = 'Pending' AND E."Sequence" < O."Sequence")
+    ORDER BY O."Sequence" LIMIT 100`)
+  for (const Candidate of Candidates) {
+    try {
+      await Db.transaction(async (Tx) => {
+        const Rows = await Tx.execute<TOutboxRow>(sql`
+          SELECT * FROM "Outbox" WHERE "Id" = ${Candidate.Id} AND "Status" = 'Pending' FOR UPDATE SKIP LOCKED`)
+        if (Rows.length) await RunHandlers(Tx, Rows[0])
+      })
+    } catch (Err) {
+      await Db.update(Outbox).set({
+        Attempts: sql`"Attempts" + 1`,
+        AvailableAt: sql`now() + make_interval(secs => ${BackoffBaseSeconds} * power(2, "Attempts"))`,
+        Status: sql`CASE WHEN "Attempts" + 1 >= ${MaxAttempts} THEN 'Dead' ELSE 'Pending' END`,
+      }).where(eq(Outbox.Id, Candidate.Id))
+      Logger.error({ OutboxId: Candidate.Id, Err }, "outbox delivery failed")
+    }
+  }
 }
 
 async function RunHandlers(Tx: TTx, Row: TOutboxRow) {
@@ -93,7 +108,7 @@ async function RunHandlers(Tx: TTx, Row: TOutboxRow) {
 }
 ```
 
-Handlers that call an external service enqueue a background job from inside `Run` rather than calling the provider while the claim transaction is open.
+Each row runs in its own transaction, so one poison row rolls back alone; the failure update runs as a separate statement after the rollback, and a `Dead` row stops blocking later rows of its aggregate. Handlers that call an external service enqueue a background job from inside `Run` rather than calling the provider while the claim transaction is open.
 
 Other stacks: Laravel `afterCommit` jobs plus an outbox table; Node with BullMQ still needs the outbox row, since the queue and the database do not commit together.
 

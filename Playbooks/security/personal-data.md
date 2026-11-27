@@ -78,7 +78,10 @@ export function DecryptField(Stored: string) {
   return Buffer.concat([Decipher.update(Buffer.from(Body, "base64")), Decipher.final()]).toString("utf8")
 }
 
-export const LookupHash = (Plain: string) => createHmac("sha256", Config.LookupHashKey).update(Plain.trim()).digest("hex")
+export const NormaliseLookup = (Plain: string) =>
+  Plain.replace(/[٠-٩]/g, (D) => String(D.charCodeAt(0) - 0x0660)).replace(/[۰-۹]/g, (D) => String(D.charCodeAt(0) - 0x06f0)).replace(/[\s-]/g, "")
+
+export const LookupHash = (Plain: string) => createHmac("sha256", Config.LookupHashKey).update(NormaliseLookup(Plain)).digest("hex")
 
 export const MaskNationalId = (Value: string) => `${Value.slice(0, 1)}${"*".repeat(9)}${Value.slice(-4)}`
 
@@ -97,7 +100,7 @@ export const DataRequests = pgTable("DataRequests", {
 }, (T) => [uniqueIndex("DataRequestsActive").on(T.UserId, T.Type).where(sql`${T.Status} IN ('Pending', 'Running')`)])
 ```
 
-Other stacks: Postgres `pgcrypto` encrypts in SQL but exposes keys to the database; prefer app-level keys when the threat is a database leak. Managed KMS envelope encryption fits Advanced.
+`LookupHash` normalises Arabic-Indic digits, spaces and dashes first, so `٢٩٩٠١٠١…` and `2990101…` match the same row. Other stacks: Postgres `pgcrypto` encrypts in SQL but exposes keys to the database; prefer app-level keys when the threat is a database leak. Managed KMS envelope encryption fits Advanced.
 
 ## Verify
 

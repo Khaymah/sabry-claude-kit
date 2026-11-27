@@ -53,12 +53,14 @@
 ## Example — Standard, TanStack Query
 
 ```tsx
-export function useToggleFavourite(Scope: Scope) {
+export function useToggleFavourite(Scope: Scope, Id: string) {
   const Client = useQueryClient()
+  const MutationKey = ["Favourite", Id]
   return useMutation({
-    mutationFn: ({ Id, Value }: { Id: string; Value: boolean }) => PutFavourite(Id, Value),
-    scope: { id: "Favourite" },
-    onMutate: async ({ Id, Value }) => {
+    mutationKey: MutationKey,
+    mutationFn: (Value: boolean) => PutFavourite(Id, Value),
+    scope: { id: `Favourite-${Id}` },
+    onMutate: async (Value) => {
       const Key = ProductKeys.Detail(Scope, Id)
       await Client.cancelQueries({ queryKey: Key })
       const Previous = Client.getQueryData<Product>(Key)
@@ -69,7 +71,7 @@ export function useToggleFavourite(Scope: Scope) {
       if (Context?.Previous) Client.setQueryData(Context.Key, Context.Previous)
       ShowToast(Messages.FavouriteFailed)
     },
-    onSettled: (_Data, _Error, { Id }) => Client.invalidateQueries({ queryKey: ProductKeys.Detail(Scope, Id) }),
+    onSettled: () => (Client.isMutating({ mutationKey: MutationKey }) === 1 ? Client.invalidateQueries({ queryKey: ProductKeys.Detail(Scope, Id) }) : undefined),
   })
 }
 
@@ -79,7 +81,7 @@ export function useIdempotencyKey() {
 }
 ```
 
-The caller sends `Key` in the `Idempotency-Key` header and calls `Renew` only after success or when the user changes the values.
+The mutation `scope` is per entity, so edits to different products run in parallel while two edits of one product queue in order. `onSettled` invalidates only when this is the last pending mutation of the entity (`isMutating === 1`), so a refetch never overwrites a newer optimistic value and flickers. The caller sends `Key` in the `Idempotency-Key` header and calls `Renew` only after success or when the user changes the values.
 
 Other stacks: SWR `mutate` with `optimisticData` and `rollbackOnError` follows the same rules.
 

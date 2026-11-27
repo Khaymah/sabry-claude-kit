@@ -28,7 +28,7 @@
 
 - HSTS: `Strict-Transport-Security: max-age=31536000; includeSubDomains` after every subdomain serves HTTPS; `preload` only when the owner decides.
 - Double-submit or synchronizer CSRF token for cookie sessions that accept forms, on top of the Origin check; the token is bound to the session and compared in constant time.
-- CSP ships as `Content-Security-Policy-Report-Only` first, with a report endpoint, then enforced after a clean week. Start from `default-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'`.
+- CSP ships as `Content-Security-Policy-Report-Only` first, with a report endpoint, then enforced after a clean week. Start from `default-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'`. On Next.js that policy blocks the inline scripts used for hydration: generate a per-request nonce in middleware and use `script-src 'nonce-…' 'strict-dynamic'` instead.
 - `Permissions-Policy` disables what the app never uses (`camera=(), microphone=(), geolocation=()`).
 - Next.js sets headers in `next.config.ts` `headers()` or middleware, not per page; API route handlers set their own CORS because `headers()` does not cover preflight.
 
@@ -63,14 +63,14 @@ export const SecurityHeaders = createMiddleware(async (C, Next) => {
   C.header("Referrer-Policy", "strict-origin-when-cross-origin")
   C.header("Content-Security-Policy", "default-src 'none'; frame-ancestors 'none'")
   C.header("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
-  if (C.req.header("Cookie")) C.header("Cache-Control", "no-store")
+  if (C.req.header("Cookie") || C.req.header("Authorization")) C.header("Cache-Control", "no-store")
 })
 
 export const Cors = cors({
   origin: (Origin) => (AllowedOrigins.has(Origin) ? Origin : null),
   credentials: true,
   allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
-  allowHeaders: ["Content-Type", "Authorization"],
+  allowHeaders: ["Content-Type", "Authorization", "Idempotency-Key", "X-Request-Id"],
   maxAge: 600,
 })
 

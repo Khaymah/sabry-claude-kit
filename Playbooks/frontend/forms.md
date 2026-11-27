@@ -25,7 +25,7 @@
 ### Standard — adds
 
 - Map the API's field errors with `setError(Field, { type: "server", message })`. An error with no matching field goes to a form-level alert at the top (`role="alert"`) and focus moves to it. Map by the API's field path, including arrays (`Lines.2.Quantity`).
-- Normalise before validating, in the schema (`z.preprocess`): Arabic-Indic digits `٠-٩` and `۰-۹` to ASCII, Arabic decimal `٫` to `.`, thousands `٬` and `,` removed, spaces trimmed. Show the user what you understood, not an error.
+- Normalise before validating, in the schema (`z.preprocess`): Arabic-Indic digits `٠-٩` and `۰-۹` to ASCII, Arabic decimal `٫` to `.`, thousands `٬` removed and `,` removed only as grouping (`1,250`, never `12,50`, which fails validation instead of becoming `1250`), spaces trimmed. Show the user what you understood, not an error.
 - Phone: keep `type="tel"`, `inputMode="tel"`, `dir="ltr"`, normalise to E.164 (`+201012345678`) on submit; accept `010…`, `+20 10…`, `0020…`.
 - Money: `inputMode="decimal"`, `dir="ltr"`, text not `type="number"` (it drops Arabic digits and scrolls on wheel). Convert once to integer minor units at submit; the API gets integers (`backend/data/money.md`).
 - Never `type="number"` for phone, national id, card, postal code or anything with leading zeros.
@@ -88,7 +88,7 @@ export function CustomerForm() {
 }
 
 export const ArabicToAscii = (Value: string) =>
-  Value.replace(/[٠-٩]/g, (D) => String(D.charCodeAt(0) - 0x0660)).replace(/[۰-۹]/g, (D) => String(D.charCodeAt(0) - 0x06f0)).replace(/٫/g, ".").replace(/[٬,\s]/g, "")
+  Value.replace(/[٠-٩]/g, (D) => String(D.charCodeAt(0) - 0x0660)).replace(/[۰-۹]/g, (D) => String(D.charCodeAt(0) - 0x06f0)).replace(/٫/g, ".").replace(/[٬\s]/g, "").replace(/(?<=\d),(?=\d{3}(?!\d))/g, "")
 ```
 
 The shared schema applies `z.preprocess(ArabicToAscii, …)` to phone and amount fields. Other stacks: Vue uses vee-validate with the same Zod schema; Angular reactive forms call the same schema in a validator.

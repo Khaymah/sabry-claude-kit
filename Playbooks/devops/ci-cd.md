@@ -19,37 +19,33 @@
 - Secrets only in GitHub Actions secrets (environment-scoped for production). Never in the repo, the workflow file, or a `run:` echo; GitHub masks values but not their transformations (base64, substrings).
 - The deploy job has `if: github.ref == 'refs/heads/main'` and `needs: check`. A pull request from a fork never reaches secrets: use `pull_request`, never `pull_request_target` with a checkout of PR code.
 - Top-level `permissions: contents: read`; widen per job only when needed.
-- The deploy key is a dedicated ed25519 key pair for this repo only, installed on the server for the `deploy` user, restricted in `authorized_keys` (`restrict,command="/usr/local/bin/deploy-entry"`). It is not the owner's personal key.
+- The deploy key is a dedicated ed25519 key pair for this repo only, installed on the server for the `deploy` user, restricted in `authorized_keys` (`restrict,command="/usr/local/bin/deploy-entry"`); the `deploy-entry` wrapper below is the only name used. It is not the owner's personal key.
 - Pin the server's host key in the workflow (`known_hosts` secret from `ssh-keyscan` made once, checked by hand). `StrictHostKeyChecking=no` is not allowed.
 - The deploy runs the same script as manual deploys (`devops/deploy-zero-downtime.md`); CI only uploads the artifact and calls it.
 
 ### Standard — adds
 
 - Checks: `bun install --frozen-lockfile`, `bun run typecheck`, `bun run lint`, `bun test` against a `postgres:16` service with a health check and a throwaway database; migrations run before the tests so schema drift fails here.
-- Build once in CI, ship the artifact (`tar` of `dist` plus production dependencies) with `rsync` to a new release directory, never build on the server.
+- Build once in CI, ship `release.tgz` (`dist`, `package.json`, lockfile, migrations, production `node_modules`) with `rsync` to a new release directory, never build on the server.
 - `environment: production` with required reviewers = the manual approval gate. The run waits; nothing touches the server until approved.
 - `concurrency: group: deploy-production, cancel-in-progress: false`, so two merges queue instead of racing.
-- `actions/checkout`, `oven-sh/setup-bun` pinned to a full commit SHA or an exact version with Dependabot updates on.
-- `timeout-minutes` on every job so a hung step does not burn the free minutes.
+- Actions pinned to a full commit SHA or an exact version with Dependabot on; `timeout-minutes` on every job.
 - Deploy summary written to the job summary: release name, previous release (the rollback target).
 
 ### Advanced — adds
 
 - Staging deploys automatically from `main`; production deploys the same artifact (promote, don't rebuild) after approval.
-- Branch protection on `main`: required checks, linear history, no force pushes, CODEOWNERS for `.github/` and the deploy script.
-- Dependency review and `bun audit` on PRs; the deploy key rotated every 6 months.
+- Branch protection on `main` (required checks, linear history, CODEOWNERS for `.github/` and the deploy script); dependency review and `bun audit` on PRs; deploy key rotated every 6 months.
 
 ## Edge cases
 
 | Case | Expected behaviour |
 |---|---|
-| Tests pass on CI but the Postgres version differs from prod | The service image tag matches the server's major version (`postgres-ops.md`) |
+| Postgres version differs from prod | The service image tag matches the server's major version (`postgres-ops.md`) |
 | Migration fails during deploy | Script exits non-zero before the switch, job red, old release still serving, the approval is not "used up": rerun the job |
-| Data at 100×: test database grows, suite slows | Tests use transactions or truncate per file, not full reseeds; the job has `timeout-minutes` and sharding is the Advanced step |
+| Data at 100×: test database grows, suite slows | Tests use transactions or truncate per file; `timeout-minutes` set, sharding is Advanced |
 | Twice / parallel: two merges within a minute | `concurrency` queues the second; the deploy script's `flock` is the second line of defence |
 | Approver approves an old commit's run after newer commits landed | Deploy job checks `git rev-parse origin/main` equals the run's SHA, else exits and asks to rerun |
-| A secret rotated on the server but not in Actions | Deploy fails at SSH with a clear step name; secrets listed in the repo README by name, never value |
-| Fork PR needs a secret to test | It does not get one; tests use fake keys from `.env.test` committed with dummy values |
 
 ## Example — Standard, GitHub Actions
 
@@ -66,7 +62,7 @@ permissions:
 
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   check:
@@ -78,13 +74,8 @@ jobs:
         env:
           POSTGRES_PASSWORD: test
           POSTGRES_DB: app_test
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U postgres"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
+        ports: ["5432:5432"]
+        options: --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
     env:
       DATABASE_URL: postgres://postgres:test@localhost:5432/app_test
     steps:
@@ -98,10 +89,12 @@ jobs:
       - run: bun run db:migrate
       - run: bun test
       - run: bun run build
+      - run: bun install --frozen-lockfile --production
+      - run: tar czf release.tgz dist package.json bun.lock drizzle node_modules
       - uses: actions/upload-artifact@v4
         with:
-          name: dist
-          path: dist
+          name: release
+          path: release.tgz
           retention-days: 7
 
   deploy:
@@ -116,8 +109,8 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: dist
-          path: dist
+          name: release
+      - run: mkdir stage && tar xzf release.tgz -C stage
       - name: Prepare SSH
         env:
           DeployKey: ${{ secrets.DEPLOY_KEY }}
@@ -132,17 +125,25 @@ jobs:
           Release: ${{ github.sha }}
           Host: ${{ secrets.DEPLOY_HOST }}
         run: |
-          rsync -az --delete dist/ deploy@$Host:/srv/app/releases/$Release/
-          ssh deploy@$Host "/usr/local/bin/deploy $Release"
+          rsync -az --delete stage/ deploy@$Host:$Release/
+          ssh deploy@$Host "deploy $Release"
 ```
 
-Never inline `${{ … }}` expressions inside a `run:` script; pass secrets and any untrusted text (branch name, PR title) through `env:` as above. Other CI: the same stages in GitLab CI with `services: postgres` and protected environments.
+```bash
+set -euo pipefail
+case "${SSH_ORIGINAL_COMMAND:-}" in
+  "rsync --server "*) exec rrsync -wo /srv/app/releases ;;
+  "deploy "*) Sha="${SSH_ORIGINAL_COMMAND#deploy }"; [[ "$Sha" =~ ^[0-9a-f]{40}$ ]] && exec /usr/local/bin/deploy "$Sha" ;;
+esac
+exit 1
+```
+
+`rrsync` (in the `rsync` package) confines uploads to `/srv/app/releases`, so `$Release/` lands in `releases/<sha>`. Never inline `${{ … }}` in a `run:` script; pass secrets and untrusted text (branch name, PR title) through `env:`. Other CI: the same stages in GitLab CI.
 
 ## Verify
 
-- [ ] `[M]` A PR from a fork shows green checks and the `deploy` job is skipped; `grep -r "StrictHostKeyChecking=no" .github` finds nothing.
-- [ ] `[M]` Pushing a branch other than `main` never runs `deploy`.
-- [ ] `[S]` Breaking a test turns the PR red; the Postgres service log shows the migration ran.
+- [ ] `[M]` A fork PR or non-`main` push skips `deploy`; `grep -r "StrictHostKeyChecking=no" .github` finds nothing.
+- [ ] `[S]` Breaking a test turns the PR red.
 - [ ] `[S]` Merging to `main` pauses at "Waiting for approval"; rejecting it leaves the server untouched.
 - [ ] `[S]` Two quick merges deploy one after the other, not at the same time.
 - [ ] `[A]` Staging gets the same artifact SHA that production later promotes.
@@ -150,10 +151,8 @@ Never inline `${{ … }}` expressions inside a `run:` script; pass secrets and a
 ## Pitfalls
 
 - **Private key committed "just for CI"** → whole server exposed → Actions secret, dedicated key, `restrict` in `authorized_keys`.
-- **`pull_request_target` plus `actions/checkout` of the PR head** → forks run code with secrets → `pull_request` only.
-- **Building on the server** → differing toolchain and a slow deploy → build in CI, ship the artifact.
-- **`echo ${{ secrets.X }} > file`** → shell injection and a mangled key → env var and `printf '%s\n'`.
-- **Unpinned `@main` actions** → supply-chain change under you → pinned tags or SHAs.
+- **`pull_request_target` plus checkout of the PR head** → forks run code with secrets → `pull_request` only.
+- **Unpinned `@main` actions** → supply-chain change → pinned tags or SHAs.
 
 ## Related
 

@@ -25,7 +25,7 @@
 - Tailwind logical utilities only: `ms-*`, `me-*`, `ps-*`, `pe-*`, `start-*`, `end-*`, `text-start`, `text-end`, `border-s`, `border-e`, `rounded-s`, `rounded-e`. Ban `ml-`, `mr-`, `pl-`, `pr-`, `left-`, `right-`, `text-left`, `text-right` with an ESLint rule or a grep in CI. Use `rtl:`/`ltr:` variants only for what logical properties cannot express (transforms).
 - Locale code `ar-EG` for Arabic Egypt, `en-US` or `en-GB` for English. Numeral choice is a product decision: `ar-EG` yields Arabic-Indic digits (`١٢٣`) by default; if the owner wants Latin digits in Arabic UI use `ar-EG-u-nu-latn`. Pick one and use it everywhere, including tables and charts.
 - Currency: `new Intl.NumberFormat(Locale, { style: "currency", currency: "EGP" }).format(Minor / 100)`, with the exponent from the currency table, not a hard-coded 100 (`backend/data/money.md`). Convert from `bigint` minor units with a decimal-safe helper above 2^53.
-- Dates: `Intl.DateTimeFormat(Locale, { timeZone: "Africa/Cairo", dateStyle: "medium" })`. Always pass `timeZone`. Calendar stays Gregorian unless the owner asks for Hijri (`-u-ca-islamic`).
+- Dates: `Intl.DateTimeFormat(Locale, { timeZone: "Africa/Cairo", dateStyle: "medium" })` (or the tenant's/user's configured zone). Always pass `timeZone`. Calendar stays Gregorian unless the owner asks for Hijri (`-u-ca-islamic`).
 - Plurals: `Intl.PluralRules` or the library's ICU messages; Arabic has six forms (zero, one, two, few, many, other), never `Count === 1 ? … : …`.
 - Mixed bidi text: wrap phone numbers, order numbers, emails, URLs, SKUs and codes in `<bdi>` or `<span dir="ltr">` so `+20 10 1234 5678` and `INV-2025-001` do not reorder inside an Arabic sentence. Inputs for these use `dir="ltr"` with `text-start`. User-written text uses `dir="auto"`.
 - Icons: flip with the direction when they mean direction (back/forward arrows, chevrons, "next", progress, send, reply, undo/redo, list indents, sliders); do not flip when they are objects or universal (play triangle, clocks, checkmark, search lens, logos, phone, plus, download, media controls, charts with time on the x-axis, brand icons). Flip with `rtl:-scale-x-100`.
@@ -68,15 +68,16 @@ export function FormatMoney(Minor: bigint, Currency: string, Locale: string) {
   return Formatter.format(Number(Minor) / 100)
 }
 
-export const FormatDate = (Value: string, Locale: string) =>
-  new Intl.DateTimeFormat(Locale, { timeZone: "Africa/Cairo", dateStyle: "medium", timeStyle: "short" }).format(new Date(Value))
+export const FormatDate = (Value: string, Locale: string, Zone = "Africa/Cairo") =>
+  new Intl.DateTimeFormat(Locale, { timeZone: Zone, dateStyle: "medium", timeStyle: "short" }).format(new Date(Value))
 
 export function Phone({ Value }: { Value: string }) {
   return <bdi dir="ltr" className="text-start">{Value}</bdi>
 }
 
-export default function RootLayout({ children, params }: { children: React.ReactNode; params: { Locale: string } }) {
-  const IsArabic = params.Locale === "ar"
+export default async function RootLayout({ children, params }: { children: React.ReactNode; params: Promise<{ Locale: string }> }) {
+  const { Locale } = await params
+  const IsArabic = Locale === "ar"
   return (
     <html lang={IsArabic ? "ar" : "en"} dir={IsArabic ? "rtl" : "ltr"}>
       <body className="font-sans leading-relaxed">{children}</body>
@@ -85,7 +86,7 @@ export default function RootLayout({ children, params }: { children: React.React
 }
 ```
 
-`Number(Minor) / 100` is safe for display below 2^53 minor units and for 2-decimal currencies; use the currency exponent table otherwise. Other stacks: `next-intl`, `react-i18next` or `vue-i18n` carry the same ICU messages.
+In Next 15 and 16 `params` is a Promise, so the layout is async and awaits it (Next 14 passed a plain object). `Number(Minor) / 100` is safe for display below 2^53 minor units and for 2-decimal currencies; use the currency exponent table otherwise. Other stacks: `next-intl`, `react-i18next` or `vue-i18n` carry the same ICU messages.
 
 ## Verify
 

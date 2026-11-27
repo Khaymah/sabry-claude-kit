@@ -68,7 +68,8 @@ export function useOrders(Filters: OrderFilters) {
     queryKey: OrderKeys.List(Scope, Filters),
     queryFn: ({ signal }) => GetOrders(Filters, signal),
     staleTime: 30_000,
-    placeholderData: keepPreviousData,
+    placeholderData: (Previous, PreviousQuery) =>
+      PreviousQuery?.queryKey.slice(0, 3).join() === OrderKeys.All(Scope).slice(0, 3).join() ? Previous : undefined,
   })
 }
 
@@ -93,7 +94,7 @@ export function useSwitchBranch() {
 }
 ```
 
-`placeholderData: keepPreviousData` keeps the previous page on screen while the next loads; never use it across a scope switch (the switch removes the cache first).
+The `placeholderData` callback keeps the previous page on screen while the next loads, but only when the previous query has the same scope prefix (company, branch, user); a bare `keepPreviousData` would show another scope's rows after a switch or user change (TanStack Query v5).
 
 Other stacks: SWR key arrays follow the same rule; RTK Query uses tags per scope.
 

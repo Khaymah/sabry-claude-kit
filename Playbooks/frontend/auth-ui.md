@@ -77,7 +77,7 @@ export async function RequireUser(Permission?: string) {
   return Session
 }
 
-export const SafeNext = (Value: string | null) => (Value && /^\/(?![/\\])/.test(Value) ? Value : "/")
+export const SafeNext = (Value: string | null) => (Value && /^\/(?![/\\])[^\s\u0000-\u001f\u007f]*$/.test(Value) ? Value : "/")
 
 let RefreshPromise: Promise<boolean> | null = null
 export function RefreshOnce() {
@@ -91,7 +91,7 @@ export function Can({ Permission, Children }: { Permission: string; Children: Re
 }
 ```
 
-`RequireUser` is called at the top of every protected page, route handler and server action. Other stacks: Auth.js, Clerk and Supabase provide the session helper; the double check and the cosmetic role rule do not change.
+The `middleware.ts` file is `proxy.ts` (exported `proxy`) in Next 16: follow the project's Next version. `forbidden()` needs `experimental.authInterrupts: true` in `next.config` (Next 15.1+). `SafeNext` rejects whitespace and control characters, because browsers strip tab and newline from `/\t/evil.test` and read it as `//evil.test`. `RequireUser` is called at the top of every protected page, route handler and server action. Other stacks: Auth.js, Clerk and Supabase provide the session helper; the double check and the cosmetic role rule do not change.
 
 ## Verify
 

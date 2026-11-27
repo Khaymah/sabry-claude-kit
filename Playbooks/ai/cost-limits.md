@@ -47,7 +47,7 @@
 | Two parallel requests race the last budget | Atomic conditional update: one passes, one gets `429` |
 | Retries after `529` | Failed attempts that returned no usage are not charged; successful ones are metered once per call id |
 | Provider changes its rates | Old usage rows keep the rate in force when written; a new rate row has an effective date |
-| Month boundary | Budget periods use Africa/Cairo month start (`backend/data/time-zones.md`), stored as a period key; a call at 23:59:59 counts in the old month |
+| Month boundary | Budget periods use the month start in the tenant's configured zone (default Africa/Cairo) (`backend/data/time-zones.md`), stored as a period key; a call at 23:59:59 counts in the old month |
 | Data at 100×: usage table at 500M rows | Partition by month, aggregate nightly into a summary table; the budget check reads the counter row, never sums the log |
 | Twice / parallel: client resends after a timeout | Idempotency key: one model call, one usage row, budget charged once |
 | Streaming aborted by the client | Tokens used so far are metered from the final usage or an estimate |
@@ -58,7 +58,10 @@
 ## Example — Standard, Bun + Hono + Drizzle
 
 ```ts
-export async function ReserveBudget(TenantId: string, Period: string, Estimate: number) {
+export async function ReserveBudget(TenantId: string, Period: string, Estimate: number, PlanLimit: number) {
+  await db.execute(sql`
+    INSERT INTO "AiBudgets" ("TenantId", "Period", "Used", "Limit") VALUES (${TenantId}, ${Period}, 0, ${PlanLimit})
+    ON CONFLICT ("TenantId", "Period") DO NOTHING`)
   const Rows = await db.execute<{ Used: number }>(sql`
     UPDATE "AiBudgets" SET "Used" = "Used" + ${Estimate}
     WHERE "TenantId" = ${TenantId} AND "Period" = ${Period} AND "Used" + ${Estimate} <= "Limit"
@@ -68,6 +71,18 @@ export async function ReserveBudget(TenantId: string, Period: string, Estimate: 
 
 export async function SettleBudget(TenantId: string, Period: string, Estimate: number, Actual: number) {
   await db.execute(sql`UPDATE "AiBudgets" SET "Used" = "Used" + ${Actual - Estimate} WHERE "TenantId" = ${TenantId} AND "Period" = ${Period}`)
+}
+
+export async function MeteredCall<T>(TenantId: string, Period: string, Estimate: number, PlanLimit: number, Call: () => Promise<{ Value: T; Actual: number }>) {
+  await ReserveBudget(TenantId, Period, Estimate, PlanLimit)
+  let Actual = 0
+  try {
+    const Result = await Call()
+    Actual = Result.Actual
+    return Result.Value
+  } finally {
+    await SettleBudget(TenantId, Period, Estimate, Actual)
+  }
 }
 
 export const AiUsage = pgTable("AiUsage", {
@@ -87,7 +102,7 @@ export const AiUsage = pgTable("AiUsage", {
 
 Routing: `const Model = Confidence < 0.7 ? Env.LlmModelLarge : Env.LlmModelSmall`, ids from config (latest: `claude-haiku-5-5`, `claude-sonnet-5-5`, `claude-opus-5-5`). Add an index on `(TenantId, CreatedAt)`.
 
-Other stacks: the same single conditional statement; Redis counters only with a Lua script, and the table stays the record.
+The first call of a new period creates its row from the plan limit; a failed call settles `0`, so the reservation is returned. Other stacks: the same single conditional statement; Redis counters only with a Lua script, and the table stays the record.
 
 ## Verify
 

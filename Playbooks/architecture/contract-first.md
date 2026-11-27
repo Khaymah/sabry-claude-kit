@@ -85,7 +85,7 @@ OrdersRoutes.openapi(CreateOrderRoute, async (C) => {
 App.doc("/openapi.json", { openapi: "3.1.0", info: { title: "Api", version: "1.0.0" } })
 ```
 
-CI step: `bunx oasdiff breaking main-openapi.json openapi.json --fail-on ERR`.
+CI step: the `oasdiff` release binary (a Go tool, not an npm package) or its GitHub Action: `oasdiff breaking main-openapi.json openapi.json --fail-on ERR`.
 
 Other stacks: tRPC shares types without OpenAPI (add `trpc-openapi` for third parties); FastAPI generates OpenAPI from Pydantic models, same CI diff.
 

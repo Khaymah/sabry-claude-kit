@@ -73,7 +73,7 @@ if (Role === "api") Bun.serve({ port: 3000, fetch: App.fetch })
 if (Role === "worker") await StartWorker()
 ```
 
-Same image, two processes: `APP_ROLE=api` scaled for requests, `APP_ROLE=worker` scaled for jobs. The cheapest answer to "this part is heavy".
+Same build, two systemd units: `APP_ROLE=api` scaled for requests, `APP_ROLE=worker` scaled for jobs. The cheapest answer to "this part is heavy".
 
 Other stacks: Laravel Horizon workers, Django Celery workers, same codebase and different process types.
 

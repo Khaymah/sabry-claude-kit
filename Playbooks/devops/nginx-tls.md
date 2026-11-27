@@ -36,7 +36,7 @@
 ### Advanced — adds
 
 - Brotli via `ngx_brotli` (dynamic module), level 5, only if the package exists for the distribution; otherwise gzip.
-- `upstream` with `keepalive 32` and two Bun ports for blue/green (`devops/deploy-zero-downtime.md`).
+- `upstream` with `keepalive 32` that includes `/etc/nginx/app-live/live.inc` (written by the deploy script, one Bun port at a time; `devops/deploy-zero-downtime.md`); seed it once with `server 127.0.0.1:3000;`. `listen … ssl http2;` works on every version; from nginx 1.25.1 (Ubuntu 24.04 ships 1.24) the separate `http2 on;` directive replaces it.
 - `proxy_cache` for public GET pages with `proxy_cache_lock on` and `proxy_cache_use_stale updating error timeout`.
 
 ## Edge cases
@@ -65,7 +65,7 @@ map $http_upgrade $ConnectionUpgrade {
 }
 
 upstream App {
-    server 127.0.0.1:3000;
+    include /etc/nginx/app-live/live.inc;
     keepalive 32;
 }
 
@@ -78,9 +78,8 @@ server {
 }
 
 server {
-    listen 443 ssl;
-    listen [::]:443 ssl;
-    http2 on;
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
     server_name example.com;
 
     ssl_certificate /etc/letsencrypt/live/example.com/fullchain.pem;

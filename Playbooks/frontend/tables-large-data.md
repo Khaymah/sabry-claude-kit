@@ -25,13 +25,13 @@
 
 - State lives in the URL search params: `?Page=2&Size=50&Sort=CreatedAt:desc&Status=Paid&Q=ahmed`. Parse and validate with a Zod schema; invalid values fall back to defaults. Reload, back button and shared links restore the exact view.
 - Any filter, sort or page-size change resets `Page` to 1. Debounce free-text search 300 ms and update the URL with `replace`, not `push`.
-- The query key contains the parsed params (`data-fetching.md`); `placeholderData: keepPreviousData` keeps the old rows dimmed while the next page loads.
+- The query key contains the parsed params (`data-fetching.md`); `placeholderData` keeps the old rows dimmed while the next page loads, only when the scope (company, branch) is unchanged (`data-fetching.md`).
 - Prefer cursor pagination for feeds and anything that grows while viewed; use offset only when users need "jump to page N" (`backend/api/pagination.md`). With cursor, no page numbers: show Next and Previous.
 - Virtualise any list that can render more than ~100 DOM rows at once (`@tanstack/react-virtual`): fixed or measured row height, `overscan` 5. Keep keyboard and screen reader behaviour: `role="table"` semantics or `aria-rowcount`, `aria-rowindex`.
 - Long selects and comboboxes load options from the server as the user types, 20 at a time; never preload 10,000 options.
 - Export: a button that creates a backend job with the current filters (never the visible rows), shows progress, and offers a download link when ready (`backend/files/import-export.md`, `backend/reliability/background-jobs.md`). The filter snapshot is stored with the job so the file matches what the user saw.
 - Totals and counts come from the server for the whole filtered set; footer sums of "this page only" are labelled as such.
-- Dates in filters are sent as the user's local day boundaries in `Africa/Cairo` converted per `backend/data/time-zones.md`, not midnight UTC.
+- Dates in filters are sent as the user's local day boundaries in `Africa/Cairo` (or the tenant's/user's configured zone) converted per `backend/data/time-zones.md`, not midnight UTC.
 
 ### Advanced — adds
 

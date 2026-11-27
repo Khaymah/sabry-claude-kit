@@ -76,16 +76,25 @@ export const SearchOrders = (TenantId: string, Term: string) =>
   Db.select().from(Orders).where(and(eq(Orders.TenantId, TenantId), ilike(Orders.Reference, `%${EscapeLike(Term)}%`)))
 
 const Blocked = new BlockList()
-for (const [Net, Prefix] of [["10.0.0.0", 8], ["172.16.0.0", 12], ["192.168.0.0", 16], ["127.0.0.0", 8], ["169.254.0.0", 16], ["100.64.0.0", 10], ["0.0.0.0", 8]] as const) Blocked.addSubnet(Net, Prefix, "ipv4")
+for (const [Net, Prefix] of [["10.0.0.0", 8], ["172.16.0.0", 12], ["192.168.0.0", 16], ["127.0.0.0", 8], ["169.254.0.0", 16], ["100.64.0.0", 10], ["0.0.0.0", 8], ["192.0.0.0", 24], ["198.18.0.0", 15], ["224.0.0.0", 4], ["240.0.0.0", 4]] as const) Blocked.addSubnet(Net, Prefix, "ipv4")
+Blocked.addSubnet("::", 128, "ipv6")
 Blocked.addSubnet("::1", 128, "ipv6")
+Blocked.addSubnet("ff00::", 8, "ipv6")
 Blocked.addSubnet("fc00::", 7, "ipv6")
 Blocked.addSubnet("fe80::", 10, "ipv6")
+
+function Unmap(Address: string) {
+  const Hex = /^::ffff:([0-9a-f]{1,4}):([0-9a-f]{1,4})$/i.exec(Address)
+  if (!Hex) return Address.replace(/^::ffff:/i, "")
+  const [High, Low] = [parseInt(Hex[1], 16), parseInt(Hex[2], 16)]
+  return `${High >> 8}.${High & 255}.${Low >> 8}.${Low & 255}`
+}
 
 async function Resolve(Hostname: string) {
   const Records = await dns.lookup(Hostname, { all: true })
   if (Records.length === 0) throw new AppError("FETCH_DNS_FAILED", 400)
   for (const R of Records) {
-    const Mapped = R.address.startsWith("::ffff:") ? R.address.slice(7) : R.address
+    const Mapped = Unmap(R.address)
     if (Blocked.check(Mapped, Mapped.includes(":") ? "ipv6" : "ipv4")) throw new AppError("FETCH_TARGET_FORBIDDEN", 400)
   }
   return Records[0]

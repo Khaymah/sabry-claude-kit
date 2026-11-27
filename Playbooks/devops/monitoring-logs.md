@@ -69,37 +69,36 @@ RateLimitIntervalSec=30s
 RateLimitBurst=2000
 ```
 
-```
-/var/log/nginx/*.log {
-    weekly
-    rotate 8
-    compress
-    delaycompress
-    missingok
-    notifempty
-    sharedscripts
-    postrotate
-        [ -f /run/nginx.pid ] && kill -USR1 $(cat /run/nginx.pid)
-    endscript
-}
-```
-
 ```bash
 set -euo pipefail
+State=/var/lib/app-monitor
+RepeatSeconds=14400
+mkdir -p "$State"
 Notify() { curl -fsS -m 10 --data-urlencode "text=$1" "https://api.telegram.org/bot$(cat /etc/app/tg.token)/sendMessage?chat_id=$(cat /etc/app/tg.chat)" >/dev/null; }
+Check() {
+  local Name="$1" Failing="$2" Message="$3" Flag="$State/$1" Now
+  Now=$(date +%s)
+  if [ "$Failing" = "1" ]; then
+    if [ ! -f "$Flag" ] || [ $((Now - $(cat "$Flag"))) -ge "$RepeatSeconds" ]; then Notify "$Message"; echo "$Now" > "$Flag"; fi
+  elif [ -f "$Flag" ]; then
+    rm -f "$Flag"; Notify "$(hostname): $Name resolved"
+  fi
+}
 
 Used=$(df --output=pcent / | tail -1 | tr -dc '0-9')
-[ "$Used" -lt 90 ] || Notify "$(hostname): disk at ${Used}%"
+Check disk "$([ "$Used" -ge 90 ] && echo 1 || echo 0)" "$(hostname): disk at ${Used}%"
 
 Inodes=$(df --output=ipcent / | tail -1 | tr -dc '0-9')
-[ "$Inodes" -lt 90 ] || Notify "$(hostname): inodes at ${Inodes}%"
+Check inodes "$([ "$Inodes" -ge 90 ] && echo 1 || echo 0)" "$(hostname): inodes at ${Inodes}%"
 
-systemctl is-active --quiet postgresql || Notify "$(hostname): postgresql is not active"
-[ ! -f /var/run/reboot-required ] || [ "$(date +%u)" != "1" ] || Notify "$(hostname): reboot needed"
+systemctl is-active --quiet postgresql && Down=0 || Down=1
+Check postgresql "$Down" "$(hostname): postgresql is not active"
+[ -f /var/run/reboot-required ] && Reboot=1 || Reboot=0
+Check reboot "$Reboot" "$(hostname): reboot needed"
 curl -fsS -m 10 "$(cat /etc/app/heartbeat-monitor.url)" >/dev/null
 ```
 
-Run with a systemd timer every 5 minutes. The final heartbeat means the external service alerts when the monitor script itself stops running. Other stacks: Netdata or Uptime Kuma (self-hosted) work, but host Kuma on a different server than the app.
+Run with a systemd timer every 5 minutes; `Check` notifies when a condition starts, repeats after 4 hours, and says "resolved" once, so a stuck disk does not message every 5 minutes. Log rotation for Nginx is already in `/etc/logrotate.d/nginx` (installed with the package): edit that file's `rotate` and `weekly` lines instead of adding a second stanza for the same logs, because two stanzas make `logrotate` fail with a duplicate-log error. The final heartbeat means the external service alerts when the monitor script itself stops running. Other stacks: Netdata or Uptime Kuma (self-hosted) work, but host Kuma on a different server than the app.
 
 ## Verify
 

@@ -16,7 +16,7 @@
 
 ### Minimum — always, never cut
 
-- Each release is `/srv/app/releases/<UTC timestamp or git sha>` with its built output and installed dependencies; `/srv/app/slots/3000` and `/srv/app/slots/3001` are symlinks, one per port, each pointing at the release that instance runs. Never build or `git pull` in place.
+- Each release is `/srv/app/releases/<UTC timestamp or git sha>` with its built output, `package.json`, migrations and production dependencies (unpacked from CI's `release.tgz`); `/srv/app/slots/3000` and `/srv/app/slots/3001` are symlinks, one per port, each pointing at the release that instance runs. Never build or `git pull` in place.
 - Keep the last 5 releases; delete older ones only after the new release is healthy.
 - Shared state lives outside releases: `.env` in `/etc/app/app.env` (mode `600`, read by systemd `EnvironmentFile`), uploads in `/srv/app/shared/uploads`, never inside a release directory.
 - The service exposes `GET /health` that checks the process and a `SELECT 1` (`quality/observability/health-checks.md`). A deploy that cannot pass it does not switch.
@@ -26,7 +26,7 @@
 
 ### Standard — adds
 
-- One template unit `app@.service` (`%i` is the port); only one of `app@3000` and `app@3001` is live. The idle one is started with the new release path, health-checked on `127.0.0.1:<port>/health`, then Nginx's included file `/etc/nginx/conf.d/app-upstream.conf` is rewritten to the new port and `nginx -s reload` runs (reload keeps old workers until their requests finish).
+- One template unit `app@.service` (`%i` is the port); only one of `app@3000` and `app@3001` is live. The idle one is started with the new release path, health-checked on `127.0.0.1:<port>/health`, then Nginx's included file `/etc/nginx/app-live/live.inc` (directory owned by `deploy`) is rewritten to the new port and `nginx -s reload` runs (reload keeps old workers until their requests finish).
 - Stop the old instance only after the new one has served traffic for 10 seconds with no `5xx`; keep it stopped, not removed, so rollback is a start.
 - Expand/contract migrations: release N adds (nullable column, new table, new index `CONCURRENTLY`); release N+1 stops using the old shape; release N+2 drops it. A migration never renames, drops, or adds `NOT NULL` without a default in the same release that needs it (`backend/data/migrations.md`).
 - Rollback = start the previous slot (it still points at the previous release), point Nginx at its port. It never runs a down-migration against production data.
@@ -101,7 +101,8 @@ if [ "${Healthy:-0}" != "1" ]; then
   exit 1
 fi
 
-echo "server 127.0.0.1:$Idle;" | sudo tee /etc/nginx/conf.d/app-live.inc >/dev/null
+echo "server 127.0.0.1:$Idle;" > /etc/nginx/app-live/live.inc.tmp
+mv -f /etc/nginx/app-live/live.inc.tmp /etc/nginx/app-live/live.inc
 sudo nginx -t && sudo nginx -s reload
 echo "$Idle" > $Root/live-port
 sleep 10
@@ -109,7 +110,7 @@ sudo systemctl stop "app@$Live"
 ls -1dt $Root/releases/* | tail -n +6 | xargs -r rm -rf
 ```
 
-The Nginx upstream block does `include /etc/nginx/conf.d/app-live.inc;`. `deploy` has passwordless sudo only for `systemctl restart|stop app@*` and `nginx` (a `sudoers.d` file), not for everything, once the server goes past Minimum.
+The Nginx upstream block in `nginx-tls.md` does `include /etc/nginx/app-live/live.inc;`; the directory and file are created once at provisioning, owned by `deploy`, so no `sudo tee` is needed. `deploy` has passwordless sudo only for `systemctl restart|stop app@*` and `nginx` (a `sudoers.d` file), not for everything, once the server goes past Minimum.
 
 Rollback is the same script with the previous release name. Other stacks: PM2 cluster `reload` gives similar results for Node; Docker setups use the same two-port pattern with two containers.
 
