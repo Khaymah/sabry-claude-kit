@@ -1,0 +1,20 @@
+name: x01
+description: "Staff attendance and payroll: employees and shifts, check-in/out with Cairo days and night shifts, leave balances, monthly payroll run, payslip report, leave cancellation, overtime-rate correction from a date, voiding and re-running a payroll month"
+requests:
+  - id: r01
+    prompt: requests/r01.md
+  - id: r02
+    prompt: requests/r02.md
+  - id: r03
+    prompt: requests/r03.md
+  - id: r04
+    prompt: requests/r04.md
+  - id: r05
+    prompt: requests/r05.md
+  - id: r06
+    prompt: requests/r06.md
+  - id: r07
+    prompt: requests/r07.md
+  - id: r08
+    prompt: requests/r08.md
+compact_after: [2, 4, 6]

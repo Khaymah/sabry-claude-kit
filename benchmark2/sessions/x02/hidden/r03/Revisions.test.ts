@@ -1,0 +1,70 @@
+import { expect, test } from "bun:test";
+import { Created, Day, GetQuote, Money, NewCompany, NewCustomer, NewProduct, PriceListOk, QuoteOk, Reset, Revise, Versions } from "../_Support";
+
+test("r03: a revision is a new version priced on the revision day, old versions stay as they were", async () => {
+  await Reset();
+  const A = await NewCompany();
+  const C = await NewCustomer(A.Token);
+  const P1 = await NewProduct(A.CompanyId, { Price: "10.04" });
+  const P2 = await NewProduct(A.CompanyId, { Price: "500.00" });
+  const Id = await QuoteOk(A.Token, C, [{ ProductId: P2, Quantity: 2 }]);
+  await PriceListOk(A.Token, C, Day(-1), undefined, [{ ProductId: P2, Price: "450.00" }]);
+  const Res = await Revise(A.Token, Id, [{ ProductId: P2, Quantity: 1 }, { ProductId: P1, Quantity: 1, DiscountPercent: 12.5 }]);
+  expect(Created(Res.Status)).toBe(true);
+  expect(Number(Res.Body.Data.Version)).toBe(2);
+  const Now = (await GetQuote(A.Token, Id)).Body.Data;
+  expect(Number(Now.Version)).toBe(2);
+  expect(Now.Status).toBe("Draft");
+  expect(Now.Items.length).toBe(2);
+  expect(Money(Now.Items.find((I: any) => Number(I.ProductId) === P2).UnitPrice)).toBe("450.00");
+  expect(Money(Now.Items.find((I: any) => Number(I.ProductId) === P1).LineTotal)).toBe("8.79");
+  expect([Money(Now.Subtotal), Money(Now.Tax), Money(Now.Total)]).toEqual(["458.79", "64.23", "523.02"]);
+  const All = await Versions(A.Token, Id);
+  expect(All.Status).toBe(200);
+  expect(All.Items.map((V: any) => Number(V.Version))).toEqual([1, 2]);
+  expect(All.Items[0].Items.length).toBe(1);
+  expect(Money(All.Items[0].Items[0].UnitPrice)).toBe("500.00");
+  expect(Number(All.Items[0].Items[0].Quantity)).toBe(2);
+  expect([Money(All.Items[0].Subtotal), Money(All.Items[0].Tax), Money(All.Items[0].Total)]).toEqual(["1000.00", "140.00", "1140.00"]);
+  expect(Money(All.Items[1].Total)).toBe("523.02");
+});
+
+test("r03: revisions sent at the same moment never share a version number", async () => {
+  await Reset();
+  const A = await NewCompany();
+  const C = await NewCustomer(A.Token);
+  const P = await NewProduct(A.CompanyId, { Price: "10.00" });
+  const Id = await QuoteOk(A.Token, C, [{ ProductId: P, Quantity: 1 }]);
+  const Results = await Promise.all([2, 3, 4, 5].map((Quantity) => Revise(A.Token, Id, [{ ProductId: P, Quantity }])));
+  for (const R of Results) expect([200, 201, 409]).toContain(R.Status);
+  const Wins = Results.filter((R) => Created(R.Status)).length;
+  expect(Wins).toBeGreaterThanOrEqual(1);
+  const All = await Versions(A.Token, Id);
+  const Numbers = All.Items.map((V: any) => Number(V.Version));
+  expect(Numbers).toEqual(Array.from({ length: Wins + 1 }, (_, I) => I + 1));
+  const Now = (await GetQuote(A.Token, Id)).Body.Data;
+  expect(Number(Now.Version)).toBe(Wins + 1);
+  expect(Number(Now.Items[0].Quantity)).toBe(Number(All.Items[Wins].Items[0].Quantity));
+  expect(Money(Now.Total)).toBe(Money(All.Items[Wins].Total));
+});
+
+test("r03: a bad revision changes nothing and other companies cannot revise", async () => {
+  await Reset();
+  const A = await NewCompany();
+  const B = await NewCompany();
+  const C = await NewCustomer(A.Token);
+  const P = await NewProduct(A.CompanyId);
+  const BP = await NewProduct(B.CompanyId);
+  const Id = await QuoteOk(A.Token, C, [{ ProductId: P, Quantity: 3 }]);
+  expect([400, 404]).toContain((await Revise(A.Token, Id, [{ ProductId: P, Quantity: 1 }, { ProductId: BP, Quantity: 1 }])).Status);
+  expect((await Revise(A.Token, Id, [{ ProductId: P, Quantity: 1 }, { ProductId: P, Quantity: 0 }])).Status).toBe(400);
+  expect((await Revise(A.Token, Id, [])).Status).toBe(400);
+  expect([400, 404]).toContain((await Revise(A.Token, Id, [{ ProductId: 1e12, Quantity: 1 }])).Status);
+  expect((await Revise(B.Token, Id, [{ ProductId: BP, Quantity: 1 }])).Status).toBe(404);
+  expect((await Revise(A.Token, 99999999999, [{ ProductId: P, Quantity: 1 }])).Status).toBe(404);
+  expect((await Versions(B.Token, Id)).Status).toBe(404);
+  const Now = (await GetQuote(A.Token, Id)).Body.Data;
+  expect(Number(Now.Version)).toBe(1);
+  expect(Number(Now.Items[0].Quantity)).toBe(3);
+  expect((await Versions(A.Token, Id)).Items.length).toBe(1);
+});
