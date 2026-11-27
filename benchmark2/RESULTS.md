@@ -66,3 +66,29 @@ Requests passed per session:
 - With Opus the kit does not help here: both kit runs fail the same h02 requests (r04, r06, r07), which points to a playbook default (`backend/data/money.md`: amounts as strings, half-up rounding) overriding the project's own conventions and the owner's stated rule. Two runs per setup, so the Opus numbers are weaker evidence than the Sonnet ones.
 - Sonnet with this kit reaches 88% at half the cost of Opus without the kit (95%).
 - Fairness: the base `ParseId` let ids above int32 reach the database; each hard session's broken overlay bounds it so reusing the house helper is not punished. Huge-id tests are close to what the kit teaches, so they may favour it slightly.
+
+## Held-out long sessions
+
+Three sessions written by a builder that never saw the kit: x01 payroll (8 requests), x02 sales quotes (8 requests), x03 support ticketing (12 requests, `/compact` after requests 2, 4, 6, 8 and 10). No playbook was written for them. Reference check: broken fails every request, fixed and alt pass every request, typecheck clean. Five runs per setup, 60 runs. The kit under test has 122 playbooks, the precedence rule (owner, then project code, then playbook) and the lean excerpt for strong models.
+
+| Setup | Runs | Sessions fully passed | Requests passed | Tests passed | Cost per session |
+|---|---|---|---|---|---|
+| Sonnet, no kit | 15 | 5 | 82.9% | 93.9% | $2.35 |
+| Sonnet, this kit | 15 | 12 | 92.9% | 93.9% | $3.45 |
+| Opus, no kit | 15 | 13 | 96.4% | 98.6% | $7.15 |
+| Opus, this kit | 15 | 14 | 98.6% | 99.3% | $8.02 |
+
+Requests passed per session:
+
+| Setup | x01 | x02 | x03 |
+|---|---|---|---|
+| Sonnet, no kit | 36/40 | 33/40 | 47/60 |
+| Sonnet, this kit | 40/40 | 31/40 | 59/60 |
+| Opus, no kit | 40/40 | 40/40 | 55/60 |
+| Opus, this kit | 40/40 | 40/40 | 58/60 |
+
+- Sonnet with the kit fully passes 12 of 15 sessions against 5 of 15 without it (Fisher p = 0.025). The largest gain is the 12-request session x03 (47/60 to 59/60).
+- One Sonnet-with-kit run (x02 r3) fails all 8 requests: the app no longer started. In that run the model edited the schema through scripts and never ran the tests. It counts as a failure. The other 14 runs lose 2 requests in total; without that run the rate would be 98.5%.
+- Opus with the kit is at or above Opus without it on every session (98.6% vs 96.4%), at 12% more cost. The earlier Opus loss on h02 did not repeat: a rerun of h02 passed 8/8 twice, so it was variance at two runs.
+- Sonnet with the kit against Opus without it: 92.9% vs 96.4% of requests, 12 vs 13 sessions fully passed, at 48% of the cost. The gap is not significant at 15 runs (p = 1.0 on sessions fully passed).
+- Fairness: the harness refuses some Bash forms (heredocs to `python3`, compound commands) in every setup alike, 3 to 14 times per run, with no difference between arms.
