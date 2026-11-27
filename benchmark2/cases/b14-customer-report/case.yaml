@@ -1,0 +1,4 @@
+schema_version: "1"
+name: b14-customer-report
+context:
+  scaffold_script: fixture.sh

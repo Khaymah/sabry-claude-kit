@@ -1,0 +1,77 @@
+import { expect, test } from "bun:test";
+import { Approve, ApprovedQuote, Call, Convert, ConvertOk, Created, Day, GetQuote, Money, NewCompany, NewCustomer, NewProduct, NewUser, OrdersCount, PriceListOk, QuoteOk, Reset, Revise, StatusOf, StockOf, SubmitOk } from "../_Support";
+
+test("r05: converting makes a normal order with the quote's own prices and takes the stock", async () => {
+  await Reset();
+  const A = await NewCompany();
+  const C = await NewCustomer(A.Token);
+  const P1 = await NewProduct(A.CompanyId, { Price: "99.00", Stock: 10 });
+  const P2 = await NewProduct(A.CompanyId, { Price: "33.32", Stock: 5 });
+  await PriceListOk(A.Token, C, Day(-2), undefined, [{ ProductId: P1, Price: "10.04" }]);
+  const Id = await ApprovedQuote(A.Token, C, [{ ProductId: P1, Quantity: 1, DiscountPercent: 12.5 }, { ProductId: P2, Quantity: 3 }]);
+  expect((await Call("PATCH", `/Products/${P2}`, { Token: A.Token, Body: { Price: "70.00" } })).Status).toBe(200);
+  const Res = await Convert(A.Token, Id);
+  expect(Created(Res.Status)).toBe(true);
+  const OrderId = Number(Res.Body.Data.OrderId);
+  expect(OrderId).toBeGreaterThan(0);
+  expect(await StatusOf(A.Token, Id)).toBe("Converted");
+  const Order = await Call("GET", `/Orders/${OrderId}`, { Token: A.Token });
+  expect(Order.Status).toBe(200);
+  expect(Number(Order.Body.Data.CustomerId)).toBe(C);
+  expect(Money(Order.Body.Data.Total)).toBe("123.98");
+  expect(Order.Body.Data.Items.length).toBe(2);
+  const Line2 = Order.Body.Data.Items.find((I: any) => Number(I.ProductId) === P2);
+  expect([Number(Line2.Quantity), Money(Line2.UnitPrice), Money(Line2.LineTotal)]).toEqual([3, "33.32", "99.96"]);
+  expect([await StockOf(A.Token, P1), await StockOf(A.Token, P2)]).toEqual([9, 2]);
+  expect(await OrdersCount(A.Token)).toBe(1);
+  expect((await Call("POST", `/Orders/${OrderId}/Cancel`, { Token: A.Token })).Status).toBe(200);
+  expect([await StockOf(A.Token, P1), await StockOf(A.Token, P2)]).toEqual([10, 5]);
+});
+
+test("r05: one short line converts nothing and the quote can be converted after restocking", async () => {
+  await Reset();
+  const A = await NewCompany();
+  const C = await NewCustomer(A.Token);
+  const P1 = await NewProduct(A.CompanyId, { Stock: 10 });
+  const P2 = await NewProduct(A.CompanyId, { Stock: 2 });
+  const P3 = await NewProduct(A.CompanyId, { Stock: 10 });
+  const Id = await ApprovedQuote(A.Token, C, [{ ProductId: P1, Quantity: 4 }, { ProductId: P2, Quantity: 3 }, { ProductId: P3, Quantity: 1 }]);
+  expect((await Convert(A.Token, Id)).Status).toBe(409);
+  expect([await StockOf(A.Token, P1), await StockOf(A.Token, P2), await StockOf(A.Token, P3)]).toEqual([10, 2, 10]);
+  expect(await StatusOf(A.Token, Id)).toBe("Approved");
+  expect(await OrdersCount(A.Token)).toBe(0);
+  expect((await Call("PATCH", `/Products/${P2}`, { Token: A.Token, Body: { Stock: 3 } })).Status).toBe(200);
+  await ConvertOk(A.Token, Id);
+  expect([await StockOf(A.Token, P1), await StockOf(A.Token, P2), await StockOf(A.Token, P3)]).toEqual([6, 0, 9]);
+  const Draft = await QuoteOk(A.Token, C, [{ ProductId: P1, Quantity: 1 }]);
+  expect((await Convert(A.Token, Draft)).Status).toBe(409);
+  const Sales = await NewUser(A.CompanyId, "Staff");
+  const Big = await NewProduct(A.CompanyId, { Price: "60000.00", Stock: 5 });
+  const Pending = await QuoteOk(Sales.Token, C, [{ ProductId: Big, Quantity: 1 }]);
+  expect(await SubmitOk(Sales.Token, Pending)).toBe("PendingApproval");
+  expect((await Convert(A.Token, Pending)).Status).toBe(409);
+  expect(Created((await Approve(A.Token, Pending)).Status)).toBe(true);
+  await ConvertOk(Sales.Token, Pending);
+  expect(await StockOf(A.Token, Big)).toBe(4);
+  expect(await OrdersCount(A.Token)).toBe(2);
+});
+
+test("r05: converting the same quote at the same moment makes one order", async () => {
+  await Reset();
+  const A = await NewCompany();
+  const B = await NewCompany();
+  const C = await NewCustomer(A.Token);
+  const P = await NewProduct(A.CompanyId, { Stock: 10 });
+  const Id = await ApprovedQuote(A.Token, C, [{ ProductId: P, Quantity: 3 }]);
+  expect((await Convert(B.Token, Id)).Status).toBe(404);
+  expect((await Convert(A.Token, 99999999999)).Status).toBe(404);
+  const Results = await Promise.all([Convert(A.Token, Id), Convert(A.Token, Id), Convert(A.Token, Id)]);
+  expect(Results.filter((R) => Created(R.Status)).length).toBe(1);
+  for (const R of Results.filter((R) => !Created(R.Status))) expect(R.Status).toBe(409);
+  expect(await StockOf(A.Token, P)).toBe(7);
+  expect(await OrdersCount(A.Token)).toBe(1);
+  expect((await Convert(A.Token, Id)).Status).toBe(409);
+  expect((await Revise(A.Token, Id, [{ ProductId: P, Quantity: 1 }])).Status).toBe(409);
+  expect((await GetQuote(A.Token, Id)).Body.Data.Status).toBe("Converted");
+  expect(await OrdersCount(B.Token)).toBe(0);
+});

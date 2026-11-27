@@ -1,0 +1,85 @@
+{
+ "session": "s03",
+ "requests": {
+  "r01": {
+   "passed": 3,
+   "total": 4
+  },
+  "r02": {
+   "passed": 4,
+   "total": 4
+  },
+  "r03": {
+   "passed": 2,
+   "total": 2
+  },
+  "r04": {
+   "passed": 1,
+   "total": 2
+  },
+  "r05": {
+   "passed": 2,
+   "total": 2
+  }
+ },
+ "cost_usd": 1.0961,
+ "compactions": 2,
+ "compactions_requested": 2,
+ "turns": [
+  {
+   "request": "r01",
+   "code": 0,
+   "cost": 0.3003,
+   "seconds": 85.3,
+   "stderr": ""
+  },
+  {
+   "request": "r02",
+   "code": 0,
+   "cost": 0.1624,
+   "seconds": 65.7,
+   "stderr": ""
+  },
+  {
+   "request": "r02-compact",
+   "code": 0,
+   "cost": 0.0566,
+   "seconds": 29.5,
+   "compacted": true
+  },
+  {
+   "request": "r03",
+   "code": 0,
+   "cost": 0.1843,
+   "seconds": 34.6,
+   "stderr": ""
+  },
+  {
+   "request": "r04",
+   "code": 0,
+   "cost": 0.1145,
+   "seconds": 55.3,
+   "stderr": ""
+  },
+  {
+   "request": "r04-compact",
+   "code": 0,
+   "cost": 0.0598,
+   "seconds": 30.2,
+   "compacted": true
+  },
+  {
+   "request": "r05",
+   "code": 0,
+   "cost": 0.2182,
+   "seconds": 56.7,
+   "stderr": ""
+  }
+ ],
+ "session_id": "f925e84b-cea0-4ec9-8c12-f692b1ae73e2",
+ "leak": false,
+ "leaks": [],
+ "arm": "kit",
+ "model": "sonnet",
+ "run": 3
+}

@@ -1,0 +1,125 @@
+{
+ "session": "h01",
+ "requests": {
+  "r01": {
+   "passed": 3,
+   "total": 3
+  },
+  "r02": {
+   "passed": 4,
+   "total": 4
+  },
+  "r03": {
+   "passed": 2,
+   "total": 2
+  },
+  "r04": {
+   "passed": 4,
+   "total": 4
+  },
+  "r05": {
+   "passed": 3,
+   "total": 3
+  },
+  "r06": {
+   "passed": 4,
+   "total": 4
+  },
+  "r07": {
+   "passed": 3,
+   "total": 3
+  },
+  "r08": {
+   "passed": 3,
+   "total": 3
+  }
+ },
+ "cost_usd": 2.6844,
+ "compactions": 3,
+ "compactions_requested": 3,
+ "turns": [
+  {
+   "request": "r01",
+   "code": 0,
+   "cost": 0.3772,
+   "seconds": 108.6,
+   "stderr": ""
+  },
+  {
+   "request": "r02",
+   "code": 0,
+   "cost": 0.2282,
+   "seconds": 85.5,
+   "stderr": ""
+  },
+  {
+   "request": "r02-compact",
+   "code": 0,
+   "cost": 0.0768,
+   "seconds": 39.0,
+   "compacted": true
+  },
+  {
+   "request": "r03",
+   "code": 0,
+   "cost": 0.2895,
+   "seconds": 73.2,
+   "stderr": ""
+  },
+  {
+   "request": "r04",
+   "code": 0,
+   "cost": 0.2925,
+   "seconds": 105.5,
+   "stderr": ""
+  },
+  {
+   "request": "r04-compact",
+   "code": 0,
+   "cost": 0.0741,
+   "seconds": 38.2,
+   "compacted": true
+  },
+  {
+   "request": "r05",
+   "code": 0,
+   "cost": 0.3338,
+   "seconds": 92.3,
+   "stderr": ""
+  },
+  {
+   "request": "r06",
+   "code": 0,
+   "cost": 0.1927,
+   "seconds": 74.5,
+   "stderr": ""
+  },
+  {
+   "request": "r06-compact",
+   "code": 0,
+   "cost": 0.0668,
+   "seconds": 30.9,
+   "compacted": true
+  },
+  {
+   "request": "r07",
+   "code": 0,
+   "cost": 0.5687,
+   "seconds": 158.1,
+   "stderr": ""
+  },
+  {
+   "request": "r08",
+   "code": 0,
+   "cost": 0.1841,
+   "seconds": 72.3,
+   "stderr": ""
+  }
+ ],
+ "session_id": "d26da649-8286-4247-80aa-5d518834cbed",
+ "leak": false,
+ "leaks": [],
+ "arm": "kit",
+ "model": "sonnet",
+ "run": 0
+}

@@ -1,0 +1,4 @@
+schema_version: "1"
+name: b09-partial-refunds
+context:
+  scaffold_script: fixture.sh

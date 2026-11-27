@@ -1,0 +1,5 @@
+r01: "provider timeout must not block payments"
+r02: "none"
+r03: "provider failure reporting"
+r04: "tenant isolation (fix with a wrong guess)"
+r05: "idempotency across reruns and concurrent runs"

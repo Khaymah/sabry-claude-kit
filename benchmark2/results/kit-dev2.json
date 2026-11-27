@@ -1,0 +1,102 @@
+[
+ {
+  "case": "b09-partial-refunds",
+  "hidden": {
+   "passed": 5,
+   "total": 5
+  },
+  "score": 1,
+  "cost": 0.3984076000000001,
+  "leak": false
+ },
+ {
+  "case": "b09-partial-refunds",
+  "hidden": {
+   "passed": 5,
+   "total": 5
+  },
+  "score": 1,
+  "cost": 0.44456300000000004,
+  "leak": false
+ },
+ {
+  "case": "m17-phone-backfill",
+  "hidden": {
+   "passed": 5,
+   "total": 5
+  },
+  "score": 1,
+  "cost": 0.40512899999999996,
+  "leak": false
+ },
+ {
+  "case": "m17-phone-backfill",
+  "hidden": {
+   "passed": 5,
+   "total": 5
+  },
+  "score": 1,
+  "cost": 0.45483490000000004,
+  "leak": false
+ },
+ {
+  "case": "y26-order-refund-allocation",
+  "hidden": {
+   "passed": 2,
+   "total": 5
+  },
+  "score": 1,
+  "cost": 0.42053830000000003,
+  "leak": false
+ },
+ {
+  "case": "y26-order-refund-allocation",
+  "hidden": {
+   "passed": 2,
+   "total": 5
+  },
+  "score": 1,
+  "cost": 0.47527629999999993,
+  "leak": false
+ },
+ {
+  "case": "y31-email-backfill",
+  "hidden": {
+   "passed": 4,
+   "total": 4
+  },
+  "score": 1,
+  "cost": 0.480351,
+  "leak": false
+ },
+ {
+  "case": "y31-email-backfill",
+  "hidden": {
+   "passed": 4,
+   "total": 4
+  },
+  "score": 1,
+  "cost": 0.4149731,
+  "leak": false
+ },
+ {
+  "case": "y35-product-report-budget",
+  "hidden": {
+   "passed": 3,
+   "total": 4
+  },
+  "score": 1,
+  "cost": 0.5421406000000001,
+  "leak": false
+ },
+ {
+  "case": "y35-product-report-budget",
+  "hidden": {
+   "passed": 3,
+   "total": 4
+  },
+  "score": 1,
+  "cost": 0.43287970000000003,
+  "leak": false
+ }
+]

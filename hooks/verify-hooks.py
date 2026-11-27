@@ -197,6 +197,8 @@ def test_registration():
           "بدونها لا يمكن تمييز عمل الجلسة عن الدَنَس السابق")
     check("enforce-nextjs-structure مسجَّل (PreToolUse)", "enforce-nextjs-structure" in blob)
     check("warn-duplication مسجَّل (PostToolUse)", "warn-duplication" in blob)
+    check("enforce-code-traps مسجَّل (PreToolUse + PostToolUse --warn)",
+          blob.count("enforce-code-traps.py") >= 2 and "--warn" in blob)
     check("project-storage مسجَّل (SessionStart + SessionEnd)",
           "project-storage.py" in blob and "--save-transcript" in blob)
     check("project-storage --collect مسجَّل (Stop + SessionEnd)", blob.count("--collect") >= 2)
@@ -416,6 +418,7 @@ def main():
     test_suite("🗺  خطط المهام الطويلة", "test_kit_plans.py")
     test_suite("🔔 تذكيرات آخر الدور في تنبيه واحد", "test_stop_reminders.py")
     test_suite("⚓ الأساسيات مع كل رسالة + تصحيح اللغة", "test_turn_anchor.py")
+    test_suite("📚 الـ playbooks المناسبة مع كل طلب", "test_playbook_route.py")
     test_suite("⬆️  تحديث الكيت مع profile موجود", "test_kit_update.py")
     test_suite("🚫 حارس توقيع الـ AI على GitHub", "test_attribution_guard.py")
     test_suite("🧾 عروض الأسعار (quote)", "test_quote.py")

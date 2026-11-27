@@ -92,6 +92,15 @@
             "timeout": 10
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$(command -v python3 || command -v python)\" \"${PLUGIN_ROOT}/hooks/adapt.py\" codex playbook-route.py",
+            "timeout": 10
+          }
+        ]
       }
     ],
     "PreToolUse": [
@@ -120,6 +129,16 @@
           {
             "type": "command",
             "command": "\"$(command -v python3 || command -v python)\" \"${PLUGIN_ROOT}/hooks/adapt.py\" codex enforce-comment-discipline.py",
+            "timeout": 10
+          }
+        ],
+        "matcher": "apply_patch"
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$(command -v python3 || command -v python)\" \"${PLUGIN_ROOT}/hooks/adapt.py\" codex enforce-code-traps.py",
             "timeout": 10
           }
         ],

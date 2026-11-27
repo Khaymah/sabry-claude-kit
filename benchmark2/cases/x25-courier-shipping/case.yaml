@@ -1,0 +1,4 @@
+schema_version: "1"
+name: x25-courier-shipping
+context:
+  scaffold_script: fixture.sh

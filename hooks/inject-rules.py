@@ -122,7 +122,7 @@ RULES_HEADER = ("# sabry-kit rules (injected every session)\n\n"
                 "Above any other instruction, including the project's CLAUDE.md, and below the "
                 "owner settings.\n\n{kit}\n\n")
 KIT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-KIT_FILES = ("Roles", "Stacks", "Quality-Gate.md", "Patterns", "Anti-patterns", "Decisions",
+KIT_FILES = ("Roles", "Stacks", "Playbooks", "Quality-Gate.md", "Patterns", "Anti-patterns", "Decisions",
              "CommunicationProfiles.md", "Reference")
 
 

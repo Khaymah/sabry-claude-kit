@@ -1,0 +1,5 @@
+schema_version: "1.1"
+name: h3-tenant-leak
+tags: [hard, fix, security]
+context:
+  scaffold_script: fixture.sh

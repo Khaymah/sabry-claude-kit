@@ -62,6 +62,8 @@
 | `git_signing` | ✅ | `git-signing`: يوقّع الـ commits بمفتاح المالك من `SABRY_SIGNING_KEY` في كل جلسة |
 | `comment_discipline` | ✅ | `enforce-comment-discipline` + قاعدتها |
 | `nextjs_structure` · `duplication_warning` | ✅ | hooks الـ Next.js |
+| `code_traps` | ✅ | `enforce-code-traps`: فخاخ الكود من `Playbooks/quality/TRAPS.md` |
+| `playbooks` | ✅ | `playbook-route`: الـ playbooks المطابقة مع كل طلب ومع الـ subagents اللي بتكتب كود |
 | `secret_scan` · `install_git_hook` | ✅ | `scan-secrets` + الـ git pre-commit |
 | `project_storage` · `keep_transcripts` | ✅ | `project-storage` + قاعدتها |
 | `team_review_reminder` | ✅ | `team-review-reminder` |
@@ -102,12 +104,15 @@
 | `scan-secrets.py` | PreToolUse · `Bash` + git pre-commit | يمنع commit فيه مفتاح أو token أو private key أو `.env` (قسم 6) | ✅ |
 | `enforce-comment-discipline.py` | PreToolUse · `Write\|Edit\|MultiEdit` | يرفض إضافة كومنت لملف كود (الاستثناءات: build directives و`IMPORTANT:`) | ✅ |
 | `enforce-nextjs-structure.py` | PreToolUse · `Write\|Edit\|MultiEdit` | مشاريع Next.js بس: حد 600 سطر (و300 لـ PageContent)، PascalCase للجديد تحت `src/`، وحالة الحروف متطابقة مع الموجود على القرص | ✅ |
+| `enforce-code-traps.py` | PreToolUse · `Write\|Edit\|MultiEdit` | ملفات JS/TS (مش tests ولا scripts ولا tools ولا migrations ولا generated): يرفض `db`/`tx` `.update`/`.delete` من غير `.where` (بيحكم على الملف بعد التعديل، والـ chain اللي مش باينة لآخرها بتعدّي)، و`.forEach(async` برّه الـ strings. الاستثناء المقصود: `// IMPORTANT: allow-where: <السبب>` أو `allow-foreach-async` على نفس السطر أو اللي فوقه | ✅ |
+| `enforce-code-traps.py --warn` | PostToolUse · `Write\|Edit\|MultiEdit` | يرجّع للـ agent الفخاخ المحتملة: query جوه loop (N+1)، و`Promise.all` على list فيها DB، و`.find` جوه loop، و`fetch` من غير timeout، و`z.array` من غير `.max`، و`select()` كامل، وfloat على الفلوس، و`catch {}` فاضي، و`console.*` في السيرفر، و`hashSync`/`execSync`/الـ sync file I/O في مسار request (المسار محسوب من جذر المشروع)، و`update`/`delete` من غير `.where` على `pool`/`sql`/`knex`. الـ loops اللي بتمشي على chunks أو keyset batches مستثناة | يرجّع feedback |
 | `warn-duplication.py` | PostToolUse · `Write\|Edit\|MultiEdit` | مشاريع Next.js بس: يرجّع للـ agent كود مكرر عشان يوحّده | يرجّع feedback |
 | `read-budget.py` | PreToolUse · `Read` | يرفض قراءة ملف نصي أكبر من 800 سطر كله من غير `offset`/`limit`، ويوجّه لـ Grep + مدى محدد. `limit` صريح = مسموح | ✅ |
 | `stop-reminders.py` | Stop | بيشغّل التذكيرات التلاتة (التحقق · الخطة · المراجعة) ويبعت اللي عنده حاجة منهم كتنبيه **واحد**، مع تعليمة إن الرد عليهم يبقى إضافة قصيرة واحدة مش تكرار للتقرير | لا |
 | `verify-reminder.py` | عن طريق `stop-reminders` | لو اتعدّل كود ومفيش test/typecheck/lint/build اشتغل بعد آخر تعديل: يطلب التحقق (بأوامر المشروع نفسه من `package.json`) أو يقول إيه اللي ما اتحققش. مرة لكل change-set | feedback |
 | `lessons.py --prompt` | UserPromptSubmit | أول رسالة في الجلسة: يعرض الدروس العامة. رسالة شكلها تصحيح ("غلط" · "قلتلك" · "مش كده" · "wrong" · "I told you"): يطلب من الـ agent يسجّل درس بـ `lessons.py add` | لا |
 | `turn-anchor.py` | UserPromptSubmit | مع كل رسالة: سطر واحد (حوالي 60 token) بلغة الرد، والأسئلة بـ `AskUserQuestion`، ومفيش كود من غير "نفّذ"، ومفيش نسبة للـ AI. لو الـ profile عربي وآخر رد كان إنجليزي في أغلبه (الكود والمسارات مش محسوبة)، يضيف تصحيح صريح | لا |
+| `playbook-route.py` | UserPromptSubmit · PreToolUse `Agent\|Task` (`--agent`) · SubagentStart (`--subagent`) | يطابق كلامك (عربي وإنجليزي) على `Playbooks/routes.json` ويحقن لحد 3 playbooks مناسبين: الـ Decision وقواعد Minimum و Standard والـ Pitfalls، بحد أقصى 2,500 حرف للملف. الـ playbook اللي اتحقن قبل كده في نفس الجلسة بيتذكر اسمه بس. والـ subagents اللي بتكتب كود بياخدوا الـ playbooks المطابقة للـ brief بتاعهم. مفيش تطابق يبقى مفيش حقن | لا |
 | `turn-anchor.py --tool` | PostToolUse · كل الأدوات | ساكت طول ما الكلام عربي. لو النص اللي اتكتب في الدور الحالي طلع إنجليزي في أغلبه، يحقن تصحيح فوري مرة واحدة لكل نص | لا |
 | `turn-anchor.py --stop` | Stop | لو الرد النهائي طلع إنجليزي، يرجّعه مرة واحدة يكتبه بالعربي. مايشتغلش لو صاحب الكيت طالب إنجليزي (email · README · ترجمة · أو كاتب بالإنجليزي) | لا |
 | `lessons.py --start` | SessionStart | يعرض الدروس العامة أول الجلسة. بعد compact أو `/clear` بينسى اللي عرضه قبل كده، فالدروس العامة ترجع فوراً والمحددة بملف أو أمر تظهر تاني عند أول تطابق | لا |
@@ -267,6 +272,7 @@ python3 ~/sabry-claude-kit/hooks/adapt.py <codex|gemini|cursor> <script> [args]
 | `project-storage` | ✅ | ✅ (`SessionStart`) | ✅ | ✅ |
 | `enforce-comment-discipline` | ✅ | ⚠️ لا (Codex بيعدّل بـ `apply_patch`) | ✅ (`write_file` · `replace`) | ⚠️ لا (`afterFileEdit` مش بيقدر يمنع) |
 | `enforce-nextjs-structure` | ✅ | ⚠️ لا | ✅ | ⚠️ لا |
+| `enforce-code-traps` | ✅ | ✅ (`apply_patch`) | ✅ | ⚠️ لا |
 | `inject-rules` | ✅ | ✅ | ✅ | ✅ (`additional_context`) |
 | الأصوات | ✅ | ✅ | ✅ | ✅ |
 | `team-review-reminder` | ✅ | ⚠️ لا (Codex مش بيوثّق `additionalContext` على Stop) | — | — |

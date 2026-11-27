@@ -1,0 +1,28 @@
+name: x03
+description: "Event ticketing: events with sessions and seat categories, holds with expiry, purchase with promo (per-ticket floor rule), direct last-seat purchases, group bookings, gate check-in, refunds, payout report, event cancellation, ticket transfer, fee-rule correction, per-organizer staff scoping"
+requests:
+  - id: r01
+    prompt: requests/r01.md
+  - id: r02
+    prompt: requests/r02.md
+  - id: r03
+    prompt: requests/r03.md
+  - id: r04
+    prompt: requests/r04.md
+  - id: r05
+    prompt: requests/r05.md
+  - id: r06
+    prompt: requests/r06.md
+  - id: r07
+    prompt: requests/r07.md
+  - id: r08
+    prompt: requests/r08.md
+  - id: r09
+    prompt: requests/r09.md
+  - id: r10
+    prompt: requests/r10.md
+  - id: r11
+    prompt: requests/r11.md
+  - id: r12
+    prompt: requests/r12.md
+compact_after: [2, 4, 6, 8, 10]

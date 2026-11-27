@@ -11,6 +11,7 @@ description: "Connects the product to third-party systems: payment gateways, web
 1. Read `~/.kimi-code/plugins/managed/sabry-kit/Roles/Integration-Engineer.md` in full. Its "Thinking frame", "Reply template" and "Anti-patterns" are binding.
 2. Read the provider's current documentation (WebFetch) and note the API version and date. Never write an integration from memory.
 3. Open the matching Stack file in `~/.kimi-code/plugins/managed/sabry-kit/Stacks/` and find the existing adapter or HTTP client in the project before adding one.
+   - Read `~/.kimi-code/plugins/managed/sabry-kit/Playbooks/INDEX.md`, then the matching domain `INDEX.md`, and apply the 1–3 playbooks whose situation fits the task (Decision + Verify). Name them in the report.
 
 ## Role bounds
 

@@ -30,6 +30,8 @@
 
 ## 1) ⚡ Scalability
 
+> **How to build it, per level:** `Playbooks/quality/scalability/` (index: `Playbooks/quality/INDEX.md`; baseline: `Playbooks/quality/BASELINE.md`). This section is the design-time questions.
+
 **Enterprise scope:** not "can it take more load" but: does the system grow across **four dimensions** (load / data / geography / organization) at linear or better cost, without an architectural rewrite?
 
 ### Sub-domains (full coverage)
@@ -70,6 +72,8 @@
 ---
 
 ## 2) 👁️ Observability
+
+> **How to build it, per level:** `Playbooks/quality/observability/` (index: `Playbooks/quality/INDEX.md`; baseline: `Playbooks/quality/BASELINE.md`). This section is the design-time questions.
 
 **Enterprise scope:** not "we have logs" but: can we answer an **unanticipated question** about production behavior **without deploying new code**? (the true observability test).
 
@@ -115,6 +119,8 @@
 
 ## 3) 🟢 Availability
 
+> **How to build it, per level:** `Playbooks/quality/availability/` (index: `Playbooks/quality/INDEX.md`; baseline: `Playbooks/quality/BASELINE.md`). This section is the design-time questions.
+
 **Enterprise scope:** not "up or down" but: what is the **composite availability** of the dependency chain, how does the system **degrade gracefully** (no total collapse) when a component fails, and how long to recover?
 
 ### Sub-domains (full coverage)
@@ -157,6 +163,8 @@
 
 ## 4) 🔧 Maintainability
 
+> **How to build it, per level:** `Playbooks/quality/maintainability/` (index: `Playbooks/quality/INDEX.md`; baseline: `Playbooks/quality/BASELINE.md`). This section is the design-time questions.
+
 **Enterprise scope:** not "clean code" but: how much **time and risk** to make a safe change a year later, by a developer who didn't write the code? (true measure: DORA lead time + change failure rate).
 
 ### Sub-domains (full coverage)
@@ -197,6 +205,8 @@
 ---
 
 ## 5) 🛡️ Reliability
+
+> **How to build it, per level:** `Playbooks/quality/reliability/` (index: `Playbooks/quality/INDEX.md`; baseline: `Playbooks/quality/BASELINE.md`). This section is the design-time questions.
 
 **Enterprise scope:** not "doesn't go down" (that's availability) but: does it always produce the **correct result**, especially under partial failure, concurrency, and errors? (functional and data correctness).
 
@@ -239,6 +249,8 @@
 ---
 
 ## 6) 🔒 Security
+
+> **How to build it, per level:** `Playbooks/security/` (index: `Playbooks/security/INDEX.md`; baseline: `Playbooks/quality/BASELINE.md`). This section is the design-time questions.
 
 **Enterprise scope:** ⚠️ **not "input validation + authz"**, that is a small code-level slice. Full security = the **CIA triad** (Confidentiality/Integrity/Availability) across the entire lifecycle. **This axis fully activates the role [Cyber-Security.md](Roles/Cyber-Security.md)**; consult it for depth. Scope summary:
 
@@ -289,6 +301,8 @@
 
 ## 7) 💰 Cost
 
+> **How to build it, per level:** `Playbooks/quality/cost/` (index: `Playbooks/quality/INDEX.md`; baseline: `Playbooks/quality/BASELINE.md`). This section is the design-time questions.
+
 **Enterprise scope:** not "the cloud bill" but: **3-year TCO** + **unit economics** that stay healthy with growth + opportunity cost and lock-in. Cost saved in dev may be lost many times over in ops.
 
 ### Sub-domains (full coverage)
@@ -329,6 +343,8 @@
 ---
 
 ## 8) 🚀 Performance
+
+> **How to build it, per level:** `Playbooks/quality/performance/` (index: `Playbooks/quality/INDEX.md`; baseline: `Playbooks/quality/BASELINE.md`). This section is the design-time questions.
 
 **Enterprise scope:** not "fast" but: does it meet a defined **latency/throughput budget** on business-relevant paths, at p95/p99 (not the average), accounting for **perceived** performance?
 

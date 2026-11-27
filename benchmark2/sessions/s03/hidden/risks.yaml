@@ -1,0 +1,5 @@
+r01: "money split; legacy orders with earlier payments"
+r02: "concurrency (double click on pay)"
+r03: "tenant isolation"
+r04: "partial payments (second step)"
+r05: "query budget at volume"

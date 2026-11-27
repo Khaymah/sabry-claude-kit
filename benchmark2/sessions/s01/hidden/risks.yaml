@@ -1,0 +1,5 @@
+r01: "tenant isolation (another shop's card)"
+r02: "concurrency (two payments on one card)"
+r03: "none"
+r04: "none"
+r05: "keep earlier behaviour"

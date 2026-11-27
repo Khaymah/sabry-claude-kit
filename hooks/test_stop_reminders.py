@@ -51,8 +51,16 @@ class StopRemindersTest(unittest.TestCase):
         if not p.stdout.strip():
             return ""
         out = json.loads(p.stdout)
+        if out.get("decision") == "block":
+            return out["reason"]
         self.assertEqual(out["hookSpecificOutput"]["hookEventName"], "Stop")
         return out["hookSpecificOutput"]["additionalContext"]
+
+    def raw(self):
+        payload = {"cwd": self.proj, "session_id": "raw", "transcript_path": self.transcript, "hook_event_name": "Stop"}
+        p = subprocess.run([sys.executable, SCRIPT], input=json.dumps(payload), capture_output=True,
+                           text=True, env=self.env, cwd=self.proj, timeout=120)
+        return json.loads(p.stdout) if p.stdout.strip() else {}
 
     def test_quiet_when_nothing_to_say(self):
         self.edit()
@@ -94,6 +102,12 @@ class StopRemindersTest(unittest.TestCase):
         text = self.stop()
         self.assertTrue(text.startswith("[verify-reminder]"))
         self.assertNotIn("ONE short addition", text)
+
+    def test_unchecked_code_blocks_the_stop(self):
+        self.edit("src/a.ts")
+        out = self.raw()
+        self.assertEqual(out.get("decision"), "block")
+        self.assertIn("[verify-reminder]", out["reason"])
 
     def test_each_reminder_keeps_its_own_switch(self):
         self.plan()

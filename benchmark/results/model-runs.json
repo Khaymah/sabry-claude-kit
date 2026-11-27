@@ -1,0 +1,2531 @@
+[
+ {
+  "Arm": "kit-new",
+  "Case": "m2-webhook-handler",
+  "Tier": "Medium",
+  "Kind": "build",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 6,
+  "CostUsd": 0.2032862,
+  "DurationSeconds": 58,
+  "Graders": {
+   "amount-check": true,
+   "constant-time": true,
+   "quality": true,
+   "ran-tests": true
+  },
+  "InputTokens": 131216,
+  "OutputTokens": 7454,
+  "Hidden": {
+   "Passed": 4,
+   "Total": 4,
+   "Score": 1.0
+  },
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-new",
+  "Case": "m2-webhook-handler",
+  "Tier": "Medium",
+  "Kind": "build",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 6,
+  "CostUsd": 0.19160439999999998,
+  "DurationSeconds": 53,
+  "Graders": {
+   "amount-check": true,
+   "constant-time": true,
+   "quality": true,
+   "ran-tests": true
+  },
+  "InputTokens": 129256,
+  "OutputTokens": 6653,
+  "Hidden": {
+   "Passed": 4,
+   "Total": 4,
+   "Score": 1.0
+  },
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-new",
+  "Case": "m2-webhook-handler",
+  "Tier": "Medium",
+  "Kind": "build",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 7,
+  "CostUsd": 0.2049532,
+  "DurationSeconds": 57,
+  "Graders": {
+   "amount-check": true,
+   "constant-time": true,
+   "quality": true,
+   "ran-tests": true
+  },
+  "InputTokens": 164706,
+  "OutputTokens": 7202,
+  "Hidden": {
+   "Passed": 4,
+   "Total": 4,
+   "Score": 1.0
+  },
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "baseline",
+  "Case": "m2-webhook-handler",
+  "Tier": "Medium",
+  "Kind": "build",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 5,
+  "CostUsd": 0.1344994,
+  "DurationSeconds": 49,
+  "Graders": {
+   "amount-check": true,
+   "constant-time": true,
+   "quality": true,
+   "ran-tests": true
+  },
+  "InputTokens": 82327,
+  "OutputTokens": 6274,
+  "Hidden": {
+   "Passed": 4,
+   "Total": 4,
+   "Score": 1.0
+  },
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "baseline",
+  "Case": "m2-webhook-handler",
+  "Tier": "Medium",
+  "Kind": "build",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 5,
+  "CostUsd": 0.1342322,
+  "DurationSeconds": 45,
+  "Graders": {
+   "amount-check": true,
+   "constant-time": true,
+   "quality": true,
+   "ran-tests": true
+  },
+  "InputTokens": 82772,
+  "OutputTokens": 6242,
+  "Hidden": {
+   "Passed": 4,
+   "Total": 4,
+   "Score": 1.0
+  },
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "baseline",
+  "Case": "m2-webhook-handler",
+  "Tier": "Medium",
+  "Kind": "build",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 6,
+  "CostUsd": 0.1393606,
+  "DurationSeconds": 46,
+  "Graders": {
+   "amount-check": true,
+   "constant-time": true,
+   "quality": true,
+   "ran-tests": true
+  },
+  "InputTokens": 104626,
+  "OutputTokens": 6493,
+  "Hidden": {
+   "Passed": 4,
+   "Total": 4,
+   "Score": 1.0
+  },
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-new",
+  "Case": "m3-csv-export",
+  "Tier": "Medium",
+  "Kind": "build",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 9,
+  "CostUsd": 0.167848,
+  "DurationSeconds": 41,
+  "Graders": {
+   "bom": true,
+   "formula-guard": true,
+   "quality": true,
+   "ran-tests": true
+  },
+  "InputTokens": 222884,
+  "OutputTokens": 4203,
+  "Hidden": {
+   "Passed": 4,
+   "Total": 4,
+   "Score": 1.0
+  },
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-new",
+  "Case": "m3-csv-export",
+  "Tier": "Medium",
+  "Kind": "build",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 7,
+  "CostUsd": 0.1731657,
+  "DurationSeconds": 45,
+  "Graders": {
+   "bom": true,
+   "formula-guard": true,
+   "quality": true,
+   "ran-tests": true
+  },
+  "InputTokens": 158755,
+  "OutputTokens": 5084,
+  "Hidden": {
+   "Passed": 4,
+   "Total": 4,
+   "Score": 1.0
+  },
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-new",
+  "Case": "m3-csv-export",
+  "Tier": "Medium",
+  "Kind": "build",
+  "Score": 0.75,
+  "Passed": false,
+  "Error": null,
+  "Turns": 7,
+  "CostUsd": 0.16993400000000003,
+  "DurationSeconds": 44,
+  "Graders": {
+   "bom": false,
+   "formula-guard": true,
+   "quality": true,
+   "ran-tests": true
+  },
+  "InputTokens": 157842,
+  "OutputTokens": 4938,
+  "Hidden": {
+   "Passed": 4,
+   "Total": 4,
+   "Score": 1.0
+  },
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "baseline",
+  "Case": "m3-csv-export",
+  "Tier": "Medium",
+  "Kind": "build",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 6,
+  "CostUsd": 0.10570209999999998,
+  "DurationSeconds": 37,
+  "Graders": {
+   "bom": true,
+   "formula-guard": true,
+   "quality": true,
+   "ran-tests": true
+  },
+  "InputTokens": 100005,
+  "OutputTokens": 4132,
+  "Hidden": {
+   "Passed": 4,
+   "Total": 4,
+   "Score": 1.0
+  },
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "baseline",
+  "Case": "m3-csv-export",
+  "Tier": "Medium",
+  "Kind": "build",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 5,
+  "CostUsd": 0.10777240000000002,
+  "DurationSeconds": 34,
+  "Graders": {
+   "bom": true,
+   "formula-guard": true,
+   "quality": true,
+   "ran-tests": true
+  },
+  "InputTokens": 80570,
+  "OutputTokens": 4344,
+  "Hidden": {
+   "Passed": 4,
+   "Total": 4,
+   "Score": 1.0
+  },
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "baseline",
+  "Case": "m3-csv-export",
+  "Tier": "Medium",
+  "Kind": "build",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 6,
+  "CostUsd": 0.1109726,
+  "DurationSeconds": 38,
+  "Graders": {
+   "bom": true,
+   "formula-guard": true,
+   "quality": true,
+   "ran-tests": true
+  },
+  "InputTokens": 100323,
+  "OutputTokens": 4375,
+  "Hidden": {
+   "Passed": 3,
+   "Total": 4,
+   "Score": 0.75
+  },
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-new",
+  "Case": "m4-signin-bruteforce",
+  "Tier": "Medium",
+  "Kind": "design",
+  "Score": 0.0,
+  "Passed": false,
+  "Error": null,
+  "Turns": 3,
+  "CostUsd": 0.1890416,
+  "DurationSeconds": 47,
+  "Graders": {
+   "quality": false
+  },
+  "InputTokens": 73381,
+  "OutputTokens": 3961,
+  "Hidden": null,
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-new",
+  "Case": "m4-signin-bruteforce",
+  "Tier": "Medium",
+  "Kind": "design",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 7,
+  "CostUsd": 0.21603659999999997,
+  "DurationSeconds": 47,
+  "Graders": {
+   "quality": true
+  },
+  "InputTokens": 169644,
+  "OutputTokens": 3732,
+  "Hidden": null,
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-new",
+  "Case": "m4-signin-bruteforce",
+  "Tier": "Medium",
+  "Kind": "design",
+  "Score": 0.0,
+  "Passed": false,
+  "Error": null,
+  "Turns": 3,
+  "CostUsd": 0.19133389999999997,
+  "DurationSeconds": 48,
+  "Graders": {
+   "quality": false
+  },
+  "InputTokens": 73530,
+  "OutputTokens": 4065,
+  "Hidden": null,
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "baseline",
+  "Case": "m4-signin-bruteforce",
+  "Tier": "Medium",
+  "Kind": "design",
+  "Score": 0.0,
+  "Passed": false,
+  "Error": null,
+  "Turns": 1,
+  "CostUsd": 0.0702639,
+  "DurationSeconds": 35,
+  "Graders": {
+   "quality": false
+  },
+  "InputTokens": 18093,
+  "OutputTokens": 2915,
+  "Hidden": null,
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "baseline",
+  "Case": "m4-signin-bruteforce",
+  "Tier": "Medium",
+  "Kind": "design",
+  "Score": 0.0,
+  "Passed": false,
+  "Error": null,
+  "Turns": 1,
+  "CostUsd": 0.0718122,
+  "DurationSeconds": 35,
+  "Graders": {
+   "quality": false
+  },
+  "InputTokens": 18092,
+  "OutputTokens": 3075,
+  "Hidden": null,
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "baseline",
+  "Case": "m4-signin-bruteforce",
+  "Tier": "Medium",
+  "Kind": "design",
+  "Score": 0.0,
+  "Passed": false,
+  "Error": null,
+  "Turns": 1,
+  "CostUsd": 0.0745593,
+  "DurationSeconds": 37,
+  "Graders": {
+   "quality": false
+  },
+  "InputTokens": 18023,
+  "OutputTokens": 3370,
+  "Hidden": null,
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-old",
+  "Case": "e1-list-endpoint",
+  "Tier": "Easy",
+  "Kind": "build",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 6,
+  "CostUsd": 0.1680712,
+  "DurationSeconds": 45,
+  "Graders": {
+   "limit-capped": true,
+   "quality": true,
+   "ran-tests": true
+  },
+  "InputTokens": 158678,
+  "OutputTokens": 4917,
+  "Hidden": {
+   "Passed": 3,
+   "Total": 3,
+   "Score": 1.0
+  },
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-old",
+  "Case": "e1-list-endpoint",
+  "Tier": "Easy",
+  "Kind": "build",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 8,
+  "CostUsd": 0.1821334,
+  "DurationSeconds": 47,
+  "Graders": {
+   "limit-capped": true,
+   "quality": true,
+   "ran-tests": true
+  },
+  "InputTokens": 195531,
+  "OutputTokens": 5290,
+  "Hidden": {
+   "Passed": 3,
+   "Total": 3,
+   "Score": 1.0
+  },
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-old",
+  "Case": "e1-list-endpoint",
+  "Tier": "Easy",
+  "Kind": "build",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 6,
+  "CostUsd": 0.165463,
+  "DurationSeconds": 43,
+  "Graders": {
+   "limit-capped": true,
+   "quality": true,
+   "ran-tests": true
+  },
+  "InputTokens": 126681,
+  "OutputTokens": 4825,
+  "Hidden": {
+   "Passed": 3,
+   "Total": 3,
+   "Score": 1.0
+  },
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-old",
+  "Case": "e2-cart-total",
+  "Tier": "Easy",
+  "Kind": "build",
+  "Score": 0.3333333333333333,
+  "Passed": false,
+  "Error": null,
+  "Turns": 6,
+  "CostUsd": 0.1576316,
+  "DurationSeconds": 40,
+  "Graders": {
+   "no-float": false,
+   "quality": false,
+   "ran-tests": true
+  },
+  "InputTokens": 156326,
+  "OutputTokens": 4261,
+  "Hidden": {
+   "Passed": 4,
+   "Total": 4,
+   "Score": 1.0
+  },
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-old",
+  "Case": "e2-cart-total",
+  "Tier": "Easy",
+  "Kind": "build",
+  "Score": 0.3333333333333333,
+  "Passed": false,
+  "Error": null,
+  "Turns": 6,
+  "CostUsd": 0.16783800000000001,
+  "DurationSeconds": 41,
+  "Graders": {
+   "no-float": false,
+   "quality": false,
+   "ran-tests": true
+  },
+  "InputTokens": 126733,
+  "OutputTokens": 5096,
+  "Hidden": {
+   "Passed": 4,
+   "Total": 4,
+   "Score": 1.0
+  },
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-old",
+  "Case": "e2-cart-total",
+  "Tier": "Easy",
+  "Kind": "build",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 5,
+  "CostUsd": 0.1425911,
+  "DurationSeconds": 34,
+  "Graders": {
+   "no-float": true,
+   "quality": true,
+   "ran-tests": true
+  },
+  "InputTokens": 92522,
+  "OutputTokens": 3442,
+  "Hidden": {
+   "Passed": 4,
+   "Total": 4,
+   "Score": 1.0
+  },
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-old",
+  "Case": "e3-review-diff",
+  "Tier": "Easy",
+  "Kind": "review",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 1,
+  "CostUsd": 0.1105644,
+  "DurationSeconds": 30,
+  "Graders": {
+   "console": true,
+   "quality": true,
+   "timeout": true,
+   "where": true
+  },
+  "InputTokens": 29374,
+  "OutputTokens": 2397,
+  "Hidden": null,
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-old",
+  "Case": "e3-review-diff",
+  "Tier": "Easy",
+  "Kind": "review",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 1,
+  "CostUsd": 0.1102245,
+  "DurationSeconds": 29,
+  "Graders": {
+   "console": true,
+   "quality": true,
+   "timeout": true,
+   "where": true
+  },
+  "InputTokens": 29451,
+  "OutputTokens": 2362,
+  "Hidden": null,
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-old",
+  "Case": "e3-review-diff",
+  "Tier": "Easy",
+  "Kind": "review",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 1,
+  "CostUsd": 0.110758,
+  "DurationSeconds": 29,
+  "Graders": {
+   "console": true,
+   "quality": true,
+   "timeout": true,
+   "where": true
+  },
+  "InputTokens": 29391,
+  "OutputTokens": 2490,
+  "Hidden": null,
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-old",
+  "Case": "h1-stock-race",
+  "Tier": "Hard",
+  "Kind": "fix",
+  "Score": 0.75,
+  "Passed": false,
+  "Error": null,
+  "Turns": 7,
+  "CostUsd": 0.14566690000000002,
+  "DurationSeconds": 40,
+  "Graders": {
+   "concurrent-test": true,
+   "quality": false,
+   "ran-tests": true,
+   "report": true
+  },
+  "InputTokens": 154167,
+  "OutputTokens": 3209,
+  "Hidden": {
+   "Passed": 2,
+   "Total": 2,
+   "Score": 1.0
+  },
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-old",
+  "Case": "h1-stock-race",
+  "Tier": "Hard",
+  "Kind": "fix",
+  "Score": 0.5,
+  "Passed": false,
+  "Error": null,
+  "Turns": 8,
+  "CostUsd": 0.1606841,
+  "DurationSeconds": 41,
+  "Graders": {
+   "concurrent-test": true,
+   "quality": false,
+   "ran-tests": true,
+   "report": false
+  },
+  "InputTokens": 222083,
+  "OutputTokens": 3658,
+  "Hidden": {
+   "Passed": 2,
+   "Total": 2,
+   "Score": 1.0
+  },
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-old",
+  "Case": "h1-stock-race",
+  "Tier": "Hard",
+  "Kind": "fix",
+  "Score": 0.75,
+  "Passed": false,
+  "Error": null,
+  "Turns": 11,
+  "CostUsd": 0.1601229,
+  "DurationSeconds": 46,
+  "Graders": {
+   "concurrent-test": true,
+   "quality": false,
+   "ran-tests": true,
+   "report": true
+  },
+  "InputTokens": 156117,
+  "OutputTokens": 4172,
+  "Hidden": {
+   "Passed": 2,
+   "Total": 2,
+   "Score": 1.0
+  },
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-old",
+  "Case": "h2-n-plus-one",
+  "Tier": "Hard",
+  "Kind": "fix",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 9,
+  "CostUsd": 0.1624237,
+  "DurationSeconds": 33,
+  "Graders": {
+   "quality": true,
+   "query-count-test": true,
+   "ran-tests": true
+  },
+  "InputTokens": 191934,
+  "OutputTokens": 3867,
+  "Hidden": {
+   "Passed": 2,
+   "Total": 2,
+   "Score": 1.0
+  },
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-old",
+  "Case": "h2-n-plus-one",
+  "Tier": "Hard",
+  "Kind": "fix",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 6,
+  "CostUsd": 0.137569,
+  "DurationSeconds": 31,
+  "Graders": {
+   "quality": true,
+   "query-count-test": true,
+   "ran-tests": true
+  },
+  "InputTokens": 123840,
+  "OutputTokens": 2879,
+  "Hidden": {
+   "Passed": 2,
+   "Total": 2,
+   "Score": 1.0
+  },
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-old",
+  "Case": "h2-n-plus-one",
+  "Tier": "Hard",
+  "Kind": "fix",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 9,
+  "CostUsd": 0.1618349,
+  "DurationSeconds": 33,
+  "Graders": {
+   "quality": true,
+   "query-count-test": true,
+   "ran-tests": true
+  },
+  "InputTokens": 222934,
+  "OutputTokens": 3605,
+  "Hidden": {
+   "Passed": 2,
+   "Total": 2,
+   "Score": 1.0
+  },
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-old",
+  "Case": "h3-tenant-leak",
+  "Tier": "Hard",
+  "Kind": "fix",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 7,
+  "CostUsd": 0.15401150000000002,
+  "DurationSeconds": 34,
+  "Graders": {
+   "quality": true,
+   "ran-tests": true,
+   "scoped": true,
+   "tests": true
+  },
+  "InputTokens": 156036,
+  "OutputTokens": 3763,
+  "Hidden": {
+   "Passed": 5,
+   "Total": 5,
+   "Score": 1.0
+  },
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-old",
+  "Case": "h3-tenant-leak",
+  "Tier": "Hard",
+  "Kind": "fix",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 10,
+  "CostUsd": 0.1738529,
+  "DurationSeconds": 37,
+  "Graders": {
+   "quality": true,
+   "ran-tests": true,
+   "scoped": true,
+   "tests": true
+  },
+  "InputTokens": 260503,
+  "OutputTokens": 3985,
+  "Hidden": {
+   "Passed": 5,
+   "Total": 5,
+   "Score": 1.0
+  },
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-old",
+  "Case": "h3-tenant-leak",
+  "Tier": "Hard",
+  "Kind": "fix",
+  "Score": 0.75,
+  "Passed": false,
+  "Error": null,
+  "Turns": 10,
+  "CostUsd": 0.1510319,
+  "DurationSeconds": 31,
+  "Graders": {
+   "quality": true,
+   "ran-tests": true,
+   "scoped": true,
+   "tests": false
+  },
+  "InputTokens": 190481,
+  "OutputTokens": 3193,
+  "Hidden": {
+   "Passed": 5,
+   "Total": 5,
+   "Score": 1.0
+  },
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-old",
+  "Case": "h4-live-migration",
+  "Tier": "Hard",
+  "Kind": "design",
+  "Score": 0.5,
+  "Passed": false,
+  "Error": null,
+  "Turns": 9,
+  "CostUsd": 0.43765709999999997,
+  "DurationSeconds": 152,
+  "Graders": {
+   "concurrently": true,
+   "quality": false
+  },
+  "InputTokens": 194022,
+  "OutputTokens": 17543,
+  "Hidden": null,
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-old",
+  "Case": "h4-live-migration",
+  "Tier": "Hard",
+  "Kind": "design",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 10,
+  "CostUsd": 0.44846189999999997,
+  "DurationSeconds": 156,
+  "Graders": {
+   "concurrently": true,
+   "quality": true
+  },
+  "InputTokens": 196763,
+  "OutputTokens": 18090,
+  "Hidden": null,
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-old",
+  "Case": "h4-live-migration",
+  "Tier": "Hard",
+  "Kind": "design",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 11,
+  "CostUsd": 0.4146999,
+  "DurationSeconds": 129,
+  "Graders": {
+   "concurrently": true,
+   "quality": true
+  },
+  "InputTokens": 261148,
+  "OutputTokens": 15197,
+  "Hidden": null,
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-old",
+  "Case": "h5-production-monitoring",
+  "Tier": "Hard",
+  "Kind": "design",
+  "Score": 0.5,
+  "Passed": false,
+  "Error": null,
+  "Turns": 4,
+  "CostUsd": 0.2994422,
+  "DurationSeconds": 129,
+  "Graders": {
+   "heartbeat": true,
+   "quality": false
+  },
+  "InputTokens": 108412,
+  "OutputTokens": 13948,
+  "Hidden": null,
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-old",
+  "Case": "h5-production-monitoring",
+  "Tier": "Hard",
+  "Kind": "design",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 5,
+  "CostUsd": 0.27924789999999994,
+  "DurationSeconds": 115,
+  "Graders": {
+   "heartbeat": true,
+   "quality": true
+  },
+  "InputTokens": 150543,
+  "OutputTokens": 12284,
+  "Hidden": null,
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-old",
+  "Case": "h5-production-monitoring",
+  "Tier": "Hard",
+  "Kind": "design",
+  "Score": 0.5,
+  "Passed": false,
+  "Error": null,
+  "Turns": 4,
+  "CostUsd": 0.26532120000000003,
+  "DurationSeconds": 110,
+  "Graders": {
+   "heartbeat": true,
+   "quality": false
+  },
+  "InputTokens": 106516,
+  "OutputTokens": 11601,
+  "Hidden": null,
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-old",
+  "Case": "m1-password-reset-design",
+  "Tier": "Medium",
+  "Kind": "design",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 11,
+  "CostUsd": 0.3370576,
+  "DurationSeconds": 89,
+  "Graders": {
+   "edge-cases": true,
+   "hashed": true,
+   "quality": true
+  },
+  "InputTokens": 231088,
+  "OutputTokens": 9863,
+  "Hidden": null,
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-old",
+  "Case": "m1-password-reset-design",
+  "Tier": "Medium",
+  "Kind": "design",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 11,
+  "CostUsd": 0.3705079,
+  "DurationSeconds": 111,
+  "Graders": {
+   "edge-cases": true,
+   "hashed": true,
+   "quality": true
+  },
+  "InputTokens": 286141,
+  "OutputTokens": 11745,
+  "Hidden": null,
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-old",
+  "Case": "m1-password-reset-design",
+  "Tier": "Medium",
+  "Kind": "design",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 11,
+  "CostUsd": 0.4141783,
+  "DurationSeconds": 118,
+  "Graders": {
+   "edge-cases": true,
+   "hashed": true,
+   "quality": true
+  },
+  "InputTokens": 267997,
+  "OutputTokens": 13098,
+  "Hidden": null,
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-old",
+  "Case": "m2-webhook-handler",
+  "Tier": "Medium",
+  "Kind": "build",
+  "Score": 0.75,
+  "Passed": false,
+  "Error": null,
+  "Turns": 10,
+  "CostUsd": 0.1742956,
+  "DurationSeconds": 46,
+  "Graders": {
+   "amount-check": true,
+   "constant-time": true,
+   "quality": false,
+   "ran-tests": true
+  },
+  "InputTokens": 155724,
+  "OutputTokens": 5290,
+  "Hidden": {
+   "Passed": 3,
+   "Total": 4,
+   "Score": 0.75
+  },
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-old",
+  "Case": "m2-webhook-handler",
+  "Tier": "Medium",
+  "Kind": "build",
+  "Score": 0.75,
+  "Passed": false,
+  "Error": null,
+  "Turns": 6,
+  "CostUsd": 0.1796558,
+  "DurationSeconds": 44,
+  "Graders": {
+   "amount-check": true,
+   "constant-time": true,
+   "quality": false,
+   "ran-tests": true
+  },
+  "InputTokens": 128561,
+  "OutputTokens": 5846,
+  "Hidden": {
+   "Passed": 3,
+   "Total": 4,
+   "Score": 0.75
+  },
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-old",
+  "Case": "m2-webhook-handler",
+  "Tier": "Medium",
+  "Kind": "build",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 5,
+  "CostUsd": 0.1871825,
+  "DurationSeconds": 49,
+  "Graders": {
+   "amount-check": true,
+   "constant-time": true,
+   "quality": true,
+   "ran-tests": true
+  },
+  "InputTokens": 128617,
+  "OutputTokens": 6574,
+  "Hidden": {
+   "Passed": 4,
+   "Total": 4,
+   "Score": 1.0
+  },
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-old",
+  "Case": "m3-csv-export",
+  "Tier": "Medium",
+  "Kind": "build",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 7,
+  "CostUsd": 0.17235980000000004,
+  "DurationSeconds": 44,
+  "Graders": {
+   "bom": true,
+   "formula-guard": true,
+   "quality": true,
+   "ran-tests": true
+  },
+  "InputTokens": 158425,
+  "OutputTokens": 5054,
+  "Hidden": {
+   "Passed": 3,
+   "Total": 4,
+   "Score": 0.75
+  },
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-old",
+  "Case": "m3-csv-export",
+  "Tier": "Medium",
+  "Kind": "build",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 7,
+  "CostUsd": 0.16657640000000004,
+  "DurationSeconds": 40,
+  "Graders": {
+   "bom": true,
+   "formula-guard": true,
+   "quality": true,
+   "ran-tests": true
+  },
+  "InputTokens": 190681,
+  "OutputTokens": 4465,
+  "Hidden": {
+   "Passed": 4,
+   "Total": 4,
+   "Score": 1.0
+  },
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-old",
+  "Case": "m3-csv-export",
+  "Tier": "Medium",
+  "Kind": "build",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 7,
+  "CostUsd": 0.1527405,
+  "DurationSeconds": 40,
+  "Graders": {
+   "bom": true,
+   "formula-guard": true,
+   "quality": true,
+   "ran-tests": true
+  },
+  "InputTokens": 153681,
+  "OutputTokens": 3853,
+  "Hidden": {
+   "Passed": 4,
+   "Total": 4,
+   "Score": 1.0
+  },
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-old",
+  "Case": "m4-signin-bruteforce",
+  "Tier": "Medium",
+  "Kind": "design",
+  "Score": 0.0,
+  "Passed": false,
+  "Error": null,
+  "Turns": 1,
+  "CostUsd": 0.11765919999999999,
+  "DurationSeconds": 40,
+  "Graders": {
+   "quality": false
+  },
+  "InputTokens": 29374,
+  "OutputTokens": 3155,
+  "Hidden": null,
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-old",
+  "Case": "m4-signin-bruteforce",
+  "Tier": "Medium",
+  "Kind": "design",
+  "Score": 0.0,
+  "Passed": false,
+  "Error": null,
+  "Turns": 3,
+  "CostUsd": 0.18637379999999998,
+  "DurationSeconds": 47,
+  "Graders": {
+   "quality": false
+  },
+  "InputTokens": 73487,
+  "OutputTokens": 3846,
+  "Hidden": null,
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-old",
+  "Case": "m4-signin-bruteforce",
+  "Tier": "Medium",
+  "Kind": "design",
+  "Score": 0.0,
+  "Passed": false,
+  "Error": null,
+  "Turns": 3,
+  "CostUsd": 0.1865598,
+  "DurationSeconds": 47,
+  "Graders": {
+   "quality": false
+  },
+  "InputTokens": 73372,
+  "OutputTokens": 3890,
+  "Hidden": null,
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-new",
+  "Case": "e1-list-endpoint",
+  "Tier": "Easy",
+  "Kind": "build",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 6,
+  "CostUsd": 0.1740742,
+  "DurationSeconds": 46,
+  "Graders": {
+   "limit-capped": true,
+   "quality": true,
+   "ran-tests": true
+  },
+  "InputTokens": 128366,
+  "OutputTokens": 5306,
+  "Hidden": {
+   "Passed": 3,
+   "Total": 3,
+   "Score": 1.0
+  },
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-new",
+  "Case": "e1-list-endpoint",
+  "Tier": "Easy",
+  "Kind": "build",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 8,
+  "CostUsd": 0.1877009,
+  "DurationSeconds": 46,
+  "Graders": {
+   "limit-capped": true,
+   "quality": true,
+   "ran-tests": true
+  },
+  "InputTokens": 199117,
+  "OutputTokens": 5460,
+  "Hidden": {
+   "Passed": 3,
+   "Total": 3,
+   "Score": 1.0
+  },
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-new",
+  "Case": "e1-list-endpoint",
+  "Tier": "Easy",
+  "Kind": "build",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 6,
+  "CostUsd": 0.16444,
+  "DurationSeconds": 42,
+  "Graders": {
+   "limit-capped": true,
+   "quality": true,
+   "ran-tests": true
+  },
+  "InputTokens": 158608,
+  "OutputTokens": 4685,
+  "Hidden": {
+   "Passed": 3,
+   "Total": 3,
+   "Score": 1.0
+  },
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-new",
+  "Case": "e2-cart-total",
+  "Tier": "Easy",
+  "Kind": "build",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 11,
+  "CostUsd": 0.20777,
+  "DurationSeconds": 52,
+  "Graders": {
+   "no-float": true,
+   "quality": true,
+   "ran-tests": true
+  },
+  "InputTokens": 271134,
+  "OutputTokens": 6508,
+  "Hidden": {
+   "Passed": 4,
+   "Total": 4,
+   "Score": 1.0
+  },
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-new",
+  "Case": "e2-cart-total",
+  "Tier": "Easy",
+  "Kind": "build",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 5,
+  "CostUsd": 0.1513163,
+  "DurationSeconds": 38,
+  "Graders": {
+   "no-float": true,
+   "quality": true,
+   "ran-tests": true
+  },
+  "InputTokens": 125879,
+  "OutputTokens": 3979,
+  "Hidden": {
+   "Passed": 4,
+   "Total": 4,
+   "Score": 1.0
+  },
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-new",
+  "Case": "e2-cart-total",
+  "Tier": "Easy",
+  "Kind": "build",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 5,
+  "CostUsd": 0.1413511,
+  "DurationSeconds": 32,
+  "Graders": {
+   "no-float": true,
+   "quality": true,
+   "ran-tests": true
+  },
+  "InputTokens": 125154,
+  "OutputTokens": 3156,
+  "Hidden": {
+   "Passed": 4,
+   "Total": 4,
+   "Score": 1.0
+  },
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-new",
+  "Case": "e3-review-diff",
+  "Tier": "Easy",
+  "Kind": "review",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 1,
+  "CostUsd": 0.1087809,
+  "DurationSeconds": 27,
+  "Graders": {
+   "console": true,
+   "quality": true,
+   "timeout": true,
+   "where": true
+  },
+  "InputTokens": 29498,
+  "OutputTokens": 2276,
+  "Hidden": null,
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-new",
+  "Case": "e3-review-diff",
+  "Tier": "Easy",
+  "Kind": "review",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 1,
+  "CostUsd": 0.1085466,
+  "DurationSeconds": 25,
+  "Graders": {
+   "console": true,
+   "quality": true,
+   "timeout": true,
+   "where": true
+  },
+  "InputTokens": 29429,
+  "OutputTokens": 2282,
+  "Hidden": null,
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-new",
+  "Case": "e3-review-diff",
+  "Tier": "Easy",
+  "Kind": "review",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 1,
+  "CostUsd": 0.1116983,
+  "DurationSeconds": 30,
+  "Graders": {
+   "console": true,
+   "quality": true,
+   "timeout": true,
+   "where": true
+  },
+  "InputTokens": 29486,
+  "OutputTokens": 2496,
+  "Hidden": null,
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-new",
+  "Case": "h1-stock-race",
+  "Tier": "Hard",
+  "Kind": "fix",
+  "Score": 0.75,
+  "Passed": false,
+  "Error": null,
+  "Turns": 7,
+  "CostUsd": 0.14960310000000002,
+  "DurationSeconds": 37,
+  "Graders": {
+   "concurrent-test": true,
+   "quality": false,
+   "ran-tests": true,
+   "report": true
+  },
+  "InputTokens": 155284,
+  "OutputTokens": 3381,
+  "Hidden": {
+   "Passed": 2,
+   "Total": 2,
+   "Score": 1.0
+  },
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-new",
+  "Case": "h1-stock-race",
+  "Tier": "Hard",
+  "Kind": "fix",
+  "Score": 0.75,
+  "Passed": false,
+  "Error": null,
+  "Turns": 7,
+  "CostUsd": 0.15056609999999998,
+  "DurationSeconds": 37,
+  "Graders": {
+   "concurrent-test": true,
+   "quality": false,
+   "ran-tests": true,
+   "report": true
+  },
+  "InputTokens": 154959,
+  "OutputTokens": 3361,
+  "Hidden": {
+   "Passed": 2,
+   "Total": 2,
+   "Score": 1.0
+  },
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-new",
+  "Case": "h1-stock-race",
+  "Tier": "Hard",
+  "Kind": "fix",
+  "Score": 0.5,
+  "Passed": false,
+  "Error": null,
+  "Turns": 9,
+  "CostUsd": 0.1624836,
+  "DurationSeconds": 38,
+  "Graders": {
+   "concurrent-test": true,
+   "quality": false,
+   "ran-tests": true,
+   "report": false
+  },
+  "InputTokens": 222575,
+  "OutputTokens": 3704,
+  "Hidden": {
+   "Passed": 2,
+   "Total": 2,
+   "Score": 1.0
+  },
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-new",
+  "Case": "h2-n-plus-one",
+  "Tier": "Hard",
+  "Kind": "fix",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 9,
+  "CostUsd": 0.1598868,
+  "DurationSeconds": 31,
+  "Graders": {
+   "quality": true,
+   "query-count-test": true,
+   "ran-tests": true
+  },
+  "InputTokens": 224104,
+  "OutputTokens": 3459,
+  "Hidden": {
+   "Passed": 2,
+   "Total": 2,
+   "Score": 1.0
+  },
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-new",
+  "Case": "h2-n-plus-one",
+  "Tier": "Hard",
+  "Kind": "fix",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 8,
+  "CostUsd": 0.15808239999999998,
+  "DurationSeconds": 33,
+  "Graders": {
+   "quality": true,
+   "query-count-test": true,
+   "ran-tests": true
+  },
+  "InputTokens": 189448,
+  "OutputTokens": 3812,
+  "Hidden": {
+   "Passed": 2,
+   "Total": 2,
+   "Score": 1.0
+  },
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-new",
+  "Case": "h2-n-plus-one",
+  "Tier": "Hard",
+  "Kind": "fix",
+  "Score": 0.6666666666666666,
+  "Passed": false,
+  "Error": null,
+  "Turns": 6,
+  "CostUsd": 0.1387556,
+  "DurationSeconds": 27,
+  "Graders": {
+   "quality": true,
+   "query-count-test": false,
+   "ran-tests": true
+  },
+  "InputTokens": 156693,
+  "OutputTokens": 2621,
+  "Hidden": {
+   "Passed": 2,
+   "Total": 2,
+   "Score": 1.0
+  },
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-new",
+  "Case": "h3-tenant-leak",
+  "Tier": "Hard",
+  "Kind": "fix",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 9,
+  "CostUsd": 0.15404929999999997,
+  "DurationSeconds": 29,
+  "Graders": {
+   "quality": true,
+   "ran-tests": true,
+   "scoped": true,
+   "tests": true
+  },
+  "InputTokens": 189701,
+  "OutputTokens": 3432,
+  "Hidden": {
+   "Passed": 5,
+   "Total": 5,
+   "Score": 1.0
+  },
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-new",
+  "Case": "h3-tenant-leak",
+  "Tier": "Hard",
+  "Kind": "fix",
+  "Score": 0.75,
+  "Passed": false,
+  "Error": null,
+  "Turns": 7,
+  "CostUsd": 0.1562769,
+  "DurationSeconds": 33,
+  "Graders": {
+   "quality": true,
+   "ran-tests": true,
+   "scoped": false,
+   "tests": true
+  },
+  "InputTokens": 156186,
+  "OutputTokens": 4055,
+  "Hidden": {
+   "Passed": 5,
+   "Total": 5,
+   "Score": 1.0
+  },
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-new",
+  "Case": "h3-tenant-leak",
+  "Tier": "Hard",
+  "Kind": "fix",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 7,
+  "CostUsd": 0.15365440000000002,
+  "DurationSeconds": 30,
+  "Graders": {
+   "quality": true,
+   "ran-tests": true,
+   "scoped": true,
+   "tests": true
+  },
+  "InputTokens": 156686,
+  "OutputTokens": 3760,
+  "Hidden": {
+   "Passed": 5,
+   "Total": 5,
+   "Score": 1.0
+  },
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-new",
+  "Case": "h4-live-migration",
+  "Tier": "Hard",
+  "Kind": "design",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 9,
+  "CostUsd": 0.4303311,
+  "DurationSeconds": 140,
+  "Graders": {
+   "concurrently": true,
+   "quality": true
+  },
+  "InputTokens": 194799,
+  "OutputTokens": 17052,
+  "Hidden": null,
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-new",
+  "Case": "h4-live-migration",
+  "Tier": "Hard",
+  "Kind": "design",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 11,
+  "CostUsd": 0.5697494000000001,
+  "DurationSeconds": 203,
+  "Graders": {
+   "concurrently": true,
+   "quality": true
+  },
+  "InputTokens": 283029,
+  "OutputTokens": 26399,
+  "Hidden": null,
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-new",
+  "Case": "h4-live-migration",
+  "Tier": "Hard",
+  "Kind": "design",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 11,
+  "CostUsd": 0.46500109999999995,
+  "DurationSeconds": 151,
+  "Graders": {
+   "concurrently": true,
+   "quality": true
+  },
+  "InputTokens": 271224,
+  "OutputTokens": 18530,
+  "Hidden": null,
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-new",
+  "Case": "h5-production-monitoring",
+  "Tier": "Hard",
+  "Kind": "design",
+  "Score": 0.5,
+  "Passed": false,
+  "Error": null,
+  "Turns": 11,
+  "CostUsd": 0.3038112,
+  "DurationSeconds": 102,
+  "Graders": {
+   "heartbeat": true,
+   "quality": false
+  },
+  "InputTokens": 265079,
+  "OutputTokens": 11103,
+  "Hidden": null,
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-new",
+  "Case": "h5-production-monitoring",
+  "Tier": "Hard",
+  "Kind": "design",
+  "Score": 0.5,
+  "Passed": false,
+  "Error": null,
+  "Turns": 12,
+  "CostUsd": 0.3376649,
+  "DurationSeconds": 114,
+  "Graders": {
+   "heartbeat": true,
+   "quality": false
+  },
+  "InputTokens": 245281,
+  "OutputTokens": 12217,
+  "Hidden": null,
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-new",
+  "Case": "h5-production-monitoring",
+  "Tier": "Hard",
+  "Kind": "design",
+  "Score": 0.5,
+  "Passed": false,
+  "Error": null,
+  "Turns": 10,
+  "CostUsd": 0.2575514,
+  "DurationSeconds": 78,
+  "Graders": {
+   "heartbeat": true,
+   "quality": false
+  },
+  "InputTokens": 231707,
+  "OutputTokens": 8076,
+  "Hidden": null,
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-new",
+  "Case": "m1-password-reset-design",
+  "Tier": "Medium",
+  "Kind": "design",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 12,
+  "CostUsd": 0.3822612000000001,
+  "DurationSeconds": 87,
+  "Graders": {
+   "edge-cases": true,
+   "hashed": true,
+   "quality": true
+  },
+  "InputTokens": 281676,
+  "OutputTokens": 9284,
+  "Hidden": null,
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-new",
+  "Case": "m1-password-reset-design",
+  "Tier": "Medium",
+  "Kind": "design",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 10,
+  "CostUsd": 0.3522561,
+  "DurationSeconds": 110,
+  "Graders": {
+   "edge-cases": true,
+   "hashed": true,
+   "quality": true
+  },
+  "InputTokens": 270462,
+  "OutputTokens": 12045,
+  "Hidden": null,
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "kit-new",
+  "Case": "m1-password-reset-design",
+  "Tier": "Medium",
+  "Kind": "design",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 9,
+  "CostUsd": 0.40662970000000004,
+  "DurationSeconds": 114,
+  "Graders": {
+   "edge-cases": true,
+   "hashed": true,
+   "quality": true
+  },
+  "InputTokens": 213897,
+  "OutputTokens": 12378,
+  "Hidden": null,
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "baseline",
+  "Case": "e1-list-endpoint",
+  "Tier": "Easy",
+  "Kind": "build",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 6,
+  "CostUsd": 0.08762810000000001,
+  "DurationSeconds": 29,
+  "Graders": {
+   "limit-capped": true,
+   "quality": true,
+   "ran-tests": true
+  },
+  "InputTokens": 58500,
+  "OutputTokens": 3001,
+  "Hidden": {
+   "Passed": 3,
+   "Total": 3,
+   "Score": 1.0
+  },
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "baseline",
+  "Case": "e1-list-endpoint",
+  "Tier": "Easy",
+  "Kind": "build",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 11,
+  "CostUsd": 0.11325289999999999,
+  "DurationSeconds": 38,
+  "Graders": {
+   "limit-capped": true,
+   "quality": true,
+   "ran-tests": true
+  },
+  "InputTokens": 123112,
+  "OutputTokens": 4266,
+  "Hidden": {
+   "Passed": 3,
+   "Total": 3,
+   "Score": 1.0
+  },
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "baseline",
+  "Case": "e1-list-endpoint",
+  "Tier": "Easy",
+  "Kind": "build",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 5,
+  "CostUsd": 0.1149604,
+  "DurationSeconds": 38,
+  "Graders": {
+   "limit-capped": true,
+   "quality": true,
+   "ran-tests": true
+  },
+  "InputTokens": 81016,
+  "OutputTokens": 4875,
+  "Hidden": {
+   "Passed": 3,
+   "Total": 3,
+   "Score": 1.0
+  },
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "baseline",
+  "Case": "e2-cart-total",
+  "Tier": "Easy",
+  "Kind": "build",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 6,
+  "CostUsd": 0.1080263,
+  "DurationSeconds": 34,
+  "Graders": {
+   "no-float": true,
+   "quality": true,
+   "ran-tests": true
+  },
+  "InputTokens": 100220,
+  "OutputTokens": 4223,
+  "Hidden": {
+   "Passed": 4,
+   "Total": 4,
+   "Score": 1.0
+  },
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "baseline",
+  "Case": "e2-cart-total",
+  "Tier": "Easy",
+  "Kind": "build",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 5,
+  "CostUsd": 0.1088019,
+  "DurationSeconds": 35,
+  "Graders": {
+   "no-float": true,
+   "quality": true,
+   "ran-tests": true
+  },
+  "InputTokens": 79792,
+  "OutputTokens": 4452,
+  "Hidden": {
+   "Passed": 4,
+   "Total": 4,
+   "Score": 1.0
+  },
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "baseline",
+  "Case": "e2-cart-total",
+  "Tier": "Easy",
+  "Kind": "build",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 5,
+  "CostUsd": 0.12014070000000002,
+  "DurationSeconds": 38,
+  "Graders": {
+   "no-float": true,
+   "quality": true,
+   "ran-tests": true
+  },
+  "InputTokens": 81321,
+  "OutputTokens": 5226,
+  "Hidden": {
+   "Passed": 4,
+   "Total": 4,
+   "Score": 1.0
+  },
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "baseline",
+  "Case": "e3-review-diff",
+  "Tier": "Easy",
+  "Kind": "review",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 1,
+  "CostUsd": 0.06360389999999999,
+  "DurationSeconds": 23,
+  "Graders": {
+   "console": true,
+   "quality": true,
+   "timeout": true,
+   "where": true
+  },
+  "InputTokens": 18099,
+  "OutputTokens": 2293,
+  "Hidden": null,
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "baseline",
+  "Case": "e3-review-diff",
+  "Tier": "Easy",
+  "Kind": "review",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 1,
+  "CostUsd": 0.0616887,
+  "DurationSeconds": 21,
+  "Graders": {
+   "console": true,
+   "quality": true,
+   "timeout": true,
+   "where": true
+  },
+  "InputTokens": 18030,
+  "OutputTokens": 2152,
+  "Hidden": null,
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "baseline",
+  "Case": "e3-review-diff",
+  "Tier": "Easy",
+  "Kind": "review",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 1,
+  "CostUsd": 0.06152600000000001,
+  "DurationSeconds": 20,
+  "Graders": {
+   "console": true,
+   "quality": true,
+   "timeout": true,
+   "where": true
+  },
+  "InputTokens": 18098,
+  "OutputTokens": 2110,
+  "Hidden": null,
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "baseline",
+  "Case": "h1-stock-race",
+  "Tier": "Hard",
+  "Kind": "fix",
+  "Score": 0.75,
+  "Passed": false,
+  "Error": null,
+  "Turns": 10,
+  "CostUsd": 0.0909678,
+  "DurationSeconds": 27,
+  "Graders": {
+   "concurrent-test": true,
+   "quality": true,
+   "ran-tests": true,
+   "report": false
+  },
+  "InputTokens": 97870,
+  "OutputTokens": 2833,
+  "Hidden": {
+   "Passed": 2,
+   "Total": 2,
+   "Score": 1.0
+  },
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "baseline",
+  "Case": "h1-stock-race",
+  "Tier": "Hard",
+  "Kind": "fix",
+  "Score": 0.75,
+  "Passed": false,
+  "Error": null,
+  "Turns": 10,
+  "CostUsd": 0.0870569,
+  "DurationSeconds": 25,
+  "Graders": {
+   "concurrent-test": true,
+   "quality": true,
+   "ran-tests": true,
+   "report": false
+  },
+  "InputTokens": 97476,
+  "OutputTokens": 2565,
+  "Hidden": {
+   "Passed": 2,
+   "Total": 2,
+   "Score": 1.0
+  },
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "baseline",
+  "Case": "h1-stock-race",
+  "Tier": "Hard",
+  "Kind": "fix",
+  "Score": 0.5,
+  "Passed": false,
+  "Error": null,
+  "Turns": 10,
+  "CostUsd": 0.08810740000000002,
+  "DurationSeconds": 29,
+  "Graders": {
+   "concurrent-test": true,
+   "quality": false,
+   "ran-tests": true,
+   "report": false
+  },
+  "InputTokens": 97916,
+  "OutputTokens": 2641,
+  "Hidden": {
+   "Passed": 2,
+   "Total": 2,
+   "Score": 1.0
+  },
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "baseline",
+  "Case": "h2-n-plus-one",
+  "Tier": "Hard",
+  "Kind": "fix",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 9,
+  "CostUsd": 0.08720660000000001,
+  "DurationSeconds": 22,
+  "Graders": {
+   "quality": true,
+   "query-count-test": true,
+   "ran-tests": true
+  },
+  "InputTokens": 98665,
+  "OutputTokens": 2636,
+  "Hidden": {
+   "Passed": 2,
+   "Total": 2,
+   "Score": 1.0
+  },
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "baseline",
+  "Case": "h2-n-plus-one",
+  "Tier": "Hard",
+  "Kind": "fix",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 9,
+  "CostUsd": 0.084415,
+  "DurationSeconds": 21,
+  "Graders": {
+   "quality": true,
+   "query-count-test": true,
+   "ran-tests": true
+  },
+  "InputTokens": 77097,
+  "OutputTokens": 2633,
+  "Hidden": {
+   "Passed": 2,
+   "Total": 2,
+   "Score": 1.0
+  },
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "baseline",
+  "Case": "h2-n-plus-one",
+  "Tier": "Hard",
+  "Kind": "fix",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 9,
+  "CostUsd": 0.08394040000000001,
+  "DurationSeconds": 21,
+  "Graders": {
+   "quality": true,
+   "query-count-test": true,
+   "ran-tests": true
+  },
+  "InputTokens": 77058,
+  "OutputTokens": 2594,
+  "Hidden": {
+   "Passed": 2,
+   "Total": 2,
+   "Score": 1.0
+  },
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "baseline",
+  "Case": "h3-tenant-leak",
+  "Tier": "Hard",
+  "Kind": "fix",
+  "Score": 0.75,
+  "Passed": false,
+  "Error": null,
+  "Turns": 8,
+  "CostUsd": 0.084346,
+  "DurationSeconds": 22,
+  "Graders": {
+   "quality": true,
+   "ran-tests": true,
+   "scoped": true,
+   "tests": false
+  },
+  "InputTokens": 76905,
+  "OutputTokens": 2649,
+  "Hidden": {
+   "Passed": 5,
+   "Total": 5,
+   "Score": 1.0
+  },
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "baseline",
+  "Case": "h3-tenant-leak",
+  "Tier": "Hard",
+  "Kind": "fix",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 8,
+  "CostUsd": 0.1045368,
+  "DurationSeconds": 27,
+  "Graders": {
+   "quality": true,
+   "ran-tests": true,
+   "scoped": true,
+   "tests": true
+  },
+  "InputTokens": 98860,
+  "OutputTokens": 3956,
+  "Hidden": {
+   "Passed": 5,
+   "Total": 5,
+   "Score": 1.0
+  },
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "baseline",
+  "Case": "h3-tenant-leak",
+  "Tier": "Hard",
+  "Kind": "fix",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 9,
+  "CostUsd": 0.0894179,
+  "DurationSeconds": 25,
+  "Graders": {
+   "quality": true,
+   "ran-tests": true,
+   "scoped": true,
+   "tests": true
+  },
+  "InputTokens": 96826,
+  "OutputTokens": 2856,
+  "Hidden": {
+   "Passed": 5,
+   "Total": 5,
+   "Score": 1.0
+  },
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "baseline",
+  "Case": "h4-live-migration",
+  "Tier": "Hard",
+  "Kind": "design",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 1,
+  "CostUsd": 0.1194677,
+  "DurationSeconds": 68,
+  "Graders": {
+   "concurrently": true,
+   "quality": true
+  },
+  "InputTokens": 18079,
+  "OutputTokens": 7741,
+  "Hidden": null,
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "baseline",
+  "Case": "h4-live-migration",
+  "Tier": "Hard",
+  "Kind": "design",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 1,
+  "CostUsd": 0.11294130000000001,
+  "DurationSeconds": 65,
+  "Graders": {
+   "concurrently": true,
+   "quality": true
+  },
+  "InputTokens": 18076,
+  "OutputTokens": 7084,
+  "Hidden": null,
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "baseline",
+  "Case": "h4-live-migration",
+  "Tier": "Hard",
+  "Kind": "design",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 1,
+  "CostUsd": 0.1175127,
+  "DurationSeconds": 67,
+  "Graders": {
+   "concurrently": true,
+   "quality": true
+  },
+  "InputTokens": 18149,
+  "OutputTokens": 7396,
+  "Hidden": null,
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "baseline",
+  "Case": "h5-production-monitoring",
+  "Tier": "Hard",
+  "Kind": "design",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 1,
+  "CostUsd": 0.10282549999999999,
+  "DurationSeconds": 56,
+  "Graders": {
+   "heartbeat": true,
+   "quality": true
+  },
+  "InputTokens": 18134,
+  "OutputTokens": 6135,
+  "Hidden": null,
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "baseline",
+  "Case": "h5-production-monitoring",
+  "Tier": "Hard",
+  "Kind": "design",
+  "Score": 0.5,
+  "Passed": false,
+  "Error": null,
+  "Turns": 1,
+  "CostUsd": 0.10860020000000001,
+  "DurationSeconds": 62,
+  "Graders": {
+   "heartbeat": true,
+   "quality": false
+  },
+  "InputTokens": 18128,
+  "OutputTokens": 6635,
+  "Hidden": null,
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "baseline",
+  "Case": "h5-production-monitoring",
+  "Tier": "Hard",
+  "Kind": "design",
+  "Score": 0.5,
+  "Passed": false,
+  "Error": null,
+  "Turns": 1,
+  "CostUsd": 0.10847399999999999,
+  "DurationSeconds": 68,
+  "Graders": {
+   "heartbeat": true,
+   "quality": false
+  },
+  "InputTokens": 18064,
+  "OutputTokens": 6617,
+  "Hidden": null,
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "baseline",
+  "Case": "m1-password-reset-design",
+  "Tier": "Medium",
+  "Kind": "design",
+  "Score": 0.6666666666666666,
+  "Passed": false,
+  "Error": null,
+  "Turns": 1,
+  "CostUsd": 0.09947409999999998,
+  "DurationSeconds": 54,
+  "Graders": {
+   "edge-cases": false,
+   "hashed": true,
+   "quality": true
+  },
+  "InputTokens": 18064,
+  "OutputTokens": 5612,
+  "Hidden": null,
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "baseline",
+  "Case": "m1-password-reset-design",
+  "Tier": "Medium",
+  "Kind": "design",
+  "Score": 0.6666666666666666,
+  "Passed": false,
+  "Error": null,
+  "Turns": 1,
+  "CostUsd": 0.0868519,
+  "DurationSeconds": 45,
+  "Graders": {
+   "edge-cases": false,
+   "hashed": true,
+   "quality": true
+  },
+  "InputTokens": 18065,
+  "OutputTokens": 4328,
+  "Hidden": null,
+  "CodeTraps": 0
+ },
+ {
+  "Arm": "baseline",
+  "Case": "m1-password-reset-design",
+  "Tier": "Medium",
+  "Kind": "design",
+  "Score": 1,
+  "Passed": true,
+  "Error": null,
+  "Turns": 1,
+  "CostUsd": 0.09115169999999997,
+  "DurationSeconds": 47,
+  "Graders": {
+   "edge-cases": true,
+   "hashed": true,
+   "quality": true
+  },
+  "InputTokens": 18062,
+  "OutputTokens": 4576,
+  "Hidden": null,
+  "CodeTraps": 0
+ }
+]

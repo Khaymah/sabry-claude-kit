@@ -142,7 +142,7 @@ class InstallTest(unittest.TestCase):
         self.assertIn("my-linter", commands)
         ours = [c for c in commands if 'adapt.py" codex ' in c]
         self.assertEqual(len(ours), len(set(ours)), "no duplicates after a second install")
-        self.assertEqual(len(ours), 11)
+        self.assertEqual(len(ours), 13)
         commit_hook = next(c for c in ours if c.endswith("enforce-commit-style.py"))
         self.assertIn('"deny"', self.run_installed(commit_hook, self.bad_commit()))
         patch = {"hook_event_name": "PreToolUse", "tool_name": "apply_patch", "cwd": self.home, "tool_input": {
@@ -151,6 +151,10 @@ class InstallTest(unittest.TestCase):
         self.assertIn('"deny"', self.run_installed(patch_hook, patch))
         patch["tool_input"]["command"] = "*** Begin Patch\n*** Add File: src/a.ts\n+export const a = 1\n*** End Patch"
         self.assertEqual(self.run_installed(patch_hook, patch), "")
+        traps_hook = next(c for c in ours if c.endswith("enforce-code-traps.py"))
+        patch["tool_input"]["command"] = ("*** Begin Patch\n*** Add File: src/Orders.Service.ts\n"
+                                          "+export const Clear = () => db.delete(Carts)\n+await db.delete(Carts)\n*** End Patch")
+        self.assertIn('"deny"', self.run_installed(traps_hook, patch))
         self.run_install("--target", "codex", "--uninstall")
         self.assertEqual(json.loads(self.read(".codex", "hooks.json")), mine)
 

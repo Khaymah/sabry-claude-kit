@@ -8,7 +8,7 @@ Map tool names to this tool's equivalents:
 - `Agent` / subagents → this tool's own agents; the kit's agents are installed under the same names.
 - `Read` / `Grep` / `Glob` / `Bash` / `Edit` / `Write` → the matching file, search and shell tools.
 - Skills named `/sabry-kit:<name>` are installed as `<name>`.
-- Kit files (Roles, Stacks, Quality-Gate, Decisions) live in `~/.kimi-code/plugins/managed/sabry-kit (or $KIMI_CODE_HOME/plugins/managed/sabry-kit)`.
+- Kit files (Roles, Stacks, Playbooks, Quality-Gate, Decisions) live in `~/.kimi-code/plugins/managed/sabry-kit (or $KIMI_CODE_HOME/plugins/managed/sabry-kit)`.
 
 ---
 
@@ -63,12 +63,13 @@ Functional directives stay (`ts-expect-error`, `ts-ignore`, `eslint-*`, `prettie
 
 # Framework gotchas
 
-Rule for `**/*.ts · **/*.tsx` files: read `/home/user/sabry-claude-kit/rules/framework-gotchas.md` before editing a file of that type (not injected in full, to save tokens).
+Rule for `**/*.ts · **/*.tsx` files: read `~/.kimi-code/plugins/managed/sabry-kit/rules/framework-gotchas.md` before editing a file of that type (not injected in full, to save tokens).
 
 ---
 
 # Knowledge and plans
 
+- **Playbooks:** a `[playbooks]` block in context is the kit's guidance for this request: apply it and name the files you used. No block, and you are designing, writing or reviewing code → read `Playbooks/INDEX.md`, the domain `INDEX.md`, then only the 1–3 matching files. Never load the folder wholesale.
 - **Kit knowledge:** `Patterns/` before proposing a feature · `Anti-patterns/` when reviewing or debugging · `Decisions/` for "why did we pick X?" · `CommunicationProfiles.md` when writing for someone other than the owner.
 - **Plans in files:** a plan, analysis or task set is written to a `.md` file, not only shown in chat; each task is self-contained.
 - **`Plan/Progress/YYYY-MM-DD.md`** is the daily log and the handoff between sessions: append a section per work session, ending with the `**الجاي:**` and `**مفتوح:**` lines. Format: `~/.kimi-code/plugins/managed/sabry-kit/Reference/progress-log.md`.

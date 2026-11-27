@@ -1,5 +1,6 @@
 # Knowledge and plans
 
+- **Playbooks:** a `[playbooks]` block in context is the kit's guidance for this request: apply it and name the files you used. No block, and you are designing, writing or reviewing code → read `Playbooks/INDEX.md`, the domain `INDEX.md`, then only the 1–3 matching files. Never load the folder wholesale.
 - **Kit knowledge:** `Patterns/` before proposing a feature · `Anti-patterns/` when reviewing or debugging · `Decisions/` for "why did we pick X?" · `CommunicationProfiles.md` when writing for someone other than the owner.
 - **Plans in files:** a plan, analysis or task set is written to a `.md` file, not only shown in chat; each task is self-contained.
 - **`Plan/Progress/YYYY-MM-DD.md`** is the daily log and the handoff between sessions: append a section per work session, ending with the `**الجاي:**` and `**مفتوح:**` lines. Format: `Reference/progress-log.md`.

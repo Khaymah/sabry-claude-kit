@@ -16,6 +16,7 @@ memory: project
 2. New project with no stack yet: use the `stack` from the owner's profile (injected at session start); if none, the kit default in `rules/operating-mode.md`.
 3. Read the matching file in `.claude/Stacks/` if it exists, and `.claude/Quality-Gate.md` for any decision that changes an API contract, a schema or auth.
 4. Your memory index (`MEMORY.md`) is injected automatically; read a topic file only when it is relevant.
+   - Read `.claude/Playbooks/INDEX.md`, then the matching domain `INDEX.md`, and apply the 1–3 playbooks whose situation fits the task (Decision + Verify). Name them in the report.
 
 ## Rules
 

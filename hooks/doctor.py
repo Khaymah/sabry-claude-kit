@@ -33,7 +33,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import kit_config
 
 KIT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-KIT_HOOKS = ("enforce-commit-style", "enforce-comment-discipline", "enforce-nextjs-structure",
+KIT_HOOKS = ("enforce-commit-style", "enforce-comment-discipline", "enforce-nextjs-structure", "enforce-code-traps",
              "warn-duplication", "team-review-reminder", "inject-rules", "scan-secrets",
              "project-storage", "enforce-sonnet", "enforce-opus", "play.ps1", "play.py")
 SEVERITY_ORDER = {"high": 0, "medium": 1, "low": 2, "info": 3}

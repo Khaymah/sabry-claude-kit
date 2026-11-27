@@ -1,0 +1,82 @@
+[
+ {
+  "case": "b09-partial-refunds",
+  "hidden": {
+   "passed": 5,
+   "total": 5
+  },
+  "score": 1,
+  "cost": 0.29604630000000004,
+  "leak": false
+ },
+ {
+  "case": "b09-partial-refunds",
+  "hidden": {
+   "passed": 5,
+   "total": 5
+  },
+  "score": 1,
+  "cost": 0.2877421,
+  "leak": false
+ },
+ {
+  "case": "b14-customer-report",
+  "hidden": {
+   "passed": 2,
+   "total": 4
+  },
+  "score": 0,
+  "cost": 0.2235612,
+  "leak": false
+ },
+ {
+  "case": "b14-customer-report",
+  "hidden": {
+   "passed": 4,
+   "total": 4
+  },
+  "score": 1,
+  "cost": 0.20273610000000003,
+  "leak": false
+ },
+ {
+  "case": "y26-order-refund-allocation",
+  "hidden": {
+   "passed": 5,
+   "total": 5
+  },
+  "score": 0,
+  "cost": 0.312534,
+  "leak": false
+ },
+ {
+  "case": "y26-order-refund-allocation",
+  "hidden": {
+   "passed": 5,
+   "total": 5
+  },
+  "score": 0,
+  "cost": 0.3564898,
+  "leak": false
+ },
+ {
+  "case": "y35-product-report-budget",
+  "hidden": {
+   "passed": 4,
+   "total": 4
+  },
+  "score": 1,
+  "cost": 0.2147308,
+  "leak": false
+ },
+ {
+  "case": "y35-product-report-budget",
+  "hidden": {
+   "passed": 4,
+   "total": 4
+  },
+  "score": 0,
+  "cost": 0.2406228,
+  "leak": false
+ }
+]

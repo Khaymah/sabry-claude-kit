@@ -1,0 +1,8 @@
+r01: "legacy orders with earlier payments (only the unpaid rest goes on credit); race: two parallel charges must not jointly pass the limit; tenant isolation"
+r02: "owner correction from r03 applies (oldest-first allocation); double-submitted RequestId applied once; parallel repayments cannot overpay; input bounds"
+r03: "correction persists (oldest first); running balance equals totals; tenant isolation; out-of-int32 customer id must be 400/404 not 500"
+r04: "role change on an earlier endpoint (Owner only); Available clamped at 0 after lowering below debt; tenant isolation of limit history"
+r05: "write-off must reduce open debt in balance, statement, limit checks and later allocations; Owner only; repeated write-off 409"
+r06: "remembered r05 preference (Customer object, money strings) after compaction; overdue depends on oldest-first allocation and excludes written-off; time from Now()"
+r07: "change to existing Cancel; double-click return restores stock and debt once; partly repaid / written-off refused; plain pending cancel still works"
+r08: "as-of month-end reconstruction (later payments, write-offs ignored; cancelled before month end excluded); bucket sums equal totals in minor units; remembered r05 preference"

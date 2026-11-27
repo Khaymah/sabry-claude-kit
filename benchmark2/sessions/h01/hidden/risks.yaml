@@ -1,0 +1,8 @@
+r01: "legacy rows: existing Products.Stock must become the main branch's stock per company (migration from 0001_Init); tenant isolation on branch stock"
+r02: "concurrency (double click on a write-off: read-check-write must be atomic, losers get 409); input bounds (zero/fractional/huge Change, huge ProductId -> 400, never 500); tenant isolation"
+r03: "query budget at volume (no N+1 per product or per branch); tenant isolation in the report"
+r04: "all-or-nothing multi-line send (one short line or a repeated product moves nothing); double click on send and on receive applies once; foreign branches/products/transfers -> 404; huge ids -> 400/404"
+r05: "all-or-nothing stocktake (one foreign/negative/fractional/huge line -> nothing applied); Counted 0 is valid; goods in transit arrive on top of the count"
+r06: "cancel must undo exactly what send/receive did, atomically across lines and branches (receiver short -> 409, nothing moves); double click on cancel; receive vs cancel race ends consistent"
+r07: "legacy rows again: pre-branch stock must appear as an Opening entry; ledger must record every earlier flow (stocktake difference, both sides of a cancelled received transfer) so Balance reconciles"
+r08: "in-transit must exclude cancelled and received transfers (r06 interaction) and count each road quantity once; tenant isolation; query budget with many transfers"

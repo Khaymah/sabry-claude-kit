@@ -1,0 +1,4 @@
+schema_version: "1"
+name: f04-session-revocation
+context:
+  scaffold_script: fixture.sh
