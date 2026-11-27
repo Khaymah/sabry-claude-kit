@@ -18,7 +18,7 @@
 
 - The app sends its token to `POST /devices` after login and on every `onTokenRefresh`; the server upserts by `Token` (unique) and sets `UserId` from the session, never from the body.
 - A token belongs to one user at a time: registering a token already held by another user moves it (shared phone, logout then login) in one statement.
-- On logout the app calls `DELETE /devices/{id}`; the server also deletes when a send returns `UNREGISTERED` or `INVALID_ARGUMENT` for the token. Never keep retrying a dead token.
+- On logout the app calls `DELETE /devices/{id}`; the server also deletes when a send returns `UNREGISTERED` (or `INVALID_ARGUMENT` that names the token field). `INVALID_ARGUMENT` for a bad payload never deletes tokens. Never keep retrying a dead token.
 - Send from a job (`backend/reliability/background-jobs.md`) with ids only; load tokens fresh at send time, every query tenant-scoped (`backend/data/multi-tenancy.md`).
 - Service-account credentials come from secrets config; never ship them in the app.
 
@@ -27,7 +27,7 @@
 - Payload ≤ 4 KB (FCM limit; keep data under ~3 KB). Put an id and a type in `data`, not the full record; the app fetches details when opened (stale or sensitive data should not sit on a lock screen).
 - Visible push: `notification` (title, body) plus `data`; text in the user's locale (`ar` default for Egypt). Silent push: `data` only with `content-available: 1` on iOS and priority normal; it is best-effort, throttled by the OS and never a delivery guarantee or a way to run business logic.
 - Deep link: `data.Link` holds a route (`/orders/123`), validated by the app against its own router; never an arbitrary URL opened without a host allow-list. Cold start, background and foreground taps all handled.
-- Per-device dedupe: `(DeviceId, DedupeKey)` unique on `PushSends`; `collapse_key` (Android) and `apns-collapse-id` (iOS) replace an earlier unseen notification of the same kind.
+- Per-device dedupe: `(DeviceId, DedupeKey)` unique on `PushSends` with `Status` `Sending` → `Sent` (or `Failed`); a job retry skips only `Sent` rows and resends the rest; `collapse_key` (Android) and `apns-collapse-id` (iOS) replace an earlier unseen notification of the same kind.
 - Respect preferences and quiet hours (`domains/messaging/notifications.md`); use TTL (for example 4 hours for "driver arriving") so a stale push is dropped, not delivered tomorrow.
 - Android 13+ and iOS need a runtime permission; the server stores `PushEnabled` from the app so it skips devices that declined.
 - Send in batches of up to 500 per call, within the provider rate limit; handle per-token results independently.
@@ -71,17 +71,20 @@ App.post("/devices", RequireAuth, async (C) => {
   const Body = DeviceSchema.parse(await C.req.json())
   const User = C.get("User")
   await Db.insert(DeviceTokens).values({ TenantId: User.TenantId, UserId: User.Id, Token: Body.Token, Platform: Body.Platform })
-    .onConflictDoUpdate({ target: DeviceTokens.Token, set: { TenantId: User.TenantId, UserId: User.Id, PushEnabled: Body.PushEnabled, LastSeenAt: new Date() } })
+    .onConflictDoUpdate({ target: DeviceTokens.Token, set: { TenantId: User.TenantId, UserId: User.Id, PushEnabled: Body.PushEnabled, LastSeenAt: C.get("Now") } })
   return C.json({ Ok: true })
 })
 
 export async function SendPush(UserId: string, TenantId: string, Message: PushMessage) {
   const Devices = await Db.select().from(DeviceTokens).where(and(eq(DeviceTokens.TenantId, TenantId), eq(DeviceTokens.UserId, UserId), eq(DeviceTokens.PushEnabled, true)))
   for (const Device of Devices) {
-    const [Row] = await Db.insert(PushSends).values({ DeviceId: Device.Id, DedupeKey: Message.DedupeKey }).onConflictDoNothing().returning()
+    await Db.insert(PushSends).values({ DeviceId: Device.Id, DedupeKey: Message.DedupeKey, Status: "Sending" }).onConflictDoNothing()
+    const [Row] = await Db.update(PushSends).set({ Status: "Sending" })
+      .where(and(eq(PushSends.DeviceId, Device.Id), eq(PushSends.DedupeKey, Message.DedupeKey), ne(PushSends.Status, "Sent"))).returning()
     if (!Row) continue
     const Result = await Fcm.Send(Device.Token, Message)
-    if (Result.Code === "UNREGISTERED" || Result.Code === "INVALID_ARGUMENT") await Db.delete(DeviceTokens).where(eq(DeviceTokens.Id, Device.Id))
+    await Db.update(PushSends).set({ Status: Result.Ok ? "Sent" : "Failed" }).where(eq(PushSends.Id, Row.Id))
+    if (Result.Code === "UNREGISTERED") await Db.delete(DeviceTokens).where(eq(DeviceTokens.Id, Device.Id))
   }
 }
 ```
@@ -92,7 +95,8 @@ export async function SendPush(UserId: string, TenantId: string, Message: PushMe
 - [ ] `[M]` An `UNREGISTERED` result deletes the token and it is not retried.
 - [ ] `[M]` The user id in the body of `POST /devices` is ignored; the session decides.
 - [ ] `[S]` A payload over 4 KB is rejected before the provider call or truncated to ids only.
-- [ ] `[S]` Job retried after one device failed sends only to the unsent devices.
+- [ ] `[S]` Job retried after one device failed (or crashed mid-send) sends only to devices whose row is not `Sent`.
+- [ ] `[S]` `INVALID_ARGUMENT` from a bad payload keeps every token.
 - [ ] `[S]` Deep link works on cold start, background and foreground; an unknown route opens a safe screen.
 - [ ] `[A]` A 100k-token broadcast stays under the provider rate limit with no duplicate per device.
 

@@ -18,7 +18,7 @@
 
 - Normalise with `libphonenumber-js` to E.164 at the edge, region `EG`. Egyptian mobile is `+20` then `10`, `11`, `12` or `15` then 8 digits; accept `01012345678`, `1012345678`, `+201012345678`, `00201012345678` and Arabic-Indic digits, store `+201012345678`. Anything that is not a valid mobile is a 400.
 - Unique key and every limit use the E.164 form, never the raw input; `0101…` and `+20101…` are the same number.
-- Send from a job (`backend/reliability/background-jobs.md`) with a dedupe key; never inside the request.
+- Send from a job (`backend/reliability/background-jobs.md`) with a dedupe key; never inside the request. The key includes a per-send reference (order id, or the OTP id for every OTP) so two different OTPs to one number never collapse into one.
 - Per-number limit (for example 5 per hour) and per-IP limit (for example 20 per hour) before the job is enqueued (`backend/reliability/rate-limit.md`). The response is identical for allowed and limited numbers where it would reveal account existence.
 - Daily and monthly spend caps in `SystemSettings`; at 80% alert, at 100% stop non-critical sends.
 - Provider key from config; never log the message body for OTP.
@@ -27,7 +27,7 @@
 
 - Country allow-list; numbers outside it are rejected before sending (SMS pumping, `backend/auth/otp.md`).
 - Provider adapter `SendSms(To, Text, SenderId)`; delivery report webhook verified by signature, upserted by provider message id, status moves only forward (`Queued` → `Sent` → `Delivered` or `Failed`).
-- Encoding: pure GSM-7 text is 160 chars per segment (153 when multipart). Any Arabic character forces UCS-2: 70 chars per segment (67 multipart), so a 150-char Arabic message is 3 billed segments. Count segments before sending, show the cost, and keep OTP and alert texts under one UCS-2 segment (70 chars).
+- Encoding: pure GSM-7 text (the real GSM 03.38 alphabet, not all printable ASCII) is 160 septets per segment (153 when multipart). The extension characters `^ { } \ [ ] ~ | €` count 2 septets each; a backtick, or any character outside the alphabet, forces UCS-2. Any Arabic character forces UCS-2: 70 chars per segment (67 multipart), so a 150-char Arabic message is 3 billed segments. Count segments before sending, show the cost, and keep OTP and alert texts under one UCS-2 segment (70 chars).
 - Sender ID: Egyptian operators require a registered alphanumeric sender (max 11 chars, Latin letters and digits) per brand; registration takes days and is per operator. An unregistered sender is rewritten or blocked, so keep the sender in config and a numeric fallback.
 - Opt-out for marketing: a STOP keyword or link, stored suppression; transactional SMS ignores it.
 - Do not send between 22:00 and 08:00 Cairo for non-urgent categories (`backend/data/time-zones.md`).
@@ -47,12 +47,13 @@
 | Same number typed three ways | One normalised value; one rate-limit bucket |
 | Attacker rotates numbers from one IP | Per-IP limit and country allow-list stop it; budget alert fires |
 | Message mixes Arabic and one emoji | UCS-2; emoji can take two code units, so segment count is computed on UTF-16 length |
+| A backtick, `^` or `{` in a Latin text | Backtick forces UCS-2; `^` and `{` count 2 septets each |
 | Smart quotes or Arabic comma in a "Latin" text | Forces UCS-2 and triples the cost; normalise punctuation in English templates |
 | Report says `Failed` after the provider said accepted | Row updates to `Failed`; the notification layer may fall back to another channel once |
 | Number recycled to a new owner | Treat a phone as unverified again after a long inactivity or after a hard failure report |
 | Provider timeout (unknown outcome) | Retry only with the provider's idempotency key; otherwise wait for the report before resending |
 | Data at 100×: 10M SMS rows | Partition by month, index `(ProviderMessageId)` and `(To, CreatedAt)`; store the text by template id plus variables |
-| Twice / parallel: the user taps "resend" twice | The 60 s cooldown and the dedupe key make the second a no-op that returns the same response |
+| Twice / parallel: the user taps "resend" twice | The 60 s cooldown makes the second a no-op; a replayed job for the same OTP id hits the dedupe key |
 
 ## Example — Standard, Bun + Hono + Drizzle
 
@@ -60,6 +61,8 @@
 import { parsePhoneNumberFromString } from "libphonenumber-js"
 
 const ARABIC_DIGITS = /[٠-٩]/g
+const Gsm7Basic = "@£$¥èéùìòÇ\nØø\rÅåΔ_ΦΓΛΩΠΨΣΘΞÆæßÉ !\"#¤%&'()*+,-./0123456789:;<=>?¡ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÑÜ§¿abcdefghijklmnopqrstuvwxyzäöñüà"
+const Gsm7Extension = "^{}\\[~]|€"
 
 export function NormalizeEgyptPhone(Input: string): string {
   const Clean = Input.trim().replace(ARABIC_DIGITS, (D) => String(D.charCodeAt(0) - 0x0660)).replace(/[\s-]/g, "")
@@ -69,26 +72,27 @@ export function NormalizeEgyptPhone(Input: string): string {
 }
 
 export function CountSegments(Text: string): { Encoding: "GSM7" | "UCS2"; Segments: number } {
-  const IsGsm = /^[\x20-\x7E\n]*$/.test(Text)
-  const Length = Text.length
+  const Chars = Array.from(Text)
+  const IsGsm = Chars.every((C) => Gsm7Basic.includes(C) || Gsm7Extension.includes(C))
+  const Length = IsGsm ? Chars.reduce((N, C) => N + (Gsm7Extension.includes(C) ? 2 : 1), 0) : Text.length
   const Single = IsGsm ? 160 : 70
   const Multi = IsGsm ? 153 : 67
   return { Encoding: IsGsm ? "GSM7" : "UCS2", Segments: Length <= Single ? 1 : Math.ceil(Length / Multi) }
 }
 
-export async function QueueSms(To: string, Template: string, Variables: Record<string, string>, Ip: string) {
+export async function QueueSms(To: string, Template: string, Variables: Record<string, string>, Reference: string, Ip: string) {
   const Number = NormalizeEgyptPhone(To)
   await EnforceLimits({ Number, Ip })
   await EnforceBudget()
   const Text = RenderSmsTemplate(Template, Variables)
   const Cost = CountSegments(Text)
-  const DedupeKey = `${Template}:${Number}:${Variables.Reference ?? ""}`
+  const DedupeKey = `${Template}:${Number}:${Reference}`
   const [Row] = await Db.insert(SmsSends).values({ To: Number, Text, Segments: Cost.Segments, DedupeKey }).onConflictDoNothing().returning()
   if (Row) await Boss.send("SendSms", { SendId: Row.Id }, { singletonKey: Row.Id })
 }
 ```
 
-`String.length` counts UTF-16 units, which matches how UCS-2 segments are billed.
+`String.length` counts UTF-16 units, which matches how UCS-2 segments are billed. `Reference` is the OTP id for OTP sends.
 
 ## Verify
 

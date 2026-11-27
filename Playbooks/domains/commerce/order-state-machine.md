@@ -17,9 +17,9 @@
 ### Minimum — always, never cut
 
 - Statuses are a closed set (Postgres enum or `CHECK`); the allowed transitions live in one map `Transitions[From] = [To…]`, never scattered `if`s.
-- Change status only with `UPDATE "Orders" SET "Status" = $to WHERE "Id" = $id AND "TenantId" = $t AND "Status" = $from RETURNING`. No row back → re-read: order missing → 404; status differs → `409 INVALID_TRANSITION` with the current status.
+- Change status only with `UPDATE "Orders" SET "Status" = $to WHERE "Id" = $id AND "TenantId" = $t AND "Status" = $from RETURNING`. No row back → re-read: order missing → 404; status differs → `409 INVALID_TRANSITION` with the current status (defaults; keep the project's codes).
 - Never `SELECT` the status, check in JS, then `UPDATE` (`backend/data/concurrency.md`).
-- Terminal statuses (`Cancelled`, `Completed`, `Refunded`) have an empty transition list; reopening is a new order or an explicit admin action with its own row in the map.
+- Terminal statuses (`Cancelled`, `Refunded`) have an empty transition list; `Completed` closes fulfilment but still allows `Returned` or `PartiallyReturned` inside the return window (`domains/commerce/returns.md`); reopening is a new order or an explicit admin action with its own row in the map.
 - Who may trigger each transition is checked at the edge (`backend/auth/rbac.md`); a customer can only cancel their own order, only from allowed statuses.
 
 ### Standard — adds
@@ -58,37 +58,36 @@ export const Transitions: Record<TOrderStatus, TOrderStatus[]> = {
   Paid: ["Processing", "Cancelled", "Refunded"],
   Processing: ["Shipped", "Cancelled"],
   Shipped: ["Delivered", "Returned"],
-  Delivered: ["Returned", "Completed"],
+  Delivered: ["PartiallyReturned", "Returned", "Completed"],
+  Completed: ["PartiallyReturned", "Returned"],
+  PartiallyReturned: ["PartiallyReturned", "Returned", "Refunded"],
   Returned: ["Refunded"],
-  Completed: [],
   Cancelled: [],
   Refunded: [],
 }
 
-export async function ChangeStatus(TenantId: string, OrderId: string, To: TOrderStatus, ActorId: string, Reason?: string) {
+export async function ChangeStatus(Tx: TTx, TenantId: string, OrderId: string, To: TOrderStatus, ActorId: string, Now: Date, Reason?: string) {
   const From = (Object.keys(Transitions) as TOrderStatus[]).filter((S) => Transitions[S].includes(To))
-  return db.transaction(async (Tx) => {
-    const Changed = await Tx.execute<{ FromStatus: TOrderStatus }>(sql`
-      WITH Old AS (
-        SELECT "Id", "Status" FROM "Orders"
-        WHERE "Id" = ${OrderId} AND "TenantId" = ${TenantId} AND "Status" = ANY(${From}) FOR UPDATE
-      )
-      UPDATE "Orders" O SET "Status" = ${To}, "UpdatedAt" = now()
-      FROM Old WHERE O."Id" = Old."Id"
-      RETURNING Old."Status" AS "FromStatus"`)
-    if (Changed.length === 0) {
-      const [Current] = await Tx.select({ Status: Orders.Status }).from(Orders).where(and(eq(Orders.Id, OrderId), eq(Orders.TenantId, TenantId)))
-      if (!Current) throw new AppError("ORDER_NOT_FOUND", 404)
-      throw new AppError("INVALID_TRANSITION", 409, { Current: Current.Status, Requested: To })
-    }
-    await Tx.insert(OrderStatusHistory).values({ OrderId, FromStatus: Changed[0].FromStatus, ToStatus: To, ActorId, Reason })
-    if (To === "Cancelled") await ReturnStock(Tx, OrderId)
-    await Tx.insert(Outbox).values({ TenantId, Topic: "order.status", Key: `${OrderId}:${To}`, Payload: { OrderId, To } }).onConflictDoNothing()
-  })
+  const Changed = await Tx.execute<{ FromStatus: TOrderStatus }>(sql`
+    WITH Old AS (
+      SELECT "Id", "Status" FROM "Orders"
+      WHERE "Id" = ${OrderId} AND "TenantId" = ${TenantId} AND "Status" = ANY(${From}) FOR UPDATE
+    )
+    UPDATE "Orders" O SET "Status" = ${To}, "UpdatedAt" = ${Now}
+    FROM Old WHERE O."Id" = Old."Id"
+    RETURNING Old."Status" AS "FromStatus"`)
+  if (Changed.length === 0) {
+    const [Current] = await Tx.select({ Status: Orders.Status }).from(Orders).where(and(eq(Orders.Id, OrderId), eq(Orders.TenantId, TenantId)))
+    if (!Current) throw new AppError("ORDER_NOT_FOUND", 404)
+    throw new AppError("INVALID_TRANSITION", 409, { Current: Current.Status, Requested: To })
+  }
+  await Tx.insert(OrderStatusHistory).values({ OrderId, FromStatus: Changed[0].FromStatus, ToStatus: To, ActorId, Reason })
+  if (To === "Cancelled") await ReturnStock(Tx, OrderId)
+  await Tx.insert(Outbox).values({ TenantId, Topic: "order.status", Key: `${OrderId}:${To}`, Payload: { OrderId, To } }).onConflictDoNothing()
 }
 ```
 
-Other stacks: the same guard works in any ORM as a conditional update; an ORM `save()` after a read is the mistake to avoid.
+`ChangeStatus` joins the caller's transaction, so a payment, shipment or refund write and its status change commit or roll back together. Other stacks: the same guard works in any ORM as a conditional update; an ORM `save()` after a read is the mistake to avoid.
 
 ## Verify
 

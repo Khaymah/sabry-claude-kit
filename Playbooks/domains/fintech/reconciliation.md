@@ -17,7 +17,7 @@
 ### Minimum — always, never cut
 
 - Never update or delete a payment, ledger or order row to make totals agree. The only fix is a new adjustment entry referencing the line, with a reason and an actor (`backend/data/audit-log.md`).
-- Store the provider report as received: `SettlementLines (Provider, ReportDate, ProviderRef, AmountMinor, FeeMinor, Currency, RawJson)` with unique `(Provider, ProviderRef, LineType)`. Loading the same file twice adds nothing.
+- Store the provider report as received: `SettlementLines (TenantId, MerchantAccountId, Provider, ReportDate, ProviderRef, LineType, Revision, AmountMinor, FeeMinor, Currency, RawJson)` with unique `(TenantId, MerchantAccountId, Provider, ProviderRef, LineType, Revision)`. Loading the same file twice adds nothing; a corrected line from a later report is a new `Revision` row, and only the highest revision is matched.
 - Compare integers in minor units plus currency (`backend/data/money.md`). A provider that sends decimal strings is converted by its adapter.
 - Every line ends in a state. A line with no state is a bug, not "pending forever".
 
@@ -57,9 +57,9 @@
 ## Example — Standard, Bun + Hono + Drizzle
 
 ```ts
-export async function MatchSettlement(Provider: string, ReportDate: string) {
+export async function MatchSettlement(TenantId: string, MerchantAccountId: string, Provider: string, ReportDate: string) {
   return db.transaction(async (Tx) => {
-    const Locked = await Tx.execute<{ Ok: boolean }>(sql`SELECT pg_try_advisory_xact_lock(hashtext(${`recon:${Provider}:${ReportDate}`})) AS "Ok"`)
+    const Locked = await Tx.execute<{ Ok: boolean }>(sql`SELECT pg_try_advisory_xact_lock(hashtext(${`recon:${TenantId}:${MerchantAccountId}:${Provider}:${ReportDate}`})) AS "Ok"`)
     if (!Locked[0].Ok) return null
     await Tx.execute(sql`
       UPDATE "SettlementLines" AS L SET "State" = CASE
@@ -69,17 +69,18 @@ export async function MatchSettlement(Provider: string, ReportDate: string) {
         "PaymentId" = P."Id"
       FROM "SettlementLines" AS S
       LEFT JOIN "Payments" AS P ON P."ProviderRef" = S."ProviderRef" AND P."Provider" = S."Provider"
-      WHERE L."Id" = S."Id" AND L."Provider" = ${Provider} AND L."ReportDate" = ${ReportDate} AND L."State" = 'New'`)
+        AND P."TenantId" = S."TenantId" AND P."MerchantAccountId" = S."MerchantAccountId"
+      WHERE L."Id" = S."Id" AND L."TenantId" = ${TenantId} AND L."MerchantAccountId" = ${MerchantAccountId} AND L."Provider" = ${Provider} AND L."ReportDate" = ${ReportDate} AND L."State" = 'New'`)
     return Tx.execute(sql`
       SELECT "State", count(*)::int AS "Count", coalesce(sum("AmountMinor"), 0)::text AS "Total"
-      FROM "SettlementLines" WHERE "Provider" = ${Provider} AND "ReportDate" = ${ReportDate} GROUP BY "State"`)
+      FROM "SettlementLines" WHERE "TenantId" = ${TenantId} AND "MerchantAccountId" = ${MerchantAccountId} AND "Provider" = ${Provider} AND "ReportDate" = ${ReportDate} GROUP BY "State"`)
   })
 }
 
-export async function AdjustLine(LineId: string, ActorId: string, Reason: string) {
+export async function AdjustLine(TenantId: string, LineId: string, ActorId: string, Reason: string) {
   return db.transaction(async (Tx) => {
     const [Line] = await Tx.update(SettlementLines).set({ State: "Adjusted" })
-      .where(and(eq(SettlementLines.Id, LineId), eq(SettlementLines.State, "Mismatched"))).returning()
+      .where(and(eq(SettlementLines.Id, LineId), eq(SettlementLines.TenantId, TenantId), eq(SettlementLines.State, "Mismatched"))).returning()
     if (!Line) throw new AppError("RECON_LINE_NOT_OPEN", 409)
     await Tx.insert(Adjustments).values({ LineId, ActorId, Reason, AmountMinor: Line.AmountMinor - (Line.OurAmountMinor ?? 0n) })
   })

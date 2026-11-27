@@ -16,7 +16,7 @@
 
 ### Minimum — always, never cut
 
-- `Plans (PrincipalMinor, Currency, Count, StartDate, Status)` and `Installments (PlanId, Number, DueDate, AmountMinor, PaidMinor, Status)`, unique `(PlanId, Number)`, `CHECK ("PaidMinor" BETWEEN 0 AND "AmountMinor")`.
+- `Plans (TenantId, PrincipalMinor, Currency, Count, StartDate, Status)` and `Installments (PlanId, Number, DueDate, AmountMinor, PaidMinor, Status)`, unique `(PlanId, Number)`, `CHECK ("PaidMinor" BETWEEN 0 AND "AmountMinor")`.
 - Generate the schedule once, in one transaction, with `SUM(AmountMinor) = Total` exactly. The remainder goes on the installment the owner named, else the last (`backend/data/money.md`).
 - `DueDate` is a calendar date (`date`), not a timestamp. Month-end rule is stated: a plan starting on the 31st uses the last day of shorter months.
 - Never regenerate or edit a schedule in place. A change is a reschedule: the old rows close, new rows are written, both reference each other.
@@ -24,7 +24,7 @@
 
 ### Standard — adds
 
-- A payment allocates oldest-first across open installments in one transaction, locking the plan's installments `ORDER BY "DueDate", "Number"` `FOR UPDATE`. The allocation is stored as rows `(PaymentId, InstallmentId, AmountMinor)`, never inferred later.
+- A payment allocates oldest-first across open installments in one transaction, locking the plan's installments `ORDER BY "DueDate", "Number"` `FOR UPDATE`. The allocation is stored as rows `(PaymentId, InstallmentId, AmountMinor)` with unique `(PaymentId, InstallmentId)`, never inferred later; a payment that already has allocation rows is returned as processed, so a replay never applies twice. The plan is loaded with its `TenantId` first.
 - Overpayment beyond the plan's remaining total is `409`, or credited to the customer's wallet if the project has one; never silently dropped.
 - Late fee: computed by a daily job from the installment's `DueDate`, the owner's grace days and a flat or capped amount; written once per installment per rule as a `Fees` row with a unique key `(InstallmentId, FeeType)`. Fees are paid after the installment they belong to is cleared, unless the owner says otherwise. Total late fees are capped by the owner's limit.
 - "Overdue" is `DueDate < today in Africa/Cairo` and `PaidMinor < AmountMinor`; the status is derived or set by the job, never typed by hand.
@@ -67,8 +67,12 @@ export function BuildSchedule(Principal: bigint, Count: number, Start: Date): { 
   })
 }
 
-export async function ApplyPayment(PlanId: string, PaymentId: string, Amount: bigint) {
+export async function ApplyPayment(TenantId: string, PlanId: string, PaymentId: string, Amount: bigint) {
   return db.transaction(async (Tx) => {
+    const [Plan] = await Tx.select().from(Plans).where(and(eq(Plans.Id, PlanId), eq(Plans.TenantId, TenantId))).for("update")
+    if (!Plan) throw new AppError("PLAN_NOT_FOUND", 404)
+    const Done = await Tx.select().from(PaymentAllocations).where(eq(PaymentAllocations.PaymentId, PaymentId)).limit(1)
+    if (Done.length) return
     const Open = await Tx.select().from(Installments)
       .where(and(eq(Installments.PlanId, PlanId), lt(Installments.PaidMinor, Installments.AmountMinor)))
       .orderBy(Installments.DueDate, Installments.Number).for("update")

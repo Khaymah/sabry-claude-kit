@@ -18,14 +18,14 @@
 
 - Governorate is a lookup table with stable ids (27 governorates), not free text; the order stores the id and an address snapshot. Fee is read server-side from `ShippingZones(GovernorateId, FeeMinor, Currency)`; the client never sends a fee.
 - The fee is written on the order as `ShippingMinor` at checkout and never recomputed afterwards.
-- A governorate without a zone row is `409 SHIPPING_UNAVAILABLE`, not a zero fee.
+- A governorate without a zone row is `409 SHIPPING_UNAVAILABLE` (defaults; keep the project's codes), not a zero fee.
 - Free-shipping threshold compares the subtotal after discount, in minor units, with `>=`; the rule is stored as data.
 
 ### Standard — adds
 
-- Webhook endpoint verifies the courier's signature or secret first, on the raw body, then stores the event in `ShipmentEvents(Provider, ExternalEventId, ShipmentId, RawStatus, OccurredAt, Payload)` with unique `(Provider, ExternalEventId)`; duplicate → 200, no effect.
+- Webhook endpoint verifies the courier's signature or secret first, on the raw body, with a constant-time compare (`timingSafeEqual` after checking both buffers have the same byte length), then stores the event in `ShipmentEvents(Provider, ExternalEventId, ShipmentId, RawStatus, OccurredAt, Payload)` with unique `(Provider, ExternalEventId)`; duplicate → 200, no effect.
 - Map each courier status to an internal status in one table per provider; an unknown raw status is stored and logged, never an error to the courier.
-- Apply events by status rank, not arrival: `Delivered` (rank 5) is never overwritten by a late `OutForDelivery` (rank 4). Application goes through `ChangeStatus` (`domains/commerce/order-state-machine.md`).
+- Apply events by status rank, not arrival: `Delivered` (rank 5) is never overwritten by a late `OutForDelivery` (rank 4). Application goes through `ChangeStatus` (`domains/commerce/order-state-machine.md`), and the order status is reconciled from the stored shipment status, so a failed `ChangeStatus` is repaired by the job retry.
 - Respond 200 within the courier's timeout; heavy work goes to a job (`backend/reliability/background-jobs.md`). Outbound calls to the courier use timeouts and retries (`backend/reliability/outbound-calls.md`).
 - Creating a courier shipment is idempotent: store the courier's tracking id in a unique column, and send our `OrderId` as the courier's reference so a retry finds the existing shipment.
 - COD: the order stores `CodAmountMinor` (the total to collect, zero when prepaid). A COD order is never marked `Paid` at placement; it becomes paid when the courier reports delivery with collection.
@@ -68,18 +68,20 @@ export async function HandleCourierWebhook(Provider: string, RawBody: string, Si
   await Jobs.Enqueue("ApplyShipmentEvent", { EventId: Inserted[0].Id })
 }
 
-export async function ApplyShipmentEvent(EventId: string) {
+export async function ApplyShipmentEvent(EventId: string, Now: Date) {
   const [Event] = await db.select().from(ShipmentEvents).where(eq(ShipmentEvents.Id, EventId))
   const Internal = MapStatus(Event.Provider, Event.RawStatus)
   if (!Internal) return
-  const Updated = await db.update(Shipments).set({ Status: Internal, StatusRank: StatusRank[Internal] })
+  await db.update(Shipments).set({ Status: Internal, StatusRank: StatusRank[Internal] })
     .where(and(eq(Shipments.TrackingId, Event.TrackingId), lt(Shipments.StatusRank, StatusRank[Internal])))
-    .returning({ OrderId: Shipments.OrderId, TenantId: Shipments.TenantId })
-  if (Updated[0]) await ChangeStatus(Updated[0].TenantId, Updated[0].OrderId, ToOrderStatus(Internal), "system:courier")
+  const [Shipment] = await db.select().from(Shipments).where(eq(Shipments.TrackingId, Event.TrackingId))
+  const Target = ToOrderStatus(Shipment.Status)
+  const [Order] = await db.select({ Status: Orders.Status }).from(Orders).where(and(eq(Orders.Id, Shipment.OrderId), eq(Orders.TenantId, Shipment.TenantId)))
+  if (Order.Status !== Target) await db.transaction((Tx) => ChangeStatus(Tx, Shipment.TenantId, Shipment.OrderId, Target, "system:courier", Now))
 }
 ```
 
-The tenant comes from the shipment row found by tracking id, never from the webhook body. `ReturnToSender` shares rank 5 with `Delivered`: they are mutually exclusive, so the second to arrive must be reviewed by hand.
+The tenant comes from the shipment row found by tracking id, never from the webhook body. The job reads the stored shipment state after the update, so a crash between the two writes is repaired on retry. `ReturnToSender` shares rank 5 with `Delivered`: they are mutually exclusive, so the second to arrive must be reviewed by hand.
 
 Other stacks: any queue works; the points that matter are the unique event id and the rank guard.
 

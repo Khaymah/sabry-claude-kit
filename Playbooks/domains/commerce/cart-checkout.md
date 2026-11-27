@@ -24,8 +24,8 @@
 
 ### Standard — adds
 
-- Checkout returns the repriced total; if it differs from the total the client showed (`ExpectedTotalMinor`), respond `409 PRICE_CHANGED` with the new lines and create nothing. The client confirms and resubmits.
-- Unavailable lines (deleted, inactive, out of stock) are reported per line in one `409 CART_INVALID`; the order is never half-created.
+- Checkout returns the repriced total; if it differs from the total the client showed (`ExpectedTotalMinor`), respond `409 PRICE_CHANGED` (defaults; keep the project's codes) with the new lines and create nothing. The client confirms and resubmits.
+- Unavailable lines (deleted, inactive, out of stock) are reported per line in one `409 CART_INVALID`; the checkout compares every cart line with its joined product (left join, never an inner join that drops rows silently); the order is never half-created.
 - Order stores `SubtotalMinor`, `DiscountMinor`, `ShippingMinor`, `TaxMinor`, `TotalMinor` with the sum `CHECK`, plus the coupon code and rule snapshot that applied.
 - A guest cart merges into the user's cart on login by summing quantities per product, capped, then the guest cart is deleted.
 - Carts expire (default 30 days of inactivity); an expired cart read returns empty, not an error.
@@ -60,12 +60,15 @@ export async function PlaceOrder(TenantId: string, UserId: string, CartId: strin
       .where(and(eq(Carts.Id, CartId), eq(Carts.TenantId, TenantId), eq(Carts.UserId, UserId), eq(Carts.Status, "Open")))
       .returning()
     if (!Cart) throw new AppError("CART_CLOSED", 409)
-    const Lines = await Tx.select({ ProductId: CartLines.ProductId, Quantity: CartLines.Quantity, Price: Products.PriceMinor, Name: Products.Name })
+    const Rows = await Tx.select({ ProductId: CartLines.ProductId, Quantity: CartLines.Quantity, Price: Products.PriceMinor, Name: Products.Name, IsActive: Products.IsActive })
       .from(CartLines)
-      .innerJoin(Products, and(eq(Products.Id, CartLines.ProductId), eq(Products.TenantId, TenantId), eq(Products.IsActive, true)))
+      .leftJoin(Products, and(eq(Products.Id, CartLines.ProductId), eq(Products.TenantId, TenantId)))
       .where(eq(CartLines.CartId, CartId))
       .orderBy(CartLines.ProductId)
-    if (Lines.length === 0) throw new AppError("CART_INVALID", 409)
+    if (Rows.length === 0) throw new AppError("CART_INVALID", 409)
+    const Invalid = Rows.filter((R) => R.Price === null || !R.IsActive).map((R) => ({ ProductId: R.ProductId, Reason: "UNAVAILABLE" }))
+    if (Invalid.length > 0) throw new AppError("CART_INVALID", 409, { Lines: Invalid })
+    const Lines = Rows.map((R) => ({ ProductId: R.ProductId, Quantity: R.Quantity, Price: R.Price!, Name: R.Name! }))
     await ReserveStock(Tx, Lines.map((L) => ({ ProductId: L.ProductId, Quantity: L.Quantity })))
     const Subtotal = Lines.reduce((S, L) => S + L.Price * BigInt(L.Quantity), 0n)
     const Totals = ComputeTotals(Subtotal, Cart.CouponCode)

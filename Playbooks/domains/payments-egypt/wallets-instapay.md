@@ -29,7 +29,7 @@
 - A claim expires: no confirmation within the agreed window (default 48 h) moves the order to `Cancelled` through the state machine, and the customer is told; a later confirmation reopens only by an explicit staff action.
 - Customer sees the claim state (`Submitted`, `NeedsReview`, `Rejected`, `Confirmed`) without seeing other claims.
 - Gateway wallet payments: wallet number and the prompt on the customer's phone are the gateway's job; we never store the PIN or OTP. The result arrives as a callback and is applied by the same transition code as cards (`gateway-checkout.md`).
-- Amount mismatch outcomes are explicit: underpaid keeps the order `PendingPayment` with a visible remainder; overpaid confirms the order and records `ExcessMinor` for refund (`gateway-refunds-voids.md`).
+- Amount mismatch outcomes are explicit per case. Manual transfer claims: any difference is `NeedsReview`, never paid. Gateway wallet callbacks: underpaid keeps the order `PendingPayment` with a visible remainder; overpaid confirms the order and records `ExcessMinor` for refund (`gateway-refunds-voids.md`).
 
 ### Advanced — adds
 
@@ -57,7 +57,7 @@
 ## Example — Standard, Bun + Hono + Drizzle
 
 ```ts
-export async function ConfirmClaim(ClaimId: string, Staff: AuthUser, Input: ConfirmInput) {
+export async function ConfirmClaim(ClaimId: string, Staff: AuthUser, Input: ConfirmInput, Now: Date) {
   return db.transaction(async (Tx) => {
     const [Claim] = await Tx.select().from(PaymentClaims)
       .where(and(eq(PaymentClaims.Id, ClaimId), eq(PaymentClaims.TenantId, Staff.TenantId)))
@@ -69,21 +69,21 @@ export async function ConfirmClaim(ClaimId: string, Staff: AuthUser, Input: Conf
     const [Order] = await Tx.select().from(Orders)
       .where(and(eq(Orders.Id, Claim.OrderId), eq(Orders.TenantId, Staff.TenantId)))
       .for("update")
-    if (Input.AmountMinor !== Order.TotalMinor) {
+    if (Input.AmountMinor !== Order.TotalMinor || Input.Currency !== Order.Currency) {
       await Tx.update(PaymentClaims).set({ Status: "NeedsReview", ConfirmedAmountMinor: Input.AmountMinor }).where(eq(PaymentClaims.Id, Claim.Id))
       return "NeedsReview"
     }
     await Tx.update(PaymentClaims)
-      .set({ Status: "Confirmed", ConfirmedBy: Staff.Id, ConfirmedAt: new Date(), ConfirmedAmountMinor: Input.AmountMinor, BankReference: Input.BankReference })
+      .set({ Status: "Confirmed", ConfirmedBy: Staff.Id, ConfirmedAt: Now, ConfirmedAmountMinor: Input.AmountMinor, BankReference: Input.BankReference })
       .where(eq(PaymentClaims.Id, Claim.Id))
-    await Tx.update(Orders).set({ Status: "Paid", PaidAt: new Date() }).where(and(eq(Orders.Id, Order.Id), eq(Orders.Status, "PendingPayment")))
+    await ChangeStatus(Tx, Staff.TenantId, Order.Id, "Paid", Staff.Id, Now)
     await Tx.insert(AuditLog).values({ TenantId: Staff.TenantId, ActorId: Staff.Id, Action: "PaymentClaimConfirmed", EntityId: Claim.Id })
     return "Confirmed"
   })
 }
 ```
 
-A duplicate `BankReference` raises the unique violation inside the transaction; map it to `409 DUPLICATE_BANK_REFERENCE`.
+`ChangeStatus` throws `INVALID_TRANSITION` when the order is no longer `PendingPayment` (for example cancelled); the transaction rolls back, the claim stays `NeedsReview` for staff to refund, and money on a closed order is never confirmed silently. A duplicate `BankReference` raises the unique violation inside the transaction; map it to `409 DUPLICATE_BANK_REFERENCE`.
 
 ## Verify
 

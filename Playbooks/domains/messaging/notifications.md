@@ -16,10 +16,11 @@
 
 ### Minimum — always, never cut
 
-- Insert the `Notifications` row in the same transaction as the business change (`backend/reliability/background-jobs.md` outbox). Never notify from the request after commit "best effort".
+- Insert the `Notifications` row in the same transaction as the business change (`backend/reliability/background-jobs.md` outbox). Never notify from the request after commit "best effort". The job is enqueued after the commit (or by a sweeper that picks `Pending` rows), never by a queue call on another connection inside the business transaction.
 - Unique index `(UserId, DedupeKey, Channel)`; the DedupeKey is derived from the event (`Order:123:Shipped`), never from a random id or the job id. Insert with `ON CONFLICT DO NOTHING` and send only when a row was inserted.
 - Every query carries the tenant filter and `UserId` from the session (`backend/data/multi-tenancy.md`). A notification id from the client never reads another user's row.
 - Sending happens in a job, never inside the request; the job carries ids only.
+- Claim before the provider call: `UPDATE … SET "Status" = 'Sending' WHERE "Id" = $1 AND "Status" = 'Pending' RETURNING`; no row back → another worker has it, return. A sweeper returns stale `Sending` rows to `Pending`.
 - Mark `Sent` after the provider accepted, `Failed` with the reason otherwise; one channel failing never fails the others.
 
 ### Standard — adds
@@ -71,7 +72,7 @@ export const Notifications = pgTable("Notifications", {
   index("NotificationsUnread").on(T.TenantId, T.UserId).where(sql`${T.ReadAt} IS NULL`),
 ])
 
-export async function Notify(Tx: Transaction, Event: DomainEvent, Users: string[]) {
+export async function Notify(Tx: Transaction, Event: DomainEvent, Users: string[]): Promise<string[]> {
   const Channels = await ResolveChannels(Tx, Event.Category, Users)
   const Rows = Channels.map((C) => ({
     TenantId: Event.TenantId,
@@ -82,7 +83,11 @@ export async function Notify(Tx: Transaction, Event: DomainEvent, Users: string[
     Payload: Event.Payload,
   }))
   const Inserted = await Tx.insert(Notifications).values(Rows).onConflictDoNothing().returning({ Id: Notifications.Id })
-  for (const R of Inserted) await Boss.send("DeliverNotification", { NotificationId: R.Id }, { singletonKey: R.Id })
+  return Inserted.map((R) => R.Id)
+}
+
+export async function EnqueueDeliveries(Ids: string[]) {
+  for (const Id of Ids) await Boss.send("DeliverNotification", { NotificationId: Id }, { singletonKey: Id })
 }
 
 export async function DeliverNotification(Job: { data: { NotificationId: string } }) {
@@ -92,10 +97,19 @@ export async function DeliverNotification(Job: { data: { NotificationId: string 
   if (Pref && !Pref.Enabled) return MarkStatus(Row.Id, "Skipped")
   const Resume = NextAllowedTime(Row, Pref)
   if (Resume) return Boss.send("DeliverNotification", Job.data, { startAfter: Resume })
-  await Adapters[Row.Channel].Send(Row)
+  const [Claimed] = await Db.update(Notifications).set({ Status: "Sending" }).where(and(eq(Notifications.Id, Row.Id), eq(Notifications.Status, "Pending"))).returning()
+  if (!Claimed) return
+  try {
+    await Adapters[Row.Channel].Send(Row)
+  } catch (Error) {
+    await MarkStatus(Row.Id, "Failed")
+    throw Error
+  }
   await MarkStatus(Row.Id, "Sent")
 }
 ```
+
+Call order: `const Ids = await Db.transaction((Tx) => Notify(Tx, Event, Users))`, then `EnqueueDeliveries(Ids)` after it returns.
 
 Other stacks: Laravel notifications with `ShouldQueue` and a unique key, Django with Celery plus a unique constraint; the same dedupe index applies.
 

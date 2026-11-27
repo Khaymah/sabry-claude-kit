@@ -19,7 +19,8 @@
 - Create the reference server-side with `Order.TotalMinor`, currency and `MerchantRefNum` (ours, unique per attempt). Store the provider's reference number and `ExpiresAt` in `PaymentReferences`.
 - Notification endpoint verifies the provider's signature (concatenated documented fields hashed with the shared secret) with a constant-time compare, before any state change.
 - Mark paid only when the notification is a paid status and its amount and currency equal our stored reference amount, and its reference belongs to our row.
-- The paid transition is one conditional update on `Status = 'Pending'`; a repeated notification changes nothing.
+- The paid transition is one conditional update on `Status = 'Pending'`; a repeated notification changes nothing. The order moves through `ChangeStatus` (`domains/commerce/order-state-machine.md`) and its result is checked: an order that cannot move to `Paid` makes the reference `PaidLate` and raises an alert, never a silent skip.
+- Amount outcomes: lower than stored → reference stays `Pending` with `PartialPaid` and `ReceivedMinor`; higher → status `Overpaid`, order not paid, excess refunded or credited by staff; both alert staff.
 
 ### Standard — adds
 
@@ -55,7 +56,7 @@
 ## Example — Standard, Bun + Hono + Drizzle
 
 ```ts
-export async function ApplyReferenceNotification(Note: VerifiedReferenceNote) {
+export async function ApplyReferenceNotification(Note: VerifiedReferenceNote, Now: Date) {
   return db.transaction(async (Tx) => {
     const [Ref] = await Tx.select().from(PaymentReferences)
       .where(eq(PaymentReferences.MerchantRefNum, Note.MerchantRefNum))
@@ -66,18 +67,27 @@ export async function ApplyReferenceNotification(Note: VerifiedReferenceNote) {
     }
     if (Ref.Status === "Paid") return "AlreadyPaid"
     if (Note.AmountMinor !== Ref.AmountMinor || Note.Currency !== Ref.Currency) {
-      await Tx.update(PaymentReferences).set({ Status: "AmountMismatch", ReceivedMinor: Note.AmountMinor }).where(eq(PaymentReferences.Id, Ref.Id))
-      return "Mismatch"
+      const Under = Note.Currency === Ref.Currency && Note.AmountMinor < Ref.AmountMinor
+      await Tx.update(PaymentReferences)
+        .set({ Status: Under ? Ref.Status : "Overpaid", PartialPaid: Under, ReceivedMinor: Note.AmountMinor })
+        .where(eq(PaymentReferences.Id, Ref.Id))
+      return Under ? "PartialPaid" : "Overpaid"
     }
     const Late = Ref.Status === "Expired" || Ref.Status === "Cancelled"
-    await Tx.update(PaymentReferences)
-      .set({ Status: Late ? "PaidLate" : "Paid", PaidAt: new Date() })
-      .where(eq(PaymentReferences.Id, Ref.Id))
+    let Closed = Late
     if (!Late) {
-      await Tx.update(Orders).set({ Status: "Paid", PaidAt: new Date() })
-        .where(and(eq(Orders.Id, Ref.OrderId), eq(Orders.TenantId, Ref.TenantId), eq(Orders.Status, "PendingPayment")))
+      try {
+        await ChangeStatus(Tx, Ref.TenantId, Ref.OrderId, "Paid", "system:fawry", Now)
+      } catch (Error) {
+        if (!(Error instanceof AppError) || Error.Code !== "INVALID_TRANSITION") throw Error
+        Closed = true
+      }
     }
-    return Late ? "PaidLate" : "Paid"
+    await Tx.update(PaymentReferences)
+      .set({ Status: Closed ? "PaidLate" : "Paid", PaidAt: Now })
+      .where(eq(PaymentReferences.Id, Ref.Id))
+    if (Closed) await Alerts.Raise("PaidLate", { ReferenceId: Ref.Id })
+    return Closed ? "PaidLate" : "Paid"
   })
 }
 ```

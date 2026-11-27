@@ -16,7 +16,7 @@
 
 ### Minimum — always, never cut
 
-- Insert the `Refunds` row (`Status = 'Requested'`, `IdempotencyKey` unique, amount in minor units, `PaymentAttemptId`) in a transaction that first checks the refundable amount under lock (`domains/billing/refunds.md`, `backend/data/money.md`). Only then call the provider.
+- Insert the `Refunds` row (`Status = 'Requested'`, `IdempotencyKey` unique, amount in minor units, `PaymentAttemptId`) in a transaction that first looks up an existing row by `IdempotencyKey` (found → return it, no amount check), and only for a new key checks the refundable amount under lock (`domains/billing/refunds.md`, `backend/data/money.md`). Only then call the provider.
 - Never call the provider inside the database transaction; commit, then call, then update the row.
 - The provider call carries our refund id as its idempotency key or merchant reference where the provider supports it (`backend/reliability/idempotency.md`). A retry without one is forbidden.
 - Void and refund are different calls: void cancels an authorised or same-day captured transaction before settlement; refund returns money after settlement. Choose by the provider's rule and the transaction's state, not by our guess.
@@ -65,14 +65,16 @@ export async function RequestRefund(Staff: AuthUser, PaymentId: string, AmountMi
       .where(and(eq(PaymentAttempts.Id, PaymentId), eq(PaymentAttempts.TenantId, Staff.TenantId), eq(PaymentAttempts.Status, "Paid")))
       .for("update")
     if (!Payment) throw new AppError("PAYMENT_NOT_FOUND", 404)
+    const Key = `${PaymentId}:${ActionToken}`
+    const [Existing] = await Tx.select().from(Refunds).where(and(eq(Refunds.TenantId, Staff.TenantId), eq(Refunds.IdempotencyKey, Key)))
+    if (Existing) return Existing
     const [Sum] = await Tx.select({ Total: sql<bigint>`COALESCE(SUM(${Refunds.AmountMinor}), 0)` }).from(Refunds)
       .where(and(eq(Refunds.PaymentAttemptId, PaymentId), ne(Refunds.Status, "Failed")))
     if (AmountMinor <= 0n || AmountMinor > Payment.AmountMinor - BigInt(Sum.Total)) throw new AppError("REFUND_EXCEEDS_PAID", 409)
     const [Row] = await Tx.insert(Refunds)
-      .values({ TenantId: Staff.TenantId, PaymentAttemptId: PaymentId, AmountMinor, Currency: Payment.Currency, Status: "Requested", IdempotencyKey: `${PaymentId}:${ActionToken}`, RequestedBy: Staff.Id })
-      .onConflictDoNothing()
+      .values({ TenantId: Staff.TenantId, PaymentAttemptId: PaymentId, AmountMinor, Currency: Payment.Currency, Status: "Requested", IdempotencyKey: Key, RequestedBy: Staff.Id })
       .returning()
-    return Row ?? (await Tx.select().from(Refunds).where(eq(Refunds.IdempotencyKey, `${PaymentId}:${ActionToken}`)))[0]
+    return Row
   })
   await Enqueue("SubmitRefund", { RefundId: Refund.Id })
   return Refund

@@ -17,7 +17,7 @@
 ### Minimum — always, never cut
 
 - Points are integers (`integer`/`bigint`), never decimals. Earn = `floor(PaidMinor × PointsPerEgp ÷ 100)` computed with integers on the amount paid after discount, on one stated rule.
-- `PointsLedger(Id, TenantId, UserId, Delta, Reason, ReferenceType, ReferenceId, CreatedAt)` is append-only. A unique `(TenantId, ReferenceType, ReferenceId, Reason)` makes each award and each reversal happen once.
+- `PointsLedger(Id, TenantId, UserId, Delta, Reason, ReferenceType, ReferenceId, CreatedAt)` is append-only. A unique `(TenantId, ReferenceType, ReferenceId, Reason)` makes each award and each reversal happen once. `ReferenceId` is the order id for `Earn` and the refund id for `Reversal` and `Restore`, so a second partial refund is a new row, not a no-op.
 - `PointsBalances.Balance` with `CHECK (Balance >= 0)`, changed only by `SET Balance = Balance + $d WHERE UserId = $u AND Balance + $d >= 0 RETURNING`, in the same transaction as the ledger row. Never read the balance and write an absolute value.
 - Burning needs a stated exchange rate (default 100 points = 1 EGP, stored as data), converted to a discount in minor units at checkout and snapshotted on the order.
 - A redemption never exceeds the order total, and never the user's balance.
@@ -27,7 +27,7 @@
 - Earn when the order reaches the state the owner names (default `Delivered`, after the return window if the owner says so), not at placement; a cancelled order earns nothing.
 - Expiry: each earn row carries `ExpiresAt`; burning consumes the oldest unexpired first (FIFO) through `PointsLots(RemainingPoints)`. A nightly job writes `Expired` ledger rows for the lots past `ExpiresAt` and deducts the balance atomically.
 - Expiry dates and "points expiring in 30 days" are computed in `Africa/Cairo` days.
-- Refund or return reverses earned points proportionally to the refunded amount (floor) as a `Reversal` row; redeemed points on that refund go back as a `Restore` row with a new expiry of the owner's choosing.
+- Refund or return reverses earned points proportionally to the refunded amount (floor) as a `Reversal` row (`ReferenceId` = refund id); redeemed points on that refund go back as a `Restore` row (`ReferenceId` = refund id) with a new expiry of the owner's choosing.
 - If a reversal would make the balance negative (points already spent), the reversal is clamped to the available balance and the shortfall is recorded as `ReversalShortfall` in the row, never a negative balance.
 - Redemption is part of checkout's transaction (`domains/commerce/cart-checkout.md`) and idempotent with the order's key.
 
@@ -49,7 +49,7 @@
 | Points expire at midnight while a checkout is in flight | The lot is read inside the transaction; expired lots are skipped; the discount is recomputed or `409 PRICE_CHANGED` |
 | Rate changed from 100 to 50 points per EGP | Applies to new redemptions; old orders keep their snapshot; ledger rows are untouched |
 | Account merged or deleted | Ledger rows move or are anonymised with the user; balance transferred by a pair of rows, never an edit |
-| Data at 100×: 200M ledger rows | Balance read from the cached row; ledger indexed `(UserId, CreatedAt)`; expiry job scans only lots with `ExpiresAt <= now()` by index, in batches |
+| Data at 100×: 200M ledger rows | Balance read from the cached row; ledger indexed `(UserId, CreatedAt)`; expiry job scans only lots with `ExpiresAt <= $Now` (the job's injected clock) by index, in batches |
 | Twice / parallel: redeem button pressed twice | The order's idempotency key returns the first result; with different keys the balance guard still stops the second |
 
 ## Example — Standard, Bun + Hono + Drizzle

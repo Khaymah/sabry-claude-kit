@@ -24,7 +24,7 @@
 
 ### Standard — adds
 
-- Webhook `GET` answers the verify challenge only when the verify token matches; `POST` verifies `X-Hub-Signature-256` (HMAC-SHA256 with the app secret) on the raw body before parsing.
+- Webhook `GET` answers the verify challenge only when the verify token matches; `POST` verifies `X-Hub-Signature-256` (HMAC-SHA256 with the app secret) on the raw body before parsing, compared in constant time after a byte-length check (compare buffers, not string lengths).
 - Return 200 fast and process in a job; Meta retries on non-200 and sends the same event more than once. Dedupe inbound by message `id` with a unique index; status events (`sent`, `delivered`, `read`, `failed`) only move forward.
 - 24-hour window: store `LastInboundAt` per contact. Inside it, free-form replies are allowed; outside it, only templates. Check at send time, not at enqueue time, because a queued message can cross the boundary.
 - Media: the webhook gives a media id, not a file. Download within minutes (the URL needs the bearer token and expires; media is kept by Meta about 30 days), copy to your own storage (`backend/files/uploads.md`), and store your own key. Validate type and size before keeping it.
@@ -63,8 +63,9 @@ App.get("/webhooks/whatsapp", (C) => {
 App.post("/webhooks/whatsapp", async (C) => {
   const Raw = await C.req.text()
   const Expected = "sha256=" + createHmac("sha256", Env.WHATSAPP_APP_SECRET).update(Raw).digest("hex")
-  const Given = C.req.header("x-hub-signature-256") ?? ""
-  if (Given.length !== Expected.length || !timingSafeEqual(Buffer.from(Given), Buffer.from(Expected))) return C.text("Invalid", 401)
+  const Given = Buffer.from(C.req.header("x-hub-signature-256") ?? "")
+  const Wanted = Buffer.from(Expected)
+  if (Given.byteLength !== Wanted.byteLength || !timingSafeEqual(Given, Wanted)) return C.text("Invalid", 401)
   for (const M of ExtractInbound(JSON.parse(Raw))) {
     const [Row] = await Db.insert(WhatsAppMessages).values(M).onConflictDoNothing().returning({ Id: WhatsAppMessages.Id })
     if (Row) await Boss.send("ProcessInbound", { MessageId: Row.Id })
@@ -72,10 +73,10 @@ App.post("/webhooks/whatsapp", async (C) => {
   return C.text("Ok")
 })
 
-export async function SendWhatsApp(ContactId: string, Body: SendBody) {
+export async function SendWhatsApp(ContactId: string, Body: SendBody, Now: Date) {
   const Contact = await LoadContact(ContactId)
   if (!Contact.OptedIn) throw new AppError("WHATSAPP_NO_OPT_IN", 409)
-  const InWindow = Contact.LastInboundAt && Date.now() - Contact.LastInboundAt.getTime() < 24 * 3_600_000
+  const InWindow = Contact.LastInboundAt && Now.getTime() - Contact.LastInboundAt.getTime() < 24 * 3_600_000
   if (Body.Kind === "Text" && !InWindow) throw new AppError("WHATSAPP_WINDOW_CLOSED", 409)
   return Adapter.Send(Contact.Phone, Body)
 }

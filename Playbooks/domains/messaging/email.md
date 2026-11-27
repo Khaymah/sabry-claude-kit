@@ -17,6 +17,7 @@
 ### Minimum — always, never cut
 
 - Enqueue a job with ids (`backend/reliability/background-jobs.md`); the handler loads the data and renders. The HTTP response never waits on the provider.
+- Claim before the provider call: `UPDATE "EmailSends" SET "Status" = 'Sending' WHERE "Id" = $1 AND "Status" = 'Pending' RETURNING`; no row back means another worker owns it. A sweeper returns stale `Sending` rows to `Pending`.
 - The provider sits behind one adapter interface; the core never imports the provider SDK.
 - Reset and verification links carry a hashed, expiring token (`backend/auth/password-reset.md`); never log the full email body or the link.
 - Check the recipient against `EmailSuppressions` immediately before sending; a suppressed address is skipped and recorded, not errored.
@@ -28,7 +29,7 @@
 - Send from a subdomain (`mail.example.com`) with SPF, DKIM and DMARC (`p=none` first, then `quarantine` after reports are clean) published; the app checks nothing but the ops checklist must exist.
 - Templates are files with a version; render with an HTML-escaping engine; every email has a plain-text part and a localised subject.
 - Arabic: `<html lang="ar" dir="rtl">`, a web-safe fallback font (Tahoma, Arial) because many clients drop web fonts, numbers in the locale the owner chose, mixed LTR parts (order numbers, URLs) wrapped in `<bdi>` or `dir="ltr"`. Test in Gmail, Outlook and Apple Mail.
-- Webhook endpoint verifies the provider signature on the raw body, then upserts by provider event id (idempotent). Hard bounce and spam complaint add the address to `EmailSuppressions`; soft bounces suppress after 3 in a row.
+- Webhook endpoint verifies the provider signature on the raw body with a constant-time compare (`timingSafeEqual` after a byte-length check), then upserts by provider event id (idempotent). Hard bounce and spam complaint add the address to `EmailSuppressions`; soft bounces suppress after 3 in a row.
 - Store `ProviderMessageId` per send so webhooks update the right row.
 - Test mode: a config flag routes every send to a capture sink (log, Mailpit, or the provider's sandbox); production never sends from a non-production environment, and a staging allow-list blocks real customers.
 
@@ -65,6 +66,8 @@ export async function SendEmailJob(Job: { data: { SendId: string } }) {
   if (!Send || Send.Status !== "Pending") return
   const Suppressed = await Db.query.EmailSuppressions.findFirst({ where: eq(EmailSuppressions.Address, Send.To) })
   if (Suppressed) return Db.update(EmailSends).set({ Status: "Suppressed" }).where(eq(EmailSends.Id, Send.Id))
+  const [Claimed] = await Db.update(EmailSends).set({ Status: "Sending" }).where(and(eq(EmailSends.Id, Send.Id), eq(EmailSends.Status, "Pending"))).returning()
+  if (!Claimed) return
   const Rendered = RenderTemplate(Send.Template, Send.Locale, Send.Variables)
   const Result = await Adapter.Send({ To: Send.To, Subject: Rendered.Subject, Html: Rendered.Html, Text: Rendered.Text, DedupeKey: Send.DedupeKey })
   await Db.update(EmailSends).set({ Status: "Sent", ProviderMessageId: Result.ProviderMessageId }).where(eq(EmailSends.Id, Send.Id))

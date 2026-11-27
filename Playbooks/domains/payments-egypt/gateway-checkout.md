@@ -63,7 +63,7 @@ A project taking real card payments uses Standard.
 ## Example — Standard, Bun + Hono + Drizzle
 
 ```ts
-export async function ApplyPaymentResult(Result: VerifiedPaymentResult) {
+export async function ApplyPaymentResult(Result: VerifiedPaymentResult, Now: Date) {
   return db.transaction(async (Tx) => {
     const [Attempt] = await Tx.select().from(PaymentAttempts)
       .where(eq(PaymentAttempts.MerchantOrderId, Result.MerchantOrderId))
@@ -84,14 +84,14 @@ export async function ApplyPaymentResult(Result: VerifiedPaymentResult) {
       await Tx.update(PaymentAttempts).set({ Status: "PaidOnClosedOrder", ProviderTransactionId: Result.TransactionId }).where(eq(PaymentAttempts.Id, Attempt.Id))
       return "ClosedOrder"
     }
-    await Tx.update(PaymentAttempts).set({ Status: "Paid", ProviderTransactionId: Result.TransactionId, PaidAt: new Date() }).where(eq(PaymentAttempts.Id, Attempt.Id))
-    await Tx.update(Orders).set({ Status: "Paid", PaidAt: new Date() }).where(and(eq(Orders.Id, Order.Id), eq(Orders.Status, "PendingPayment")))
+    await Tx.update(PaymentAttempts).set({ Status: "Paid", ProviderTransactionId: Result.TransactionId, PaidAt: Now }).where(eq(PaymentAttempts.Id, Attempt.Id))
+    await ChangeStatus(Tx, Attempt.TenantId, Order.Id, "Paid", "system:gateway", Now)
     return "Paid"
   })
 }
 ```
 
-`VerifiedPaymentResult` is built only after the HMAC passes (or after our own status inquiry). Paymob concatenates selected transaction fields in a fixed order and signs with HMAC-SHA512; Stripe signs the raw body with a timestamp; Kashier and Geidea each have their own recipe. Verify against current docs.
+`ChangeStatus` is the guarded transition of the state machine; if it still finds the order not payable, its `INVALID_TRANSITION` rolls the attempt back and the job records `PaidOnClosedOrder` and alerts. `VerifiedPaymentResult` is built only after the HMAC passes (or after our own status inquiry). Paymob concatenates selected transaction fields in a fixed order and signs with HMAC-SHA512; Stripe signs the raw body with a timestamp; Kashier and Geidea each have their own recipe. Verify against current docs.
 
 ## Verify
 

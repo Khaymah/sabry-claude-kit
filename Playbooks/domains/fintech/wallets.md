@@ -17,8 +17,8 @@
 ### Minimum — always, never cut
 
 - One `Wallets` row per `(TenantId, OwnerId, Currency)`, unique. `Balance bigint NOT NULL CHECK ("Balance" >= 0)`.
-- Every change writes a `LedgerEntries` row and updates `Balance` in one transaction: `SET "Balance" = "Balance" - $1 WHERE "Id" = $2 AND "Balance" >= $1 RETURNING`. No row back is `409 INSUFFICIENT_FUNDS`.
-- Top-up, spend and transfer take an idempotency key (`backend/reliability/idempotency.md`), stored as a unique column on the entry.
+- Every change writes a `LedgerEntries` row and updates `Balance` in one transaction: `SET "Balance" = "Balance" - $1 WHERE "Id" = $2 AND "Balance" - "Held" >= $1 RETURNING`, where `Held` is the cached sum of open holds (0 without holds). No row back is `409 INSUFFICIENT_FUNDS` (default code; keep the project's).
+- Top-up, spend and transfer take an idempotency key (`backend/reliability/idempotency.md`), stored on the entry with a unique `(TenantId, WalletId, IdempotencyKey)`, never a global key. The caller must own the source wallet or hold the permission; a unique violation is mapped to returning the first result.
 - Top-up credits only after the provider confirms and amount plus currency match; never from the redirect page.
 - Entries are never updated or deleted. A wrong entry is fixed by a reversing entry that references it.
 
@@ -29,11 +29,11 @@
 - Each entry stores `BalanceAfter`. A nightly check recomputes `SUM(Amount)` per wallet and alerts on any difference from `Balance`; it never fixes it.
 - Statement per period = opening balance (last `BalanceAfter` before the period start) + entries in `[start, end)` + closing balance, with the period cut at midnight Africa/Cairo (`backend/data/time-zones.md`). A closed period is stored, not regenerated.
 - Refund to wallet is a credit entry referencing the original spend; total credited never exceeds the spend.
-- Wallet status (`Active`, `Frozen`, `Closed`): `Frozen` blocks debits only. `Closed` requires zero balance and zero open holds.
+- Wallet status (`Active`, `Frozen`, `Closed`): `Frozen` blocks debits only; a credit needs a status other than `Closed`. `Closed` requires zero balance and zero open holds.
 
 ### Advanced — adds
 
-- A hold is a row in `WalletHolds (Id, WalletId, Amount, Status, ExpiresAt)`; `Available = Balance - SUM(open holds)`. Placing a hold is one atomic `UPDATE` that checks `Available`, not a read then write.
+- A hold is a row in `WalletHolds (Id, WalletId, Amount, Status, ExpiresAt)`; `Available = Balance - Held`, with `Held` kept in step with open holds in the same transaction. Placing a hold is one atomic `UPDATE` that checks `Available`, not a read then write.
 - Capture turns a hold into a debit entry for an amount at most the hold; the remainder is released. Capture and release are conditional on `Status = 'Open'`, so each happens once.
 - An expiry job releases lapsed holds with `FOR UPDATE SKIP LOCKED`; a capture arriving after expiry is `409 HOLD_EXPIRED`.
 - Merchant wallets separate `Pending` (not yet payable) from `Available`; moving between them is an entry, never a column edit.
@@ -58,23 +58,26 @@
 ## Example — Standard, Bun + Hono + Drizzle
 
 ```ts
-export async function TransferBetweenWallets(TenantId: string, FromId: string, ToId: string, Amount: bigint, Key: string) {
+export async function TransferBetweenWallets(TenantId: string, ActorId: string, FromId: string, ToId: string, Amount: bigint, Key: string) {
   if (FromId === ToId || Amount <= 0n) throw new AppError("WALLET_TRANSFER_INVALID", 400)
   return db.transaction(async (Tx) => {
-    const Existing = await Tx.select().from(LedgerEntries).where(eq(LedgerEntries.IdempotencyKey, Key)).limit(1)
-    if (Existing.length) return { TransferId: Existing[0].TransferId }
     const Locked = await Tx.select().from(Wallets)
       .where(and(eq(Wallets.TenantId, TenantId), inArray(Wallets.Id, [FromId, ToId])))
       .orderBy(Wallets.Id).for("update")
     if (Locked.length !== 2 || Locked[0].Currency !== Locked[1].Currency) throw new AppError("WALLET_TRANSFER_INVALID", 400)
+    if (Locked.find((W) => W.Id === FromId)?.OwnerId !== ActorId) throw new AppError("FORBIDDEN", 403)
+    const Existing = await Tx.select().from(LedgerEntries)
+      .where(and(eq(LedgerEntries.TenantId, TenantId), eq(LedgerEntries.WalletId, FromId), eq(LedgerEntries.IdempotencyKey, Key))).limit(1)
+    if (Existing.length) return { TransferId: Existing[0].TransferId }
     const Debited = await Tx.update(Wallets)
       .set({ Balance: sql`${Wallets.Balance} - ${Amount}` })
-      .where(and(eq(Wallets.Id, FromId), eq(Wallets.Status, "Active"), gte(Wallets.Balance, Amount)))
+      .where(and(eq(Wallets.Id, FromId), eq(Wallets.Status, "Active"), sql`${Wallets.Balance} - ${Wallets.Held} >= ${Amount}`))
       .returning({ Balance: Wallets.Balance })
     if (!Debited.length) throw new AppError("INSUFFICIENT_FUNDS", 409)
     const Credited = await Tx.update(Wallets)
       .set({ Balance: sql`${Wallets.Balance} + ${Amount}` })
-      .where(eq(Wallets.Id, ToId)).returning({ Balance: Wallets.Balance })
+            .where(and(eq(Wallets.Id, ToId), ne(Wallets.Status, "Closed"))).returning({ Balance: Wallets.Balance })
+    if (!Credited.length) throw new AppError("WALLET_TRANSFER_INVALID", 400)
     const TransferId = crypto.randomUUID()
     await Tx.insert(LedgerEntries).values([
       { TenantId, WalletId: FromId, Amount: -Amount, BalanceAfter: Debited[0].Balance, TransferId, IdempotencyKey: Key },
