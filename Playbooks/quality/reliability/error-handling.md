@@ -16,10 +16,10 @@
 
 ### Minimum — always, never cut
 
-- One `AppError` class (or a small family) with `Code` (stable, `UPPER_SNAKE`), `Status` and optional `Details`; thrown with `throw new AppError("ORDER_NOT_FOUND", 404)`.
+- One `AppError` class (or a small family; the project's existing one if it has it) with `Code` (stable, `UPPER_SNAKE` by default), `Status` and optional `Details`; thrown with `throw new AppError("ORDER_NOT_FOUND", 404)`.
 - One error middleware maps `AppError` to the response shape and everything else to `500 INTERNAL_ERROR` with `RequestId`; no stack, SQL or provider message ever reaches the client.
 - `catch` only where you can do something: recover, add context and rethrow, or translate. No empty catch, no log-and-continue for errors that leave data half-written.
-- Validation errors come from the schema at the route (`zValidator`), returned as `400` with field-level `Details`.
+- Validation errors come from the schema at the route (`zValidator`), returned as `400` (or the project's validation status) with field-level `Details`.
 - `process.on("unhandledRejection")` and `uncaughtException`: log as fatal, report, exit non-zero; PM2 or systemd restarts the process.
 
 ### Standard — adds
@@ -48,6 +48,8 @@
 | Twice / parallel: two requests create the same unique row | The loser gets `409 <ENTITY>_EXISTS` from the translated `23505`, never a 500 |
 
 ## Example — Standard, Bun + Hono
+
+The sample uses the owner's default codes, statuses and shape; keep the project's own.
 
 ```ts
 export class AppError extends Error {
@@ -87,7 +89,7 @@ process.on("unhandledRejection", (Reason) => {
 - [ ] `[M]` A thrown `Error("boom")` returns a 500 with `RequestId` and no stack in the body.
 - [ ] `[M]` Malformed JSON returns 400.
 - [ ] `[M]` `grep -rnE "catch \([^)]*\) \{\s*\}" Src/` finds nothing.
-- [ ] `[S]` Creating a duplicate returns 409 with an `_EXISTS` code.
+- [ ] `[S]` Creating a duplicate returns 409 with an `_EXISTS` code (the project's own code and casing if it has them).
 - [ ] `[S]` A provider timeout returns `PROVIDER_UNAVAILABLE` (503), not the provider's raw message.
 - [ ] `[A]` Error codes per endpoint listed in the API docs.
 

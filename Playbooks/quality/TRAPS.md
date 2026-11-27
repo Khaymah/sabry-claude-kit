@@ -26,7 +26,7 @@ Detect legend: `grep` = a search on the diff · `lint` = an ESLint / Biome rule 
 | `COUNT(*)` on a big table every page | `grep` `count(` in list endpoints | Estimate, cached counter or "has more" |
 | `IN ()` with an empty list or 10k ids | `test` empty and huge input | Skip when empty; chunk or `= ANY($1)` |
 | Missing index on a joined / filtered FK | `look` schema diff · `EXPLAIN` shows Seq Scan | Index; composite: equality columns first |
-| Offset pagination on a growing table | `grep` `.offset(` | Keyset pagination |
+| Offset pagination on a growing table | `grep` `.offset(` | Keyset for new endpoints or a measured problem; an existing contract keeps its params with `Id` tiebreaker and `Limit` cap |
 | `ILIKE '%term%'` without trigram index | `grep` `ilike` | `pg_trgm` GIN or full-text |
 
 ## Data correctness
@@ -34,11 +34,11 @@ Detect legend: `grep` = a search on the diff · `lint` = an ESLint / Biome rule 
 | Trap | Detect | Fix |
 |---|---|---|
 | `update()` / `delete()` without `.where()` | `grep` `.update(` / `.delete(` lines without `.where(` | Always `.where()` → `Stacks/Database.md` §4 |
-| Soft-delete filter forgotten | `grep` queries on soft-deletable tables without `NotDeleted(` | One shared helper |
+| Soft-delete filter forgotten | `grep` queries on soft-deletable tables without `NotDeleted(` or the project's equivalent helper | One shared helper |
 | Read-check-write (stock, balance, coupon) | `look` `SELECT` then `UPDATE` of the same row · `test` parallel requests | Atomic conditional update / `FOR UPDATE` / constraint → `backend/data/concurrency.md` |
 | Money in floats | `grep` `parseFloat\|toFixed\|real\|double` on money | Integer minor units → `backend/data/money.md` |
 | Network call inside a DB transaction | `look` `fetch(` / provider call inside `db.transaction(` | Call outside; outbox or job |
-| Timestamps without time zone | `grep` `timestamp(` without `withTimezone: true` | `timestamptz` |
+| Timestamps without time zone | `grep` `timestamp(` without `withTimezone: true` | `timestamptz` for new columns; no migration of existing columns without a plan |
 | Duplicate submits create duplicates | `test` double POST | Unique natural key / idempotency key → `backend/reliability/idempotency.md` |
 | Migration that locks a big table | `look` `ALTER TABLE … NOT NULL` / index without `CONCURRENTLY` | Expand → migrate → contract → `backend/data/migrations.md` |
 

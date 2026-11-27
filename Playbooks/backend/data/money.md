@@ -2,7 +2,7 @@
 
 - **Situation:** prices, carts, orders, invoices, discounts, taxes, refunds, balances, wallets, payouts, any currency. Display formatting only: `frontend/i18n-rtl.md`.
 - **Skip when:** the app never stores an amount (it only links to a hosted checkout whose prices live in the provider, e.g. Stripe Price IDs). Then store the provider's ids and amounts as received.
-- **Decision:** amounts are integers in the currency's minor unit (`bigint`) next to an ISO 4217 code; rounding happens once, at a named step, with a stated rule.
+- **Decision:** amounts are integers in the currency's minor unit (`bigint`) next to an ISO 4217 code; rounding happens once, at a named step, with a stated rule. A rounding rule, response type or status code the owner stated or the project already uses wins over every default below.
 
 ## Levels
 
@@ -21,17 +21,17 @@ A project at Minimum that takes real payments uses Standard here.
 - Column pair `AmountMinor bigint NOT NULL` + `Currency text NOT NULL`. Never `float`, `real`, `double`, or JS `number` arithmetic on decimal amounts.
 - Parse user input from a decimal string to minor units once, at the edge. Inside the system only integers move.
 - An order line stores its own unit price and quantity at purchase time. Never recompute a past order from today's prices.
-- APIs send amounts as strings (`"15050"`), so no JSON client turns them into floats.
+- APIs send amounts in the type the project's existing responses already use. Only a new API with no convention sends them as strings (`"15050"`), so no JSON client turns them into floats.
 
 ### Standard — adds
 
 - Minor-unit exponent from a table, not an assumption: `EGP`/`USD`/`SAR` = 2, `JPY` = 0, `KWD`/`BHD`/`OMR` = 3.
-- Percentages are basis points (`1500` = 15%). One rounding rule (half-up per line, then sum lines), named in the code.
+- Percentages are basis points (`1500` = 15%) unless the project stores them otherwise. One rounding rule, named in the code: the owner's rule when stated ("floor", "leftover on the last part"), else half-up per line, then sum lines. Compute with integers only (`Amount * Percent / 100` floored), never `Amount * 0.43`.
 - The order stores `SubtotalMinor`, `DiscountMinor`, `TaxMinor`, `TotalMinor`, with a `CHECK` that they add up.
-- Splits (installments, partial refunds) allocate the remainder so parts sum exactly to the total.
+- Splits (installments, partial refunds) allocate the remainder so parts sum exactly to the total, on the part the owner named (default: the last).
 - Before marking an order paid, compare the provider's amount and currency with the order total.
 - Refunds are rows (`Refunds` + `RefundAllocations(PaymentId, AmountMinor)`), never a mutated amount. What is refundable per payment is its amount minus the sum of its earlier allocations, read in the same transaction that writes the new refund, with the order or its payments locked (`SELECT … FOR UPDATE`) so two refunds at once cannot both pass the check.
-- A refund amount is validated at the edge: positive, in minor units, not above what is refundable (409), and the order is loaded through the tenant filter like any other read.
+- A refund amount is validated at the edge: not a positive integer in minor units → 400; above what is refundable → 409 (or the project's existing code for a business-rule conflict). The order is loaded through the tenant filter like any other read.
 
 ### Advanced — adds
 

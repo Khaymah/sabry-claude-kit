@@ -28,7 +28,7 @@
 - Scopes map to the same permission strings as users (`backend/auth/rbac.md`); a key can't hold scopes its creator lacks.
 - Rotation: create a new key, both work until the old one is revoked (or auto-expires after the overlap period).
 - `LastUsedAt` updated at most once per minute per key (batched), not on every request.
-- Rate limit per key (`backend/reliability/rate-limit.md`), with `X-RateLimit-*` headers.
+- Rate limit per key (`backend/reliability/rate-limit.md`), with `X-RateLimit-*` headers (the project's existing rate-limit headers if it has any).
 - Creation, rotation and revocation are audit-logged.
 
 ### Advanced — adds

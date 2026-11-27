@@ -48,6 +48,8 @@
 
 ## Example — Standard / Advanced, Bun + Hono
 
+The sample uses the owner's default codes, statuses and shape; keep the project's own.
+
 ```ts
 const MAX_IN_FLIGHT = 200
 let InFlight = 0

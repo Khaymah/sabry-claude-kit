@@ -46,6 +46,8 @@
 
 ## Example — Standard, Bun + Hono
 
+The sample uses the owner's default statuses (`201`, `409`); assert the project's own.
+
 ```ts
 import { expect, test } from "bun:test"
 

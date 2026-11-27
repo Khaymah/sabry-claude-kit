@@ -22,10 +22,10 @@
 
 ### Standard — adds
 
-- Money-moving endpoints take an `Idempotency-Key` header; only those, not every POST.
+- Money-moving endpoints take an `Idempotency-Key` header (the project's own header or mechanism if it has one); only those, not every POST.
 - Uniqueness is per **(scope, key)**, scope = the user or tenant, so nobody can replay another's response.
 - Claim the key before the work by inserting `Status = 'Processing'`; the unique constraint, not a prior `SELECT`, decides the winner.
-- Same key, different request (hash of method + path + canonical body) → `422`. Same key still processing → `409` with `Retry-After`.
+- Same key, different request (hash of method + path + canonical body) → `422` (or the project's validation status). Same key still processing → `409` with `Retry-After`.
 - Store the final status and body; a repeat returns them with `Idempotent-Replayed: true`. 4xx is stored and replayed; 5xx or a crash deletes the claim.
 - Pass the same key downstream to the payment provider (Stripe `Idempotency-Key`, Paymob `merchant_order_id`), so our retry never charges twice.
 - Webhooks are processed in a job; the HTTP handler only records and answers.
@@ -44,7 +44,7 @@
 | Server crashes after the provider charged, before `Completed` was written | The retry reaches the provider with the same key and gets the original charge back; no second charge |
 | Process dies, claim stuck in `Processing` | Standard: `409` until the 24 h expiry, and an alert. Advanced: reclaimed after the timeout |
 | Same body with keys in a different JSON order | Same hash: the body is canonicalised (sorted keys) before hashing |
-| Same key sent to a different endpoint | `422`: method and path are part of the hash |
+| Same key sent to a different endpoint | `422` (or the project's validation status): method and path are part of the hash |
 | Client retries after the key expired | Processed as new. Expiry must exceed the client's longest retry window; document it |
 | Webhook arrives before our own order row is committed | The job fails with "not found yet" and retries with backoff; it is not dropped |
 | Webhooks out of order (refund before payment succeeded) | The handler checks the order's state machine and requeues or ignores transitions that don't apply yet |
@@ -53,6 +53,8 @@
 | Twice / parallel: The same key from two devices at once | The unique constraint lets one claim it; the other gets `409` and retries into a replay |
 
 ## Example — Standard, Bun + Hono + Drizzle
+
+The sample uses the owner's default header, codes and shape; keep the project's own.
 
 ```ts
 export const IdempotencyKeys = pgTable("IdempotencyKeys", {

@@ -25,7 +25,7 @@
 ### Standard — adds
 
 - Every list endpoint has a test asserting its query count stays the same for 1 row and 50 rows.
-- Keyset pagination for lists that grow (feeds, orders, logs); offset only for small admin tables.
+- Keyset pagination for new lists that grow (feeds, orders, logs) or when scale is measured to be a problem; offset for small admin tables and for existing contracts (add `Id` tiebreaker and `Limit` cap).
 - Each foreign key used in a join or filter is indexed; composite indexes put equality columns first, then the sort column.
 - Slow-query visibility: `pg_stat_statements` enabled; `log_min_duration_statement = 500ms`.
 - Totals on big lists: an estimate, a cached counter, or "has more" instead of exact `COUNT(*)` on every page.

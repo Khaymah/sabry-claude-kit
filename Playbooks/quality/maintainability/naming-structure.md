@@ -26,7 +26,7 @@
 
 - One glossary line per domain term in `.agents/memory/` or the README when a term has a specific meaning ("Active member = paid in the last 30 days").
 - File names match their main export; one main concept per file.
-- API routes kebab-case nouns (`/api/v1/password-resets`), actions as sub-resources only when no noun fits (`/orders/{Id}/cancel`).
+- API routes kebab-case nouns unless the project uses another style (then follow it) (`/api/v1/password-resets`), actions as sub-resources only when no noun fits (`/orders/{Id}/cancel`).
 
 ### Advanced — adds
 

@@ -2,7 +2,7 @@
 
 - **Situation:** following one request through logs, jobs and outbound calls; a user reports "it failed at 3:15" and you need every line about it; support asks for a reference number.
 - **Skip when:** a CLI script or a one-shot job (use a run id instead).
-- **Decision:** a request id is accepted or generated at the edge, stored in async context, attached to every log line, returned in the `X-Request-Id` response header, and forwarded to jobs and outbound calls.
+- **Decision:** if the project already has a correlation header or field, use it; otherwise a request id is accepted or generated at the edge, stored in async context, attached to every log line, returned in the `X-Request-Id` response header, and forwarded to jobs and outbound calls.
 
 ## Levels
 
@@ -16,7 +16,7 @@
 
 ### Minimum — always, never cut
 
-- Nginx sets `X-Request-Id` from `$request_id` when absent; the app accepts it only if it matches `^[A-Za-z0-9-]{8,64}$`, otherwise generates one.
+- Default names when the project has none (else keep its header and field): Nginx sets `X-Request-Id` from `$request_id` when absent; the app accepts it only if it matches `^[A-Za-z0-9-]{8,64}$`, otherwise generates one.
 - The response carries `X-Request-Id`; error responses include it in the body (`Error.RequestId`) so users and support can quote it.
 
 ### Standard — adds

@@ -2,7 +2,7 @@
 
 - **Situation:** "delete" buttons, trash and restore, archiving, records referenced by invoices or history, account deletion, data retention, "the client deleted it by mistake".
 - **Skip when:** pure join or log tables where a row has no life of its own (a tag link, a session row): delete them.
-- **Decision:** business records are soft-deleted (`IsDeleted`, `DeletedAt`, `DeletedBy`) and every read filters through one shared helper; uniqueness ignores deleted rows; personal data that must really go is anonymised or hard-deleted by a purge job after the retention period.
+- **Decision:** by default business records are soft-deleted; a project with its own soft-delete columns reuses them, and one that hard-deletes keeps that rule. The default columns are `IsDeleted`, `DeletedAt`, `DeletedBy`, and every read filters through one shared helper; uniqueness ignores deleted rows; personal data that must really go is anonymised or hard-deleted by a purge job after the retention period.
 
 ## Levels
 
@@ -16,10 +16,10 @@
 
 ### Minimum — always, never cut
 
-- Columns: `IsDeleted boolean NOT NULL DEFAULT false` (base columns) plus `DeletedAt timestamptz` and `DeletedBy uuid`.
+- Columns (reuse the project's existing soft-delete columns if it has them): `IsDeleted boolean NOT NULL DEFAULT false` (base columns) plus `DeletedAt timestamptz` and `DeletedBy uuid`.
 - Every read on a soft-deletable table goes through `NotDeleted(Table)`; never a hand-written `IsDeleted = false` you might forget.
 - Unique business keys are partial: `CREATE UNIQUE INDEX … ("Email") WHERE "IsDeleted" = false`.
-- Lists, counts, lookups by id and joins all filter; a deleted row returns `404`, not `403`.
+- Lists, counts, lookups by id and joins all filter; a deleted row returns `404` (or the project's existing status), not `403`.
 
 ### Standard — adds
 
@@ -48,6 +48,8 @@
 | Twice / parallel: delete and update at the same moment | Update's `WHERE` includes `NotDeleted`, so it affects nothing once the delete commits; the user gets 404 |
 
 ## Example — Standard, Drizzle
+
+The sample uses the owner's default columns and helper; keep the project's own.
 
 ```ts
 export const NotDeleted = (T: { IsDeleted: AnyPgColumn }) => eq(T.IsDeleted, false)

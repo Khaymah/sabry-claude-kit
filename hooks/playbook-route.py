@@ -19,6 +19,11 @@ the most keyword hits. Each one is injected as an excerpt (Decision, Minimum and
 Pitfalls) of at most 2,500 characters, with its path for the rest. A playbook already given in
 this session is named, not repeated. No match, no output.
 
+Strong models (Opus, Fable; read from the payload, `ANTHROPIC_MODEL`, the transcript, the
+`--model` flag of the parent process on Linux, or `model` in settings.json) get a lean excerpt: the
+Decision and the edge-case rows only, since they already follow the rules and a long rule list
+pushed them to override the project's own conventions. `SABRY_KIT_PLAYBOOKS_LEAN=0|1` forces it.
+
 Switch: `playbooks` (on by default). Any failure exits 0 with no output.
 """
 import hashlib
@@ -49,6 +54,7 @@ CODE_EXT = (".ts", ".tsx", ".mts", ".cts", ".js", ".jsx", ".mjs", ".cjs", ".py",
 EDIT_TOOLS = ("Write", "Edit", "MultiEdit")
 TAIL_BYTES = 2 * 1024 * 1024
 MAX_EDGE_ROWS = 6
+STRONG_MODEL = re.compile(r"opus|fable", re.I)
 REQUIRED_ROW = re.compile(r"100\s*[×x]|twice|parallel|same action", re.I)
 
 
@@ -92,7 +98,7 @@ def match(text, routes):
     return [p for _, p in scored[:MAX_FILES]]
 
 
-def excerpt(rel):
+def excerpt(rel, lean=False):
     with open(os.path.join(PLAYBOOKS, *rel.split("/")), encoding="utf-8") as fh:
         text = fh.read()
     title = next((l[2:].strip() for l in text.splitlines() if l.startswith("# ")), rel)
@@ -100,6 +106,11 @@ def excerpt(rel):
     parts = [f"### {title} (`Playbooks/{rel}`)"]
     if decision:
         parts.append(decision.group(0))
+    if lean:
+        rows = edge_rows(rel)
+        if rows:
+            parts.append("Cases to cover:\n" + "\n".join(f"- {r[:220]}" for r in rows))
+        return "\n\n".join(parts) + f"\n(Rules and Verify: read `Playbooks/{rel}` only if a case is unclear.)"
     for level in KEEP_SECTIONS:
         m = re.search(r"^### " + level + r"\b.*?$(.*?)(?=^### |^## )", text, re.M | re.S)
         if m and m.group(1).strip():
@@ -222,15 +233,65 @@ def stop_check(payload, session):
     return "\n\n".join(lines) if len(lines) > 2 else ""
 
 
-def render(files, seen, header):
+def model_of(payload, session):
+    model = payload.get("model")
+    if isinstance(model, dict):
+        model = model.get("id") or model.get("display_name")
+    if not model:
+        for entry in reversed(tail_entries(payload.get("transcript_path") or "")):
+            if entry.get("type") == "assistant" and not entry.get("isSidechain"):
+                model = (entry.get("message") or {}).get("model")
+                if model:
+                    break
+    model = model or os.environ.get("ANTHROPIC_MODEL") or cli_model() or settings_model()
+    saved = state_path(session, "model")
+    if model:
+        write_state(saved, [str(model)])
+        return str(model)
+    known = read_state(saved)
+    return str(known[-1]) if known else ""
+
+
+def cli_model():
+    pid = os.getppid()
+    for _ in range(4):
+        try:
+            with open(f"/proc/{pid}/cmdline", "rb") as fh:
+                argv = fh.read().split(b"\0")
+            if b"--model" in argv:
+                return argv[argv.index(b"--model") + 1].decode("utf-8", "replace")
+            with open(f"/proc/{pid}/stat", encoding="utf-8") as fh:
+                pid = int(fh.read().rsplit(")", 1)[1].split()[1])
+        except (OSError, ValueError, IndexError):
+            return ""
+    return ""
+
+
+def settings_model():
+    base = os.environ.get("CLAUDE_CONFIG_DIR") or os.path.join(os.path.expanduser("~"), ".claude")
+    try:
+        with open(os.path.join(base, "settings.json"), encoding="utf-8") as fh:
+            return str(json.load(fh).get("model") or "")
+    except Exception:
+        return ""
+
+
+def lean_for(payload, session):
+    forced = os.environ.get("SABRY_KIT_PLAYBOOKS_LEAN")
+    if forced in ("0", "1"):
+        return forced == "1"
+    return bool(STRONG_MODEL.search(model_of(payload, session)))
+
+
+def render(files, seen, header, lean=False):
     fresh = [f for f in files if f not in seen]
     again = [f for f in files if f in seen]
     if not fresh and not again:
         return ""
-    lines = [header]
+    lines = [header, PRECEDENCE]
     for rel in fresh:
         try:
-            lines.append(excerpt(rel))
+            lines.append(excerpt(rel, lean))
         except OSError:
             continue
     if again:
@@ -239,9 +300,13 @@ def render(files, seen, header):
                  "project has one; every input (ids, amounts, counts, dates) is validated at the edge; a read-check-write "
                  "on shared rows is one atomic statement or runs under a row lock; old rows are checked for the cases "
                  "the new rule rejects.")
-    lines.append("The project's own code and the owner's profile win over a playbook. Pick the project's level "
-                 "(Playbooks/INDEX.md) and do not apply a higher level to be safe.")
     return "\n\n".join(lines)
+
+
+PRECEDENCE = ("Precedence: what the owner said in this session, then the project's existing code (response shape, "
+              "number types, status codes, rounding, naming), then a playbook. A playbook fills only what neither "
+              "decided; never change an existing convention to match it. Pick the project's level "
+              "(Playbooks/INDEX.md) and do not apply a higher level to be safe.")
 
 
 def emit(event, text):
@@ -275,11 +340,12 @@ def main():
                 print(json.dumps({"decision": "block", "reason": reason}, ensure_ascii=False))
             return 0
         if "--compact" in args:
+            lean = lean_for(payload, session)
             if payload.get("source") != "compact":
                 return 0
             files = read_state(given)[-MAX_FILES:]
             emit("SessionStart", render(files, set(), "[playbooks] Restored after the compaction: the playbooks "
-                                                      "this session was working with. Keep applying them:"))
+                                                      "this session was working with. Keep applying them:", lean))
             return 0
         if "--subagent" in args:
             agent = str(payload.get("agent_type") or "").split(":")[-1]
@@ -292,7 +358,7 @@ def main():
         files = match(payload.get("prompt"), routes)
         earlier = read_state(given)
         text = render(files, set(earlier), "[playbooks] This request matches the kit's playbooks. Apply them, and "
-                                           "say which ones you used in the report:")
+                                           "say which ones you used in the report:", lean_for(payload, session))
         write_state(given, [f for f in earlier if f not in files] + files)
         write_state(state_path(session, "turn"), files)
         emit("UserPromptSubmit", text)

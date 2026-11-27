@@ -130,6 +130,18 @@ class RouteTest(unittest.TestCase):
         p = subprocess.run([sys.executable, SCRIPT], input="not json", capture_output=True, text=True, timeout=30)
         self.assertEqual((p.returncode, p.stdout), (0, ""))
 
+    def test_strong_models_get_the_lean_excerpt(self):
+        text = "المخزون بيتباع أكتر من الموجود"
+        full = self.prompt(text, SABRY_KIT_PLAYBOOKS_LEAN="0")
+        self.tmp.cleanup()
+        self.setUp()
+        lean = self.run_hook({"hook_event_name": "UserPromptSubmit", "prompt": text, "model": "claude-opus-5-5"})
+        self.assertIn("Playbooks/backend/data/concurrency.md", lean)
+        self.assertIn("Cases to cover:", lean)
+        self.assertIn("Precedence:", lean)
+        self.assertLess(len(lean), len(full))
+        self.assertNotIn("Cases to cover:", full)
+
 
 if __name__ == "__main__":
     unittest.main()

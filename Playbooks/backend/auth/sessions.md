@@ -2,7 +2,7 @@
 
 - **Situation:** sign-in and sign-out, "remember me", access and refresh tokens, JWT, cookies, mobile sessions, "log out of all devices", a device list.
 - **Skip when:** auth is a managed service (Clerk, Auth0, Supabase Auth, Firebase); use its SDK and add only what it lacks.
-- **Decision:** (owner stack) a short-lived access JWT (15 min, `jose`) sent in `Authorization: Bearer`, plus a long-lived **rotating** refresh token: random, stored only as a hash, one row per device, sent as an `httpOnly; Secure; SameSite` cookie on the web and kept in secure storage on mobile. Reusing an already-rotated refresh token revokes the whole device session.
+- **Decision:** (owner stack; token type, lifetimes and cookie name and path follow the project's existing auth, and only a project with none gets these defaults) a short-lived access JWT (15 min, `jose`) sent in `Authorization: Bearer`, plus a long-lived **rotating** refresh token: random, stored only as a hash, one row per device, sent as an `httpOnly; Secure; SameSite` cookie on the web and kept in secure storage on mobile. Reusing an already-rotated refresh token revokes the whole device session.
 
 ## Levels
 
@@ -18,8 +18,8 @@
 
 - Passwords: `Bun.password.hash` (argon2id) / `verify`; minimum length 10, checked against a small breached-passwords list; no maximum below 128.
 - Sign-in answers the same `401 AUTH_INVALID` for unknown email and wrong password.
-- Refresh token: 32 random bytes, stored as SHA-256 in `RefreshTokens` (`UserId`, `TokenHash`, `ExpiresAt`, `RevokedAt`, `DeviceName`, `LastUsedAt`); lifetime 30 days.
-- Web cookie: `HttpOnly; Secure; SameSite=Lax; Path=/api/v1/auth`; the access token lives in memory in the SPA, never in `localStorage`.
+- Refresh token (type and lifetime follow existing auth; defaults shown): 32 random bytes, stored as SHA-256 in `RefreshTokens` (`UserId`, `TokenHash`, `ExpiresAt`, `RevokedAt`, `DeviceName`, `LastUsedAt`); lifetime 30 days.
+- Web cookie (name and path follow existing auth; the flags below stay mandatory): `HttpOnly; Secure; SameSite=Lax; Path=/api/v1/auth`; the access token lives in memory in the SPA, never in `localStorage`.
 - Sign-out revokes the device's refresh token; password change and reset revoke all of the user's tokens.
 - JWT: `HS256` with a secret from `SystemSettings` (or `EdDSA` when other services verify), `exp` 15 min, `sub` = user id, `iss`/`aud` checked, 30 s clock leeway.
 
@@ -50,6 +50,8 @@
 | Twice / parallel: two tabs refresh at once | The grace window returns the same new pair to both |
 
 ## Example — Standard, Bun + Hono
+
+The sample uses the owner's default token, cookie name and path; keep the project's own.
 
 ```ts
 export async function Refresh(c: Context, Presented: string) {

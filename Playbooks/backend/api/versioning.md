@@ -2,7 +2,7 @@
 
 - **Situation:** changing a response or request shape, renaming a field, removing an endpoint, a mobile app that can't be force-updated, third-party integrators, "will this break the app?".
 - **Skip when:** the only client is a web frontend deployed together with the API in one release (still keep changes additive within a deploy).
-- **Decision:** the major version is in the URL (`/api/v1`). Additive changes never bump it. A breaking change ships as a new version (or a new endpoint) beside the old one, which keeps working through a stated deprecation period announced with `Deprecation` and `Sunset` headers. Mobile apps send their version, and the API can require an upgrade with `426`.
+- **Decision:** keep the project's versioning scheme; add `/api/v1` only if it has none. By default the major version is in the URL (`/api/v1`). Additive changes never bump it. A breaking change ships as a new version (or a new endpoint) beside the old one, which keeps working through a stated deprecation period announced with `Deprecation` and `Sunset` headers. Mobile apps send their version, and the API can require an upgrade with `426` (or the project's existing upgrade signal).
 
 ## Levels
 

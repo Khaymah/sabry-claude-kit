@@ -51,6 +51,8 @@
 
 ## Example — Standard, Bun + Hono
 
+The sample uses the owner's default statuses, shape and wire types; assert the project's own.
+
 ```ts
 import { describe, expect, test } from "bun:test"
 

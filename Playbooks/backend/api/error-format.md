@@ -2,7 +2,7 @@
 
 - **Situation:** designing error responses, validation errors for forms, error codes the mobile app switches on, translated messages, a client asking "what errors can this return?".
 - **Skip when:** never for an API with any client.
-- **Decision:** every error uses the owner's shape `{ Success: false, Error: { Code, Message, Details?, RequestId? } }`. `Code` is a stable English `UPPER_SNAKE` identifier clients switch on; `Message` is translated for humans and never parsed; `Details` carries field errors for forms. Server internals never appear.
+- **Decision:** the owner's shape `{ Success: false, Error: { Code, Message, Details?, RequestId? } }` is the default for a project with no error shape yet; an existing shape is kept and `Code`, `Message` and `Details` are mapped onto it. Either way every error uses one shape. `Code` is a stable English `UPPER_SNAKE` identifier clients switch on; `Message` is translated for humans and never parsed; `Details` carries field errors for forms. Server internals never appear.
 
 ## Levels
 
@@ -16,9 +16,9 @@
 
 ### Minimum — always, never cut
 
-- One shape for every error, produced only by the error middleware (`quality/reliability/error-handling.md`).
+- One shape for every error (the project's existing one, else the default above), produced only by the error middleware (`quality/reliability/error-handling.md`).
 - Codes are stable and specific (`ORDER_NOT_FOUND`, `OUT_OF_STOCK`, `AUTH_INVALID`), not HTTP names (`BAD_REQUEST`) except for generic cases.
-- Validation errors: `400 VALIDATION_FAILED` with `Details: [{ Field: "Items.0.Quantity", Code: "too_big", Params: { Max: 50 } }]`, field paths matching the request body.
+- Validation errors: `400 VALIDATION_FAILED` (`422` if that is the project's validation status) with `Details: [{ Field: "Items.0.Quantity", Code: "too_big", Params: { Max: 50 } }]`, field paths matching the request body.
 - No stack traces, SQL, file paths or provider messages in any response.
 
 ### Standard — adds
@@ -48,6 +48,8 @@
 | Twice / parallel: duplicate create | `409 <ENTITY>_EXISTS`, the same every time |
 
 ## Example — Standard
+
+The samples use the owner's default shape; keep the project's own.
 
 ```json
 {

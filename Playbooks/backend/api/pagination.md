@@ -2,7 +2,7 @@
 
 - **Situation:** list endpoints, infinite scroll, "load more", admin tables with page numbers, exports of lists, feeds that grow.
 - **Skip when:** the list is bounded by design and small (a user's 5 addresses): return it whole with a hard cap.
-- **Decision:** keyset (cursor) pagination for every list that grows; an opaque cursor encodes the sort key and the id; page size capped server-side. Offset with page numbers only for small admin tables where jumping to page N matters.
+- **Decision:** if the project already paginates, keep its contract and params and add a total sort with an `Id` tiebreaker and a `Limit` cap. For new endpoints, or a measured scale problem, keyset (cursor) pagination for every list that grows; an opaque cursor encodes the sort key and the id; page size capped server-side. Offset with page numbers only for small admin tables where jumping to page N matters.
 
 ## Levels
 
@@ -16,17 +16,17 @@
 
 ### Minimum — always, never cut
 
-- Every list has `Limit` with a default (20) and a maximum (100) enforced by the schema.
+- Every list has `Limit` with a default (20) and a maximum (100) enforced by the schema (the project's param name and numbers if it has them).
 - Sort order is always total: the last sort column is `Id`, so ties never shuffle rows between pages.
 - No endpoint returns an unbounded list.
 
 ### Standard — adds
 
-- Cursor = base64url of `{ Sort, Values: [lastSortValue, lastId] }`; the server validates it (schema, same `Sort` as the request) and rejects tampered ones with `400`.
+- For new endpoints or a measured scale problem. Cursor = base64url of `{ Sort, Values: [lastSortValue, lastId] }`; the server validates it (schema, same `Sort` as the request) and rejects tampered ones with `400`.
 - Query: `WHERE (SortCol, Id) < ($1, $2) ORDER BY SortCol DESC, Id DESC LIMIT Limit + 1`; the extra row tells `HasMore` without a count.
-- Response `Meta: { Limit, NextCursor, HasMore }`; no `Total` on growing lists.
+- Response `Meta: { Limit, NextCursor, HasMore }` (the project's list shape if it has one); no `Total` on growing lists.
 - Each allowed sort has a matching composite index (`(TenantId, SortCol DESC, Id DESC)` with the tenant first in multi-tenant apps).
-- Offset pagination (admin): `Page` and `Limit` with `Total` from `COUNT(*)` only while the table is small; switch when it isn't.
+- Offset pagination (admin; also kept where the project already uses it): `Page` and `Limit` with `Total` from `COUNT(*)` only while the table is small; switch when it isn't.
 
 ### Advanced — adds
 
@@ -47,6 +47,8 @@
 | Twice / parallel: two clients page the same list | Cursors are stateless, nothing shared on the server |
 
 ## Example — Standard, Drizzle
+
+The sample uses the owner's default shape and a uuid `Id`; keep the project's own.
 
 ```ts
 const CursorSchema = z.object({ Sort: z.string(), Values: z.tuple([z.string(), z.string().uuid()]) })

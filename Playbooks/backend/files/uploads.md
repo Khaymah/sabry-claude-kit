@@ -18,7 +18,7 @@
 
 - Size limit per route (Nginx `client_max_body_size` in that `location`, plus the app check), and a type allow-list per purpose (`image/jpeg`, `image/png`, `image/webp` for avatars).
 - Type checked from the file's bytes (`file-type`), not from the extension or the client's `Content-Type`.
-- Stored under a generated name (`<uuidv7>.<ext from detected type>`), never the user's filename in a path; the original name kept only in the metadata row, sanitised for display.
+- Stored under a generated name (`<id>.<ext from detected type>`, the id in the project's id type; `uuidv7` for new tables with no convention), never the user's filename in a path; the original name kept only in the metadata row, sanitised for display.
 - Upload directory outside the web root; Nginx never executes or interprets anything from it; served with `Content-Disposition` and `X-Content-Type-Options: nosniff`.
 - A `Files` row per upload: `Id`, `OwnerId`, `TenantId`, `Purpose`, `StorageKey`, `MimeType`, `SizeBytes`, `OriginalName`, `Status`.
 
@@ -49,6 +49,8 @@
 | Twice / parallel: the same `complete` called twice | Conditional update from `Pending` to `Ready`; the second is a no-op |
 
 ## Example — Standard, Bun + S3-compatible storage
+
+The sample uses a `uuidv7` id, the default for new tables with no convention; keep the project's id type.
 
 ```ts
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3"

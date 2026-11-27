@@ -20,7 +20,7 @@
 
 ### Standard — adds
 
-- Table: `Id`, `TenantId` (if multi-tenant), `ActorId` (nullable for system), `ActorType` (`User`, `Admin`, `System`, `ApiKey`), `Action` (`Order.Refunded`), `EntityType`, `EntityId`, `Changes jsonb` (`{ Field: [Before, After] }`), `RequestId`, `Ip`, `CreatedAt`.
+- Table (`Id` type follows the project: uuid, bigint or ulid): `Id`, `TenantId` (if multi-tenant), `ActorId` (nullable for system), `ActorType` (`User`, `Admin`, `System`, `ApiKey`), `Action` (`Order.Refunded`), `EntityType`, `EntityId`, `Changes jsonb` (`{ Field: [Before, After] }`), `RequestId`, `Ip`, `CreatedAt`.
 - Written by the service in the same transaction as the change, through one `WriteAudit(Tx, …)` helper.
 - Audited actions at least: sign-in from a new device, password and email changes, role and permission changes, `SystemSettings` changes (key only for secrets), refunds and manual balance changes, deletions and restores, data exports, impersonation.
 - Secrets, passwords, tokens and full card data never appear in `Changes`; secret settings record `"[changed]"`.
@@ -47,6 +47,8 @@
 | Twice / parallel: two edits at the same moment | Two rows, each with its own before/after; the `Version` rule (`backend/data/concurrency.md`) prevents silent overwrite |
 
 ## Example — Standard, Drizzle
+
+The sample uses a `uuidv7` id, the default for new tables with no convention; keep the project's id type.
 
 ```ts
 export const AuditLogs = pgTable("AuditLogs", {

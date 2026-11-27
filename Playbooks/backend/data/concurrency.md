@@ -39,7 +39,7 @@
 | Case | Expected behaviour |
 |---|---|
 | The same product twice in one cart | Quantities merged before the update, so the stock check sees the total |
-| Quantity 3 requested, 2 left | The conditional update matches no row; `409 OUT_OF_STOCK` with the available quantity |
+| Quantity 3 requested, 2 left | The conditional update matches no row; `409 OUT_OF_STOCK` (code and status are defaults; keep the project's) with the available quantity |
 | Order cancelled after payment | Stock returned with a relative increment in the same transaction as the status change |
 | Two admins edit the same product | The second save gets `409 EDIT_CONFLICT` and sees the first one's values |
 | Deadlock detected (`40P01`) | Fixed by consistent lock order; if it still happens rarely, retried once by the transaction helper |
@@ -48,6 +48,8 @@
 | Twice / parallel: the same user clicks "buy" twice | Idempotency key on the request (`backend/reliability/idempotency.md`) plus the stock rule |
 
 ## Example — Standard, Drizzle
+
+The sample uses the owner's default codes, statuses and shape; keep the project's own.
 
 ```ts
 export async function ReserveStock(Tx: TTx, Items: { ProductId: string; Quantity: number }[]) {

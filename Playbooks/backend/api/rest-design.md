@@ -2,7 +2,7 @@
 
 - **Situation:** adding an endpoint, naming routes, choosing methods and status codes, filters and sorting, actions that aren't CRUD, a frontend or mobile team asking "what does the API look like?".
 - **Skip when:** the project uses GraphQL or tRPC end to end (`Stacks/GraphQL.md`).
-- **Decision:** resource routes under `/api/v1/` in plural kebab-case, standard methods and status codes, one response shape (`Stacks/Bun-Hono.md` §Responses), every input validated by a Zod schema at the route, and the schema is the contract the docs and the frontend types come from.
+- **Decision:** for a project with no conventions yet, resource routes under `/api/v1/` in plural kebab-case, standard methods and status codes, one response shape (`Stacks/Bun-Hono.md` §Responses); an existing project keeps its own route style, status mapping and formats, and consistency is the rule: never mix two conventions. Every input validated by a Zod schema at the route, and the schema is the contract the docs and the frontend types come from.
 
 ## Levels
 
@@ -16,11 +16,11 @@
 
 ### Minimum — always, never cut
 
-- Routes: `/api/v1/<resources>` and `/api/v1/<resources>/:Id`, nouns, plural, kebab-case (`/api/v1/order-items`). Nesting one level at most (`/projects/:Id/tasks`).
+- Routes (default when the project has no style; otherwise follow its prefix and casing): `/api/v1/<resources>` and `/api/v1/<resources>/:Id`, nouns, plural, kebab-case (`/api/v1/order-items`). Nesting one level at most (`/projects/:Id/tasks`).
 - Methods: `GET` reads (never changes state), `POST` creates or runs an action, `PATCH` partial update, `PUT` full replace (rare), `DELETE` removes.
-- Status codes: `200` OK · `201` created (with the resource) · `202` accepted for background work · `204` no body · `400` invalid input · `401` not signed in · `403` signed in, not allowed · `404` not found or not yours · `409` conflict with current state · `413` too large · `422` valid shape, impossible request (rare; prefer 409/400 consistently) · `429` rate-limited · `5xx` our fault.
+- Status codes (default mapping; keep the project's if it differs): `200` OK · `201` created (with the resource) · `202` accepted for background work · `204` no body · `400` invalid input · `401` not signed in · `403` signed in, not allowed · `404` not found or not yours · `409` conflict with current state · `413` too large · `422` valid shape, impossible request (rare; prefer 409/400 consistently) · `429` rate-limited · `5xx` our fault.
 - Every route validates params, query and body with Zod (`zValidator`) and reads only `c.req.valid(...)`; unknown fields are stripped.
-- Responses use the shared shape; lists carry `Meta` (`backend/api/pagination.md`); money as strings in minor units; dates ISO 8601 UTC.
+- Responses use the shared shape; lists carry `Meta` (`backend/api/pagination.md`); money as strings in minor units; dates ISO 8601 UTC. These are defaults: follow the project's existing response, list, money and date formats. Money stays integer minor units internally whatever the wire type.
 
 ### Standard — adds
 
@@ -49,6 +49,8 @@
 | Twice / parallel: the same `POST` twice | Natural unique key or idempotency key (`backend/reliability/idempotency.md`) |
 
 ## Example — Standard, Bun + Hono
+
+The sample uses the owner's default shape; keep the project's own.
 
 ```ts
 export const ListOrdersQuery = z.object({

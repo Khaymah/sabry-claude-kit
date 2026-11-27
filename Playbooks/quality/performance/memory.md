@@ -78,7 +78,7 @@ ReportsRoutes.get("/orders.csv", Auth, async (c) => {
 export const ProductCache = new LRUCache<string, IProduct>({ max: 5_000, ttl: 60_000 })
 ```
 
-UUIDv7 ids are time-ordered, so `ORDER BY "Id"` is a stable keyset. The `﻿` BOM makes Excel open Arabic text correctly.
+UUIDv7 ids are time-ordered, so `ORDER BY "Id"` is a stable keyset; with another id type (uuid v4, random) key by `(CreatedAt, Id)` instead. The `﻿` BOM makes Excel open Arabic text correctly.
 
 Nginx: `client_max_body_size 1m;` globally, raised only in the `location` of upload routes.
 

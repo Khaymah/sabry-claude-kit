@@ -102,7 +102,7 @@ export async function ResetPassword(Token: string, NewPassword: string) {
 }
 ```
 
-The controller for `RequestReset` always answers `200 { Success: true, Message: "auth.reset_sent_if_exists" }`. Minimum drops the `RefreshTokens` revocation, the queue (send inline) and the settings lookup.
+The controller for `RequestReset` always answers `200 { Success: true, Message: "auth.reset_sent_if_exists" }` (the owner's default shape; keep the project's own). Minimum drops the `RefreshTokens` revocation, the queue (send inline) and the settings lookup.
 
 Other stacks: Node `crypto.randomBytes(32)` + `createHash("sha256")`; Laravel keeps its broker and adds session revocation in the `PasswordReset` event listener.
 
