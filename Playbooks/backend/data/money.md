@@ -1,6 +1,6 @@
 # Money
 
-- **Situation:** prices, carts, orders, invoices, discounts, taxes, refunds, balances, wallets, payouts, any currency. Display formatting only: `frontend/i18n-rtl.md`.
+- **Situation:** prices, carts, orders, invoices, discounts, taxes, refunds, balances, wallets, payouts, any currency. Display formatting only: `frontend/rtl-i18n.md`.
 - **Skip when:** the app never stores an amount (it only links to a hosted checkout whose prices live in the provider, e.g. Stripe Price IDs). Then store the provider's ids and amounts as received.
 - **Decision:** amounts are integers in the currency's minor unit (`bigint`) next to an ISO 4217 code; rounding happens once, at a named step, with a stated rule. A rounding rule, response type or status code the owner stated or the project already uses wins over every default below.
 

@@ -4,9 +4,9 @@ Load-bearing choices still go through the `architecture-decision` skill; these f
 
 | Situation | File | Status |
 |---|---|---|
-| New backend, folder layout, monolith vs services | `modular-monolith.md` | planned |
-| Routes / controller / service / model, what goes where | `layering.md` | planned |
-| Side effects, events, "after an order is created also…" | `events-side-effects.md` | planned |
-| API or schema designed before code, shared types with the frontend | `contract-first.md` | planned |
-| "Should this be a separate service?" | `when-to-split-service.md` | planned |
-| Strategy, adapter, repository, factory: when they pay and when they don't | `design-patterns.md` | planned |
+| New backend, folder layout, monolith vs services | `modular-monolith.md` | ✅ |
+| Routes / controller / service / model, what goes where | `layering.md` | ✅ |
+| Side effects, events, "after an order is created also…" | `events-side-effects.md` | ✅ |
+| API or schema designed before code, shared types with the frontend | `contract-first.md` | ✅ |
+| "Should this be a separate service?" | `when-to-split-service.md` | ✅ |
+| Strategy, adapter, repository, factory: when they pay and when they don't | `design-patterns.md` | ✅ |

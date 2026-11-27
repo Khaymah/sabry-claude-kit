@@ -28,7 +28,7 @@ CLAUDE.md.bak
 CLAUDE.old-2.md
 config.json
 settings.json.bak
-security
+/security
 .gitignore
 chrome
 .gitignore
